@@ -65,11 +65,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
     <div class="body">
       <div class="row"><span class="eyebrow">Casey's card</span><span id="count" class="muted" style="font-variant-numeric:tabular-nums"></span></div>
       <div class="punches" id="punches"></div>
-      <div class="row">
-        <label for="qty">Coffees</label><input id="qty" type="number" min="1" max="9" value="1">
-        <button id="buy" type="button">Ring up</button>
-      </div>
-      <div id="receipt">No sale yet.</div>
+      <div id="receipt">Run a scenario below to see a sale.</div>
     </div>
   </section>
 
@@ -108,7 +104,6 @@ function ringUp(qty){ let charge=qty*PRICE; if(punches===9&&qty===1) charge=0; p
 function sale(qty){ const before=punches; const c=ringUp(qty); draw();
   const line=`${qty} coffee${qty>1?"s":""} with ${before} punch${before===1?"":"es"} → charged $${c.toFixed(2)} · card now ${punches} punch${punches===1?"":"es"}`;
   receipt.textContent=line; return line; }
-document.getElementById("buy").onclick=()=>sale(Math.max(1,parseInt(document.getElementById("qty").value)||1));
 draw();
 
 const scenarios=[
