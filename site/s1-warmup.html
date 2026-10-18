@@ -124,7 +124,7 @@ scenarios.forEach((s,i)=>{ const n=i+1; const el=document.createElement("div"); 
   <div class="row"><button class="ghost" type="button" id="run-${n}">Run scenario ${n}</button></div>
   <div class="actual" id="actual-${n}">Write the Then first, then run.</div>`;
   host.append(el);
-  document.getElementById(`run-${n}`).onclick=()=>{ const t=document.getElementById(`then-${n}`); if(!t.value.trim()){t.focus();return;}
+  document.getElementById(`run-${n}`).onclick=()=>{ const t=document.getElementById(`then-${n}`); if(!t.value.trim()){ t.focus(); t.placeholder="Write the Then first, then run."; t.style.borderColor="var(--accent)"; return; } t.style.borderColor="";
     punches=s.start; draw(); const line=sale(s.qty); const a=document.getElementById(`actual-${n}`); a.textContent=line; a.classList.add("ran"); };
 });
 </script>

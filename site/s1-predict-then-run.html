@@ -203,7 +203,7 @@ scenarios.forEach((s,i)=>{
     <div><button class="ghost" type="button" id="run-${n}">Run scenario ${n}</button></div>`;
   host.append(el);
   document.getElementById(`run-${n}`).onclick=()=>{
-    if(!document.getElementById(`then-${n}`).value.trim()){ document.getElementById(`then-${n}`).focus(); return; }
+    const t=document.getElementById(`then-${n}`); if(!t.value.trim()){ t.focus(); t.placeholder="Write your Then first, then run."; t.style.borderColor="var(--bad)"; return; } t.style.borderColor="";
     document.getElementById("q").value=s.q; const r=search(s.q); render(r);
     const a=document.getElementById(`actual-${n}`); a.textContent=describe(r); a.classList.add("ran");
     build();
