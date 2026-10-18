@@ -68,8 +68,6 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
       <div class="row">
         <label for="qty">Coffees</label><input id="qty" type="number" min="1" max="9" value="1">
         <button id="buy" type="button">Ring up</button>
-        <button id="reset" type="button" class="ghost">Set punches…</button>
-        <input id="setp" type="number" min="0" max="12" value="0" aria-label="Set punch count" hidden>
       </div>
       <div id="receipt">No sale yet.</div>
     </div>
@@ -111,9 +109,6 @@ function sale(qty){ const before=punches; const c=ringUp(qty); draw();
   const line=`${qty} coffee${qty>1?"s":""} with ${before} punch${before===1?"":"es"} → charged $${c.toFixed(2)} · card now ${punches} punch${punches===1?"":"es"}`;
   receipt.textContent=line; return line; }
 document.getElementById("buy").onclick=()=>sale(Math.max(1,parseInt(document.getElementById("qty").value)||1));
-const setp=document.getElementById("setp");
-document.getElementById("reset").onclick=()=>{ setp.hidden=!setp.hidden; if(!setp.hidden) setp.focus(); };
-setp.onchange=()=>{ punches=Math.max(0,parseInt(setp.value)||0); draw(); receipt.textContent="Card set to "+punches+" punches."; setp.hidden=true; };
 draw();
 
 const scenarios=[
