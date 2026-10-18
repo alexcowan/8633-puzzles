@@ -49,6 +49,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .col{display:grid;gap:6px;min-width:0}
 .actual{font-family:var(--mono);font-size:13px;white-space:pre-wrap;background:var(--bg);border:1px dashed var(--line);border-radius:4px;padding:8px;min-height:52px;color:var(--muted)}
 .actual.ran{color:var(--fg);border-style:solid}
+#results.locked{opacity:.55}
+#results.locked .part{border-style:dashed}
 .match{display:flex;gap:14px;font-size:14px;flex-wrap:wrap}
 .match label{display:flex;gap:5px;align-items:center}
 .rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
@@ -163,9 +165,10 @@ function rowFor(p){
   return d;
 }
 function render(parts){ results.innerHTML=""; for(const p of parts) results.append(rowFor(p)); }
-function describe(parts){
-  if(!parts.length) return "(nothing shown — the results area is blank)";
-  return parts.length+" result"+(parts.length>1?"s":"")+" shown:\n"+parts.map(p=>`  ${p.part_number}  ${p.name}  $${p.price.toFixed(2)}  ${p.in_stock?"In stock":"Backordered"}`).join("\n");
+function describe(parts, q){
+  const head=q!==undefined?`searched "${q}" → `:"";
+  if(!parts.length) return head+"(nothing shown — the results area is blank)";
+  return head+parts.length+" result"+(parts.length>1?"s":"")+" shown:\n"+parts.map(p=>`  ${p.part_number}  ${p.name}  $${p.price.toFixed(2)}  ${p.in_stock?"In stock":"Backordered"}`).join("\n");
 }
 document.getElementById("go").onclick=()=>render(search(document.getElementById("q").value));
 document.getElementById("q").addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("go").click(); });
@@ -173,7 +176,8 @@ render(catalog);
 function unlockCheck(){
   const all=[1,2,3,4,5].every(n=>{ const t=document.getElementById("then-"+n); return t&&t.value.trim(); });
   const q=document.getElementById("q"), go=document.getElementById("go"), m=document.getElementById("lockmsg");
-  q.disabled=!all; go.disabled=!all; m.hidden=all;
+  q.disabled=!all; go.disabled=!all; m.hidden=all; if(!all) q.value="";
+  document.getElementById("results").classList.toggle("locked",!all);
   q.placeholder=all?"Part number":"Locked until you've written all five Thens";
 }
 document.addEventListener("input",unlockCheck);
@@ -212,15 +216,15 @@ scenarios.forEach((s,i)=>{
   host.append(el);
   document.getElementById(`run-${n}`).onclick=()=>{
     const t=document.getElementById(`then-${n}`); if(!t.value.trim()){ t.focus(); t.placeholder="Write your Then first, then run."; t.style.borderColor="var(--bad)"; return; } t.style.borderColor="";
-    document.getElementById("q").value=s.q; const r=search(s.q); render(r);
-    const a=document.getElementById(`actual-${n}`); a.textContent=describe(r); a.classList.add("ran");
+    const qb=document.getElementById("q"); if(!qb.disabled) qb.value=s.q; const r=search(s.q); render(r);
+    const a=document.getElementById(`actual-${n}`); a.textContent=describe(r, s.q); a.classList.add("ran");
     build();
   };
 });
 document.getElementById("x-run").onclick=()=>{
   const q=document.getElementById("x-when").value; document.getElementById("q").value=q;
   const r=search(q); render(r);
-  const a=document.getElementById("x-actual"); a.textContent=describe(r); a.classList.add("ran"); build();
+  const a=document.getElementById("x-actual"); a.textContent=describe(r, q); a.classList.add("ran"); build();
 };
 
 function v(id){ const e=document.getElementById(id); return e?e.value.trim():""; }
