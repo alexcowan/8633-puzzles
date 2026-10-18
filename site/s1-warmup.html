@@ -85,11 +85,15 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
 
   <details>
     <summary>Show the code (after we've run all three)</summary>
-    <p class="muted" style="margin-top:8px">The whole free-coffee rule is one line. Ask: does that line say what the story says?</p>
+    <p class="muted" style="margin-top:8px">The whole rule is a few lines. Ask: do they say what the story says?</p>
 <pre class="code">function ringUp(qty) {
   let charge = qty * PRICE;
-  if (punches === 9 &amp;&amp; qty === 1) charge = 0;   // tenth coffee free
-  punches += qty;
+  if (punches === 9 &amp;&amp; qty === 1) {   // tenth coffee free, new card
+    charge = 0;
+    punches = 0;
+    return charge;
+  }
+  if (punches > 0) punches += qty;      // add punches to the card
   return charge;
 }</pre>
   </details>
@@ -100,7 +104,7 @@ const PRICE=4.50; let punches=0;
 const countEl=document.getElementById("count"), punchEl=document.getElementById("punches"), receipt=document.getElementById("receipt");
 function draw(){ countEl.textContent=punches+" punch"+(punches===1?"":"es"); punchEl.innerHTML="";
   for(let i=1;i<=10;i++){ const d=document.createElement("div"); d.className="punch"+(i<=punches?" on":""); d.textContent=i; punchEl.append(d);} }
-function ringUp(qty){ let charge=qty*PRICE; if(punches===9&&qty===1) charge=0; punches+=qty; return charge; }
+function ringUp(qty){ let charge=qty*PRICE; if(punches===9&&qty===1){ charge=0; punches=0; return charge; } if(punches>0) punches+=qty; return charge; }
 function sale(qty){ const before=punches; const c=ringUp(qty); draw();
   const line=`${qty} coffee${qty>1?"s":""} with ${before} punch${before===1?"":"es"} → charged $${c.toFixed(2)} · card now ${punches} punch${punches===1?"":"es"}`;
   receipt.textContent=line; return line; }
@@ -109,7 +113,7 @@ draw();
 const scenarios=[
   {given:"Casey has 9 punches", when:"buys 1 coffee", start:9, qty:1},
   {given:"Casey has 8 punches and brings a friend", when:"buys 2 coffees", start:8, qty:2},
-  {given:"Casey got her free coffee yesterday and is back for another", when:"buys 1 coffee", start:10, qty:1},
+  {given:"Casey got her free coffee yesterday, so she has a fresh card", when:"buys 1 coffee", start:0, qty:1},
 ];
 const host=document.getElementById("scenarios");
 scenarios.forEach((s,i)=>{ const n=i+1; const el=document.createElement("div"); el.className="scn";
