@@ -99,7 +99,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
 const PRICE=4.50; let punches=0;
 const countEl=document.getElementById("count"), punchEl=document.getElementById("punches"), receipt=document.getElementById("receipt");
 function draw(){ countEl.textContent=punches+" punch"+(punches===1?"":"es"); punchEl.innerHTML="";
-  for(let i=1;i<=Math.max(10,punches);i++){ const d=document.createElement("div"); d.className="punch"+(i<=punches?" on":""); d.textContent=i; punchEl.append(d);} }
+  for(let i=1;i<=10;i++){ const d=document.createElement("div"); d.className="punch"+(i<=punches?" on":""); d.textContent=i; punchEl.append(d);} }
 function ringUp(qty){ let charge=qty*PRICE; if(punches===9&&qty===1) charge=0; punches+=qty; return charge; }
 function sale(qty){ const before=punches; const c=ringUp(qty); draw();
   const line=`${qty} coffee${qty>1?"s":""} with ${before} punch${before===1?"":"es"} → charged $${c.toFixed(2)} · card now ${punches} punch${punches===1?"":"es"}`;
