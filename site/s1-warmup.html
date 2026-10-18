@@ -114,7 +114,7 @@ draw();
 const scenarios=[
   {given:"Casey has 9 punches", when:"buys 1 coffee", start:9, qty:1},
   {given:"Casey has 8 punches and brings a friend", when:"buys 2 coffees", start:8, qty:2},
-  {given:"Casey has 10 punches (the free one never fired)", when:"buys 1 coffee", start:10, qty:1},
+  {given:"Casey got her free coffee yesterday and is back for another", when:"buys 1 coffee", start:10, qty:1},
 ];
 const host=document.getElementById("scenarios");
 scenarios.forEach((s,i)=>{ const n=i+1; const el=document.createElement("div"); el.className="scn";
