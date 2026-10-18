@@ -1,6 +1,6 @@
 # Coding with GPT — puzzles
 
-`site/` is published with GitHub Pages (Settings → Pages → main, `/site`).
+`site/` is published with GitHub Pages (the workflow in `.github/workflows/pages.yml` on every push to `site/`).
 `worker/` is the grader proxy on Cloudflare Workers. The API key and class code are Wrangler secrets.
 
 ## Add a puzzle
