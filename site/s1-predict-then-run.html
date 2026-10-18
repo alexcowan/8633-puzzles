@@ -1,0 +1,257 @@
+<title>Predict, Then Run</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column worksheet, the live app pinned in a bordered panel, scenarios as numbered rows below it.
+   Palette and type per the COWAN+ style guide: off-white ground, dark grey type, warm red accent, navy/teal secondaries, Bree Serif titles, Abel body. */
+:root{
+  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
+  --accent:#DA5138; --accent-fg:#FFFFFF; --bar:#002D45; --bar-fg:#FFFFFF; --second:#63ADB1; --ok:#357B68; --bad:#DA5138; --note:#FFFFFF;
+  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --bar:#002D45; --bar-fg:#F2F1E6; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --bar:#002D45; --bar-fg:#F2F1E6; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;
+  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:860px;margin:0 auto;display:grid;gap:28px}
+h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
+h2{font-family:var(--serif);font-size:20px;font-weight:400;color:var(--head);margin:0 0 10px}
+p{margin:0 0 10px;max-width:68ch}
+.eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:18px}
+.app{border:1px solid var(--bar);padding:0;overflow:hidden}
+.app .bar{background:var(--bar);color:var(--bar-fg);padding:8px 14px;font-family:var(--serif);font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.app .body{padding:16px 14px;display:grid;gap:12px}
+.search{display:flex;gap:8px;flex-wrap:wrap}
+input[type=text],textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:7px 9px;min-width:0}
+input[type=text]{flex:1 1 200px}
+textarea{width:100%;resize:vertical;min-height:52px}
+button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
+button.ghost{background:transparent;color:var(--head);border:1px solid var(--line)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#results{min-height:48px;display:grid;gap:6px}
+.part{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:baseline;border:1px solid var(--line);border-radius:4px;padding:8px 10px;background:var(--bg)}
+.part .num{font-family:var(--mono);font-size:13px}
+.part .price{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.part .stock{grid-column:2/4;font-size:13px;color:var(--muted)}
+.scn{display:grid;gap:10px;border-top:1px solid var(--line);padding-block:16px}
+.scn:first-of-type{border-top:0}
+.gwt{display:grid;grid-template-columns:62px 1fr;gap:4px 10px;font-size:14px}
+.gwt b{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:3px}
+.gwt .q{font-family:var(--mono);background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:0 5px}
+.run{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:560px){.run{grid-template-columns:1fr}}
+.col{display:grid;gap:6px;min-width:0}
+.actual{font-family:var(--mono);font-size:13px;white-space:pre-wrap;background:var(--bg);border:1px dashed var(--line);border-radius:4px;padding:8px;min-height:52px;color:var(--muted)}
+.actual.ran{color:var(--fg);border-style:solid}
+.match{display:flex;gap:14px;font-size:14px;flex-wrap:wrap}
+.match label{display:flex;gap:5px;align-items:center}
+.rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
+.rubric ol{margin:6px 0 0;padding-left:20px}
+.rubric li{margin:4px 0}
+pre.code{font-family:var(--mono);font-size:12.5px;line-height:1.5;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:12px;overflow-x:auto;margin:0}
+details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
+.part,.scn,.gwt .q,.actual,input[type=text],textarea,pre.code{border-color:var(--line-soft)}
+#submission{font-family:var(--mono);font-size:12.5px;min-height:220px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toast{font-size:13px;color:var(--ok)}
+@media (prefers-reduced-motion:no-preference){.actual{transition:border-color .2s}}
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Coding with GPT · Session 1 · In-class puzzle</div>
+    <h1>Predict, then run</h1>
+    <p>Below is a working 1.0 of the HVAC in a Hurry part lookup. The story it was built for:</p>
+    <p><em>As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair.</em></p>
+    <p>Five scenarios are started for you. For each one, write the <b>Then</b> before you touch the app. Then run it and compare. Finish by writing one scenario the story needs that this app fails.</p>
+  </header>
+
+  <section class="panel app">
+    <div class="bar"><span>HinH Parts Lookup v1.0</span><span class="muted" style="color:inherit;opacity:.8;font-weight:400">6 parts in catalog</span></div>
+    <div class="body">
+      <div class="search">
+        <input id="q" type="text" placeholder="Part number" autocomplete="off" aria-label="Part number">
+        <button id="go" type="button">Search</button>
+      </div>
+      <div id="results" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="rubric">
+    <div class="eyebrow">Be ready to explain</div>
+    <ol>
+      <li>Each Then says what Trent gets (price, availability, a count), not what the screen does.</li>
+      <li>Which of the five you got wrong, and what you'd assumed.</li>
+      <li>Scenario 2: is two results a bug or a feature? Your reason should come from the story, not the code.</li>
+      <li>Scenario 4: the part is in the catalog. Should Trent have found it? What does the story say?</li>
+      <li>Your own scenario: why the story requires it, and what the app did instead.</li>
+    </ol>
+  </section>
+
+  <section class="panel">
+    <h2>Scenarios</h2>
+    <div id="scenarios"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Your scenario</h2>
+    <p class="muted">Something the story requires and this app gets wrong. Type the exact text Trent enters in the When box, then run it.</p>
+    <div class="scn" style="border-top:0;padding-top:0">
+      <div class="gwt">
+        <b>Given</b><textarea id="x-given" placeholder="Trent …"></textarea>
+        <b>When</b><div class="row"><span>he enters</span><input id="x-when" type="text" style="font-family:var(--mono);max-width:240px" placeholder="exact text"><span>and searches,</span></div>
+        <b>Then</b><textarea id="x-then" placeholder="he sees …"></textarea>
+      </div>
+      <div class="run">
+        <div class="col"><span class="eyebrow">Actual</span><div class="actual" id="x-actual">Not run yet.</div></div>
+        <div class="col"><span class="eyebrow">Why this matters for the story</span><textarea id="x-why" placeholder="One or two sentences."></textarea></div>
+      </div>
+      <div><button class="ghost" type="button" id="x-run">Run my scenario</button></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Check my work</h2>
+    <p class="muted">Not graded. An AI reads your answers against the list above and tells you where they're thin. Class code is on the Canvas page.</p>
+    <div class="row">
+      <input id="code" type="text" placeholder="Class code" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
+      <button type="button" id="check">Check</button>
+      <span class="muted" id="status" hidden></span>
+    </div>
+    <div id="feedback" style="margin-top:12px;display:grid;gap:8px"></div>
+  </section>
+
+  <details>
+    <summary>Show the search code (for after you've run everything)</summary>
+    <p class="muted" style="margin-top:8px">This is the whole search. Nothing here says whether two results for one number is right. Only the story can.</p>
+<pre class="code">function search(query) {
+  return catalog.filter(part => part.part_number.startsWith(query));
+}
+
+function render(parts) {
+  results.innerHTML = "";
+  for (const p of parts) results.append(rowFor(p));
+}</pre>
+  </details>
+</main>
+
+<script>
+const catalog = [
+  {part_number:"HX-2201", name:"Blower motor, 1/2 HP", price:184.00, in_stock:true},
+  {part_number:"CP-0450", name:"Run capacitor, 45 µF", price:22.50, in_stock:true},
+  {part_number:"CP-0450-L", name:"Run capacitor, 45 µF, low-temp", price:31.00, in_stock:false},
+  {part_number:"TH-7710", name:"Thermostat, programmable", price:96.00, in_stock:true},
+  {part_number:"FL-1620", name:"Filter, 16×20 pleated", price:14.25, in_stock:false},
+  {part_number:"IG-3300", name:"Hot surface igniter", price:61.00, in_stock:true},
+];
+const results = document.getElementById("results");
+function search(query){ return catalog.filter(p => p.part_number.startsWith(query)); }
+function rowFor(p){
+  const d=document.createElement("div"); d.className="part";
+  d.innerHTML=`<span class="num"></span><span class="name"></span><span class="price"></span><span class="stock"></span>`;
+  d.querySelector(".num").textContent=p.part_number;
+  d.querySelector(".name").textContent=p.name;
+  d.querySelector(".price").textContent="$"+p.price.toFixed(2);
+  d.querySelector(".stock").textContent=p.in_stock?"In stock":"Backordered";
+  return d;
+}
+function render(parts){ results.innerHTML=""; for(const p of parts) results.append(rowFor(p)); }
+function describe(parts){
+  if(!parts.length) return "(nothing shown — the results area is blank)";
+  return parts.length+" result"+(parts.length>1?"s":"")+" shown:\n"+parts.map(p=>`  ${p.part_number}  ${p.name}  $${p.price.toFixed(2)}  ${p.in_stock?"In stock":"Backordered"}`).join("\n");
+}
+document.getElementById("go").onclick=()=>render(search(document.getElementById("q").value));
+document.getElementById("q").addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("go").click(); });
+render(catalog);
+
+const scenarios=[
+  {given:"Trent has part HX-2201 in his hand", q:"HX-2201"},
+  {given:"Trent has part CP-0450 in his hand", q:"CP-0450"},
+  {given:"Trent has a part whose number is not in the catalog", q:"ZZ-9999"},
+  {given:"The label on Trent's part is half worn off; he can read the digits but not the letters", q:"0450"},
+  {given:"Trent is typing fast on his phone and doesn't hit shift", q:"hx-2201"},
+];
+const host=document.getElementById("scenarios");
+scenarios.forEach((s,i)=>{
+  const n=i+1;
+  const el=document.createElement("div"); el.className="scn";
+  el.innerHTML=`
+    <div class="eyebrow">Scenario ${n}</div>
+    <div class="gwt">
+      <b>Given</b><div>${s.given},</div>
+      <b>When</b><div>he enters <span class="q">${s.q}</span> and searches,</div>
+      <b>Then</b><textarea id="then-${n}" placeholder="he sees …"></textarea>
+    </div>
+    <div class="run">
+      <div class="col"><span class="eyebrow">Actual</span><div class="actual" id="actual-${n}">Write your Then first, then run.</div></div>
+      <div class="col">
+        <span class="eyebrow">Did it match what you wrote?</span>
+        <div class="match">
+          <label><input type="radio" name="m-${n}" value="yes" id="m-${n}-y"> Yes</label>
+          <label><input type="radio" name="m-${n}" value="no" id="m-${n}-n"> No</label>
+          <label><input type="radio" name="m-${n}" value="partly" id="m-${n}-p"> Partly</label>
+        </div>
+        ${n===2?'<textarea id="bug-2" placeholder="Bug or feature? Why, in terms of the story?"></textarea>':''}
+      </div>
+    </div>
+    <div><button class="ghost" type="button" id="run-${n}">Run scenario ${n}</button></div>`;
+  host.append(el);
+  document.getElementById(`run-${n}`).onclick=()=>{
+    if(!document.getElementById(`then-${n}`).value.trim()){ document.getElementById(`then-${n}`).focus(); return; }
+    document.getElementById("q").value=s.q; const r=search(s.q); render(r);
+    const a=document.getElementById(`actual-${n}`); a.textContent=describe(r); a.classList.add("ran");
+    build();
+  };
+});
+document.getElementById("x-run").onclick=()=>{
+  const q=document.getElementById("x-when").value; document.getElementById("q").value=q;
+  const r=search(q); render(r);
+  const a=document.getElementById("x-actual"); a.textContent=describe(r); a.classList.add("ran"); build();
+};
+
+function v(id){ const e=document.getElementById(id); return e?e.value.trim():""; }
+function m(n){ const c=document.querySelector(`input[name=m-${n}]:checked`); return c?c.value:"(not answered)"; }
+function build(){
+  try{ localStorage.setItem("ptr-draft", JSON.stringify([...document.querySelectorAll("textarea,input[type=text],input[type=radio]")].map(e=>e.type==="radio"?e.checked:e.value))); }catch(e){}
+}
+document.addEventListener("input",build);
+
+// ---- Check my work (calls the grader Worker; see worker/ in the repo) ----
+const GRADER_URL = "https://cwg-grader.YOUR-SUBDOMAIN.workers.dev/grade";
+const PUZZLE_ID = "s1-predict-then-run";
+function v(id){ const e=document.getElementById(id); return e?e.value.trim():""; }
+function m(n){ const c=document.querySelector(`input[name=m-${n}]:checked`); return c?c.value:"not answered"; }
+function actual(id){ const a=document.getElementById(id); return a.classList.contains("ran")?a.textContent:"not run"; }
+function collect(){
+  return {
+    scenarios: scenarios.map((s,i)=>({ n:i+1, given:s.given, when:s.q, then:v("then-"+(i+1)), actual:actual("actual-"+(i+1)), matched:m(i+1), ...(i===1?{bug_or_feature:v("bug-2")}:{}) })),
+    own: { given:v("x-given"), when:v("x-when"), then:v("x-then"), actual:actual("x-actual"), why:v("x-why") },
+  };
+}
+const codeEl=document.getElementById("code"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
+try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
+document.getElementById("check").onclick=async()=>{
+  const code=codeEl.value.trim(); if(!code){ codeEl.focus(); return; }
+  try{ localStorage.setItem("cwg-code",code); }catch(e){}
+  statusEl.hidden=false; statusEl.textContent="Reading your answers…"; fb.innerHTML="";
+  try{
+    const r=await fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:PUZZLE_ID,code,answers:collect()})});
+    const d=await r.json();
+    if(!r.ok){ statusEl.textContent=d.error||("Error "+r.status); return; }
+    statusEl.hidden=true;
+    (d.results||[]).forEach(res=>{
+      const c=d.criteria[res.n-1]||""; const el=document.createElement("div");
+      el.className="gwt"; el.innerHTML=`<b style="color:${res.pass?"var(--ok)":"var(--bad)"}">${res.pass?"PASS":"THIN"}</b><div><div>${c}</div><div class="muted"></div></div>`;
+      el.querySelector(".muted").textContent=res.note||""; fb.append(el);
+    });
+    if(d.summary){ const s=document.createElement("p"); s.textContent=d.summary; fb.append(s); }
+  }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
+};
+try{ const d=JSON.parse(localStorage.getItem("ptr-draft")||"null"); if(d){ [...document.querySelectorAll("textarea,input[type=text],input[type=radio]")].forEach((e,i)=>{ if(e.type==="radio") e.checked=!!d[i]; else if(d[i]!=null) e.value=d[i]; }); } }catch(e){}
+</script>

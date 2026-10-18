@@ -1,0 +1,17 @@
+name = "cwg-grader"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+# Pages origins allowed to call the grader. Add http://localhost:8000 while testing locally.
+[vars]
+ALLOWED_ORIGINS = "https://alexcowan.github.io"
+
+# Per-IP backstop: 150 requests per minute. A classroom shares one IP, so this is a room-sized limit.
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 150, period = 60 }
+
+# Secrets are set with `wrangler secret put`, never written here:
+#   ANTHROPIC_API_KEY   the key from the cwg-grader workspace
+#   CLASS_CODE          the code students enter (rotate each term)

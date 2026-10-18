@@ -1,0 +1,135 @@
+<title>Punch Card Warm-up</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: projected, one column, large type; app panel on top, three scenarios below.
+   Palette and type per the COWAN+ style guide: off-white ground, dark grey type, warm red accent, navy/orange secondaries, Bree Serif titles, Abel body. */
+:root{
+  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
+  --accent:#DA5138; --accent-fg:#FFFFFF; --bar:#002D45; --bar-fg:#FFFFFF; --punch:#F99B1C; --second:#63ADB1; --note:#FFFFFF;
+  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --bar:#002D45; --bar-fg:#F2F1E6; --punch:#F99B1C; --second:#63ADB1; --note:#213340; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --bar:#002D45; --bar-fg:#F2F1E6; --punch:#F99B1C; --second:#63ADB1; --note:#213340; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:19px;line-height:1.5;
+  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:820px;margin:0 auto;display:grid;gap:26px}
+h1{font-family:var(--serif);font-size:34px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
+h2{font-family:var(--serif);font-size:21px;font-weight:400;color:var(--head);margin:0 0 10px}
+p{margin:0 0 10px;max-width:66ch}
+.eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:18px}
+.app{border:1px solid var(--bar);padding:0;overflow:hidden}
+.app .bar{background:var(--bar);color:var(--bar-fg);padding:8px 14px;font-family:var(--serif);font-size:17px}
+.app .body{padding:18px 14px;display:grid;gap:14px}
+.punches{display:flex;gap:8px;flex-wrap:wrap}
+.punch{width:32px;height:32px;border-radius:50%;border:2px solid var(--punch);display:grid;place-items:center;font-size:13px;color:var(--muted)}
+.punch.on{background:var(--punch);color:#002D45}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+input[type=number],textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:7px 9px;min-width:0}
+input[type=number]{width:70px;font-variant-numeric:tabular-nums}
+textarea{width:100%;resize:vertical;min-height:50px}
+button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:8px 14px;cursor:pointer;letter-spacing:.02em}
+button.ghost{background:transparent;color:var(--head);border:1px solid var(--line)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#receipt{font-family:var(--mono);font-size:14px;white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:10px;min-height:44px}
+.scn{display:grid;gap:10px;border-top:1px solid var(--line);padding-block:16px}
+.scn:first-of-type{border-top:0;padding-top:0}
+.gwt{display:grid;grid-template-columns:62px 1fr;gap:4px 10px}
+.gwt b{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:4px}
+.actual{font-family:var(--mono);font-size:14px;white-space:pre-wrap;background:var(--bg);border:1px dashed var(--line);border-radius:4px;padding:8px;min-height:44px;color:var(--muted)}
+.actual.ran{color:var(--fg);border-style:solid}
+.rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
+.rubric ol{margin:6px 0 0;padding-left:20px}
+pre.code{font-family:var(--mono);font-size:13px;line-height:1.5;background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:12px;overflow-x:auto;margin:0}
+details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
+.scn,#receipt,.actual,input[type=number],textarea{border-color:var(--line-soft)}
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">Coding with GPT · Session 1 · Warm-up, as a class</div>
+    <h1>Punch card: predict, then run</h1>
+    <p>A café built a loyalty punch card into its register. The story it was built for:</p>
+    <p><em>As Casey the regular, I want every tenth coffee free so that coming here every day pays off.</em></p>
+    <p>Three scenarios. For each, we write the <b>Then</b> together before anyone presses the button.</p>
+  </header>
+
+  <section class="panel app">
+    <div class="bar">Bean There · Register v1.0 · coffee $4.50</div>
+    <div class="body">
+      <div class="row"><span class="eyebrow">Casey's card</span><span id="count" class="muted" style="font-variant-numeric:tabular-nums"></span></div>
+      <div class="punches" id="punches"></div>
+      <div class="row">
+        <label for="qty">Coffees</label><input id="qty" type="number" min="1" max="9" value="1">
+        <button id="buy" type="button">Ring up</button>
+        <button id="reset" type="button" class="ghost">Set punches…</button>
+        <input id="setp" type="number" min="0" max="12" value="0" aria-label="Set punch count" hidden>
+      </div>
+      <div id="receipt">No sale yet.</div>
+    </div>
+  </section>
+
+  <section class="rubric">
+    <div class="eyebrow">What we're practicing</div>
+    <ol>
+      <li>A Then says what Casey gets (what she pays, how many punches she has), not what the screen does.</li>
+      <li>Write it first. Running the app is a check on your prediction, not a substitute for it.</li>
+      <li>When the app and the story disagree, the story wins.</li>
+    </ol>
+  </section>
+
+  <section class="panel">
+    <h2>Scenarios</h2>
+    <div id="scenarios"></div>
+  </section>
+
+  <details>
+    <summary>Show the code (after we've run all three)</summary>
+    <p class="muted" style="margin-top:8px">The whole free-coffee rule is one line. Ask: does that line say what the story says?</p>
+<pre class="code">function ringUp(qty) {
+  let charge = qty * PRICE;
+  if (punches === 9 &amp;&amp; qty === 1) charge = 0;   // tenth coffee free
+  punches += qty;
+  return charge;
+}</pre>
+  </details>
+</main>
+
+<script>
+const PRICE=4.50; let punches=0;
+const countEl=document.getElementById("count"), punchEl=document.getElementById("punches"), receipt=document.getElementById("receipt");
+function draw(){ countEl.textContent=punches+" punch"+(punches===1?"":"es"); punchEl.innerHTML="";
+  for(let i=1;i<=Math.max(10,punches);i++){ const d=document.createElement("div"); d.className="punch"+(i<=punches?" on":""); d.textContent=i; punchEl.append(d);} }
+function ringUp(qty){ let charge=qty*PRICE; if(punches===9&&qty===1) charge=0; punches+=qty; return charge; }
+function sale(qty){ const before=punches; const c=ringUp(qty); draw();
+  const line=`${qty} coffee${qty>1?"s":""} with ${before} punch${before===1?"":"es"} → charged $${c.toFixed(2)} · card now ${punches} punch${punches===1?"":"es"}`;
+  receipt.textContent=line; return line; }
+document.getElementById("buy").onclick=()=>sale(Math.max(1,parseInt(document.getElementById("qty").value)||1));
+const setp=document.getElementById("setp");
+document.getElementById("reset").onclick=()=>{ setp.hidden=!setp.hidden; if(!setp.hidden) setp.focus(); };
+setp.onchange=()=>{ punches=Math.max(0,parseInt(setp.value)||0); draw(); receipt.textContent="Card set to "+punches+" punches."; setp.hidden=true; };
+draw();
+
+const scenarios=[
+  {given:"Casey has 9 punches", when:"buys 1 coffee", start:9, qty:1},
+  {given:"Casey has 8 punches and brings a friend", when:"buys 2 coffees", start:8, qty:2},
+  {given:"Casey has 10 punches (the free one never fired)", when:"buys 1 coffee", start:10, qty:1},
+];
+const host=document.getElementById("scenarios");
+scenarios.forEach((s,i)=>{ const n=i+1; const el=document.createElement("div"); el.className="scn";
+  el.innerHTML=`<div class="eyebrow">Scenario ${n}</div>
+  <div class="gwt"><b>Given</b><div>${s.given},</div><b>When</b><div>she ${s.when},</div>
+  <b>Then</b><textarea id="then-${n}" placeholder="she pays … and her card shows …"></textarea></div>
+  <div class="row"><button class="ghost" type="button" id="run-${n}">Run scenario ${n}</button></div>
+  <div class="actual" id="actual-${n}">Write the Then first, then run.</div>`;
+  host.append(el);
+  document.getElementById(`run-${n}`).onclick=()=>{ const t=document.getElementById(`then-${n}`); if(!t.value.trim()){t.focus();return;}
+    punches=s.start; draw(); const line=sale(s.qty); const a=document.getElementById(`actual-${n}`); a.textContent=line; a.classList.add("ran"); };
+});
+</script>
