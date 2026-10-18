@@ -76,9 +76,10 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
     <div class="bar"><span>HinH Parts Lookup v1.0</span><span class="muted" style="color:inherit;opacity:.8;font-weight:400">6 parts in catalog</span></div>
     <div class="body">
       <div class="search">
-        <input id="q" type="text" placeholder="Part number" autocomplete="off" aria-label="Part number">
-        <button id="go" type="button">Search</button>
+        <input id="q" type="text" placeholder="Locked until you've written all five Thens" autocomplete="off" aria-label="Part number" disabled>
+        <button id="go" type="button" disabled>Search</button>
       </div>
+      <div class="muted" id="lockmsg" style="font-size:14px">The search box unlocks once every scenario below has a Then. Predict first.</div>
       <div id="results" aria-live="polite"></div>
     </div>
   </section>
@@ -169,6 +170,13 @@ function describe(parts){
 document.getElementById("go").onclick=()=>render(search(document.getElementById("q").value));
 document.getElementById("q").addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("go").click(); });
 render(catalog);
+function unlockCheck(){
+  const all=[1,2,3,4,5].every(n=>{ const t=document.getElementById("then-"+n); return t&&t.value.trim(); });
+  const q=document.getElementById("q"), go=document.getElementById("go"), m=document.getElementById("lockmsg");
+  q.disabled=!all; go.disabled=!all; m.hidden=all;
+  q.placeholder=all?"Part number":"Locked until you've written all five Thens";
+}
+document.addEventListener("input",unlockCheck);
 
 const scenarios=[
   {given:"Trent has part HX-2201 in his hand", q:"HX-2201"},
@@ -254,4 +262,5 @@ document.getElementById("check").onclick=async()=>{
   }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
 };
 try{ const d=JSON.parse(localStorage.getItem("ptr-draft")||"null"); if(d){ [...document.querySelectorAll("textarea,input[type=text],input[type=radio]")].forEach((e,i)=>{ if(e.type==="radio") e.checked=!!d[i]; else if(d[i]!=null) e.value=d[i]; }); } }catch(e){}
+unlockCheck();
 </script>
