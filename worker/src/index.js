@@ -2,7 +2,7 @@
 // The API key, class code and rubrics live here, never in the pages.
 
 const MODEL = "claude-haiku-5-5";
-const MAX_TOKENS = 600;
+const MAX_TOKENS = 1500;
 
 // One rubric per puzzle. Each criterion is a short, checkable statement.
 // The page shows the same list to the student ("Be ready to explain").
@@ -46,7 +46,7 @@ export default {
     if (answers.length > 8000) return json({ error: "Submission too long." }, 413, cors);
 
     const system = [
-      "You grade an in-class puzzle for an MBA course on coding with AI. Be direct and specific, one sentence per criterion.",
+      "You grade an in-class puzzle for an MBA course on coding with AI. Be direct and specific. Each note is one short sentence, under 25 words, that says what is missing or what was done well.",
       "The user story the puzzle is about: " + rubric.story,
       "Judge each criterion below as pass or fail on the student's answers. 'Then' clauses that describe screens, buttons or fields fail criterion 1.",
       "Criteria:",
@@ -65,6 +65,7 @@ export default {
       body: JSON.stringify({
         model: MODEL,
         max_tokens: MAX_TOKENS,
+        thinking: { type: "disabled" },
         system,
         messages: [{ role: "user", content: "Student answers (JSON):\n" + answers }],
       }),
