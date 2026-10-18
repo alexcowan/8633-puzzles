@@ -216,13 +216,13 @@ scenarios.forEach((s,i)=>{
   host.append(el);
   document.getElementById(`run-${n}`).onclick=()=>{
     const t=document.getElementById(`then-${n}`); if(!t.value.trim()){ t.focus(); t.placeholder="Write your Then first, then run."; t.style.borderColor="var(--bad)"; return; } t.style.borderColor="";
-    const qb=document.getElementById("q"); if(!qb.disabled) qb.value=s.q; const r=search(s.q); render(r);
+    const r=search(s.q); render(r);
     const a=document.getElementById(`actual-${n}`); a.textContent=describe(r, s.q); a.classList.add("ran");
     build();
   };
 });
 document.getElementById("x-run").onclick=()=>{
-  const q=document.getElementById("x-when").value; document.getElementById("q").value=q;
+  const q=document.getElementById("x-when").value;
   const r=search(q); render(r);
   const a=document.getElementById("x-actual"); a.textContent=describe(r, q); a.classList.add("ran"); build();
 };
