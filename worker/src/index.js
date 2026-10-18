@@ -51,7 +51,7 @@ export default {
       "Judge each criterion below as pass or fail on the student's answers. 'Then' clauses that describe screens, buttons or fields fail criterion 1.",
       "Criteria:",
       ...rubric.criteria.map((c, i) => `${i + 1}. ${c}`),
-      "Respond with JSON only, no prose around it, in this shape:",
+      "Respond with JSON only, no prose around it. results has exactly one entry per criterion, numbered 1 to " + rubric.criteria.length + ", in this shape:",
       `{"results":[{"n":1,"pass":true,"note":"one sentence"}, ...],"summary":"one sentence"}`,
     ].join("\n");
 
@@ -81,7 +81,9 @@ export default {
     try { parsed = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)); }
     catch { return json({ error: "Grader returned something unreadable.", raw: text.slice(0, 300) }, 502, cors); }
 
-    return json({ criteria: rubric.criteria, ...parsed }, 200, cors);
+    // Keep the page honest: one verdict per criterion, in order, nothing extra.
+    const results = rubric.criteria.map((_, i) => (parsed.results || []).find(r => r.n === i + 1) || { n: i + 1, pass: false, note: "No verdict returned for this criterion." });
+    return json({ criteria: rubric.criteria, results, summary: parsed.summary || "" }, 200, cors);
   },
 };
 
