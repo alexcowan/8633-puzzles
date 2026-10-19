@@ -205,7 +205,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
 </main>
 
 <script>
-function mark(a){ a.classList.remove("ran"); void a.offsetWidth; mark(a); a.dataset.runs=(+a.dataset.runs||0)+1;
+function mark(a){ a.classList.remove("ran"); void a.offsetWidth; a.classList.add("ran"); a.dataset.runs=(+a.dataset.runs||0)+1;
   let r=a.parentElement.querySelector(".runs[data-for='"+a.id+"']"); if(!r){ r=document.createElement("span"); r.className="runs"; r.dataset.for=a.id; const btn=a.parentElement.querySelector("button.ghost"); (btn?btn.parentElement:a).insertAdjacentElement(btn?"beforeend":"beforebegin",r); }
   r.textContent = a.dataset.runs>1 ? "run "+a.dataset.runs+"×" : ""; }
 const catalog = [
