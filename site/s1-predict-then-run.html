@@ -19,7 +19,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 main{max-width:860px;margin:0 auto;display:grid;gap:28px}
 h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
-h2{font-family:var(--serif);font-size:20px;font-weight:400;color:var(--head);margin:0 0 10px}
+h2{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--head);margin:0 0 10px}
 p{margin:0 0 10px;max-width:68ch}
 .eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .muted{color:var(--muted)}
@@ -97,13 +97,14 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
     </ol>
   </section>
 
-  <section class="panel">
+  <section>
     <h2>Scenarios</h2>
-    <div id="scenarios"></div>
+    <div class="panel"><div id="scenarios"></div></div>
   </section>
 
-  <section class="panel">
+  <section>
     <h2>Your scenario</h2>
+    <div class="panel">
     <p class="muted">Something the story requires and this app gets wrong. Type the exact text Trent enters in the When box, then run it.</p>
     <div class="scn" style="border-top:0;padding-top:0">
       <div class="gwt">
@@ -116,6 +117,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
         <div class="col"><span class="eyebrow">Why this matters for the story</span><textarea id="x-why" placeholder="One or two sentences."></textarea></div>
       </div>
       <div><button class="ghost" type="button" id="x-run">Run my scenario</button></div>
+    </div>
     </div>
   </section>
 
