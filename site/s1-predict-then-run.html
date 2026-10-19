@@ -39,7 +39,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .part .num{font-family:var(--mono);font-size:13px}
 .part .price{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
 .part .stock{grid-column:2/4;font-size:13px;color:var(--muted)}
-.scn{display:grid;gap:10px;border-top:1px solid var(--line);padding-block:16px}
+.scn{display:grid;gap:12px;border-top:1px solid var(--line);padding-block:22px}
+.scn h3{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--head);margin:0 0 2px}
+.scn .run{margin-top:10px}
 .scn:first-of-type{border-top:0}
 .gwt{display:grid;grid-template-columns:62px 1fr;gap:4px 10px;font-size:14px}
 .gwt b{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:3px}
@@ -196,7 +198,7 @@ scenarios.forEach((s,i)=>{
   const n=i+1;
   const el=document.createElement("div"); el.className="scn";
   el.innerHTML=`
-    <div class="eyebrow">Scenario ${n}</div>
+    <h3>Scenario ${n}</h3>
     <div class="gwt">
       <b>Given</b><div>${s.given},</div>
       <b>When</b><div>he enters <span class="q">${s.q}</span> and searches,</div>
