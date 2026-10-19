@@ -47,14 +47,15 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .q{font-family:var(--mono);background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:0 5px}
 /* The plan: numbered lines, each a radio target. */
 .plan{display:grid;gap:0;counter-reset:ln}
-.plan label{display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:start;padding:10px 12px;border-top:1px solid var(--line-soft);cursor:pointer}
+.plan label{display:grid;grid-template-columns:auto 28px 1fr;gap:12px;align-items:start;padding:10px 12px;border-top:1px solid var(--line-soft);cursor:pointer}
 .plan label:first-child{border-top:0}
 .plan .n{font-family:var(--mono);font-size:13px;color:var(--muted);padding-top:3px}
 .plan .txt{line-height:1.45}
 .plan input{margin-top:6px}
 .plan label.wrong .txt{text-decoration:line-through;text-decoration-color:var(--bad);text-decoration-thickness:2px;color:var(--muted)}
-.plan label.vague .txt::after{content:" — not codable yet";color:var(--accent);font-size:14px}
-.rewrite{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:10px 12px;border-top:1px solid var(--line-soft)}
+.plan label.vague .txt::after{content:" \2190 not wrong, but which way? Not codable yet. That is the next puzzle.";color:var(--accent);font-size:14px}
+.rewrite{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:10px 12px 0;border-top:1px solid var(--line-soft)}
+.rewrite[hidden]{display:none}
 .scn{display:grid;gap:10px;border-top:1px solid var(--line-soft);padding-block:18px}
 .scn:first-child{border-top:0;padding-top:0}
 .scn h3{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--head);margin:0}
@@ -67,9 +68,10 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 
 .actual.fail{border-left-color:var(--bad)}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.switch{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
-.switch button{background:transparent;color:var(--head);border:0;border-radius:0;padding:6px 12px}
-.switch button[aria-pressed=true]{background:var(--bar);color:var(--bar-fg)}
+.switch{display:inline-flex;border:1px solid rgba(255,255,255,.55);border-radius:4px;overflow:hidden}
+.switch button{background:transparent;color:var(--bar-fg);border:0;border-radius:0;padding:6px 12px;font-family:var(--sans);font-size:14px}
+.switch button[aria-pressed=true]{background:var(--accent);color:var(--accent-fg)}
+.switch button[disabled]{opacity:.45}
 pre.code{font-family:var(--mono);font-size:12.5px;line-height:1.5;background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:12px;overflow-x:auto;margin:0}
 pre.code .add{color:var(--ok)}
 details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
@@ -82,6 +84,15 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
     <p>Last time, the HinH parts lookup failed a scenario the story needs: a part number that isn't in the catalog gets a blank screen. We asked an AI to fix it, and asked to see its plan before it wrote any code. Here's the story, the scenario, and the plan it drafted.</p>
   </header>
 
+  <section class="rubric">
+    <div class="eyebrow">What we're practicing</div>
+    <ol>
+      <li>Reading five lines of plan is cheaper than reading a hundred lines of code. Find the problem here, not there.</li>
+      <li>A plan line is wrong when it contradicts the Then. Fix it in the plan, in plain words, before anyone touches code.</li>
+      <li>When the plan surprises you, the problem is usually back in step 1.</li>
+    </ol>
+  </section>
+
   <section class="panel">
     <div class="eyebrow">Step 1 · The intent we gave it</div>
     <p style="margin-top:6px"><em>As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair.</em></p>
@@ -92,32 +103,25 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
     </div>
   </section>
 
-  <section class="rubric">
-    <div class="eyebrow">What we're practicing</div>
-    <ol>
-      <li>Reading five lines of plan is cheaper than reading a hundred lines of code. Find the problem here, not there.</li>
-      <li>A plan line is wrong when it contradicts the Then. It's vague when you couldn't hand it to a coder as is.</li>
-      <li>When the plan surprises you, the problem is usually back in step 1.</li>
-    </ol>
-  </section>
 
   <section class="panel">
     <div class="eyebrow">Step 2 · The plan the AI drafted</div>
-    <p class="muted" style="margin-top:6px">Two questions. Which line is <b>wrong</b>, given the Then? Which line <b>can't be coded yet</b>? Mark one of each.</p>
+    <p style="margin-top:6px">One of these five lines contradicts the Then. Which one? Mark it, then rewrite it so it says what the Then says.</p>
     <div class="plan" id="plan"></div>
-    <div class="rewrite"><span class="n muted" style="font-family:var(--mono);font-size:13px;padding-top:9px">fix</span>
-      <textarea id="rewrite" placeholder="Rewrite the wrong line so it says what the Then says. One sentence."></textarea></div>
+    <div class="rewrite" id="rewrite-row" hidden><span class="n muted" style="font-family:var(--mono);font-size:13px;padding-top:9px">4.</span>
+      <textarea id="rewrite" placeholder="Line 4, rewritten so it says what the Then says. One sentence."></textarea></div>
   </section>
 
   <section class="panel app">
     <div class="bar"><span>HinH Parts Lookup</span>
-      <span class="switch" role="group" aria-label="Which plan to run">
-        <button type="button" id="sw-draft" aria-pressed="true">Run the plan as drafted</button>
-        <button type="button" id="sw-fixed" aria-pressed="false" disabled title="Mark the wrong line and rewrite it first">Run it with line 4 fixed</button>
-      </span>
+      <span class="row" style="gap:8px"><span style="font-family:var(--sans);font-size:13px;opacity:.8">Built from the plan</span>
+      <span class="switch" role="group" aria-label="Which plan the app is built from">
+        <button type="button" id="sw-draft" aria-pressed="true">as drafted</button>
+        <button type="button" id="sw-fixed" aria-pressed="false" disabled title="Mark the wrong line and rewrite it first">with line 4 fixed</button>
+      </span></span>
     </div>
     <div class="body">
-      <div class="muted" style="font-size:14px" id="hint">The code below does exactly what the plan says. Predict each scenario, then run it.</div>
+      <div class="muted" style="font-size:14px" id="hint">This app does exactly what the plan says, line by line. Write a Then for each scenario below, then run it here.</div>
       <div id="results" aria-live="polite"></div>
     </div>
   </section>
@@ -160,20 +164,17 @@ const FIXED_LINE="If nothing was found, say so, repeating exactly what he typed.
 const planEl=document.getElementById("plan");
 plan.forEach((t,i)=>{
   const n=i+1; const l=document.createElement("label"); l.id="pl-"+n;
-  l.innerHTML=`<span class="n">${n}.</span><span class="txt">${t}</span>
-    <span class="row" style="gap:12px;font-size:13px">
-      <span class="row" style="gap:4px"><input type="radio" name="wrong" value="${n}" aria-label="Line ${n} is wrong"> wrong</span>
-      <span class="row" style="gap:4px"><input type="radio" name="vague" value="${n}" aria-label="Line ${n} is not codable yet"> can't code yet</span>
-    </span>`;
+  l.innerHTML=`<input type="radio" name="wrong" value="${n}" aria-label="Line ${n} contradicts the Then"><span class="n">${n}.</span><span class="txt">${t}</span>`;
   planEl.append(l);
 });
 function pick(name){ const c=document.querySelector(`input[name=${name}]:checked`); return c?+c.value:0; }
 let mode="draft";
 function refresh(){
-  const w=pick("wrong"), v=pick("vague");
-  plan.forEach((_,i)=>{ const l=document.getElementById("pl-"+(i+1)); l.classList.toggle("wrong",i+1===w); l.classList.toggle("vague",i+1===v); });
+  const w=pick("wrong");
   const rw=document.getElementById("rewrite").value.trim();
   const ready = w===WRONG && rw.length>8;
+  document.getElementById("rewrite-row").hidden = w!==WRONG;
+  plan.forEach((_,i)=>{ const l=document.getElementById("pl-"+(i+1)); l.classList.toggle("wrong",i+1===w); l.classList.toggle("vague", i+1===VAGUE && ready); });
   const sf=document.getElementById("sw-fixed"); sf.disabled=!ready; sf.title=ready?"":"Mark the wrong line and rewrite it first";
   if(!ready && mode==="fixed") setMode("draft");
   renderCode();
@@ -209,7 +210,7 @@ function describe(parts,q,fixed){
                : `searched "${q}" → ${catalog.length} results shown (the whole catalog), nothing says they aren't matches\n  + a 'need help?' line`;
 }
 function setMode(m){ mode=m; document.getElementById("sw-draft").setAttribute("aria-pressed",m==="draft"); document.getElementById("sw-fixed").setAttribute("aria-pressed",m==="fixed");
-  document.getElementById("hint").textContent = m==="draft" ? "The code below does exactly what the plan says. Predict each scenario, then run it." : "Same code, with line 4 doing what the Then says. Run scenario 2 again."; renderCode(); }
+  document.getElementById("hint").textContent = m==="draft" ? "This app does exactly what the plan says, line by line. Write a Then for each scenario below, then run it here." : "Same app, with line 4 doing what the Then says. Run scenario 2 again."; renderCode(); }
 document.getElementById("sw-draft").onclick=()=>setMode("draft");
 document.getElementById("sw-fixed").onclick=()=>setMode("fixed");
 
@@ -259,5 +260,6 @@ ${l4}
 }
 renderCode();
 refresh();
+for(const p of catalog) results.append(rowFor(p));
 </script>
 </body></html>
