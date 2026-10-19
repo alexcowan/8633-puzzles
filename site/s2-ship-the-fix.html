@@ -1,0 +1,381 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ship the Fix</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same worksheet layout and COWAN+ palette as the Session 1 pages. */
+:root{
+  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
+  --accent:#DA5138; --accent-fg:#FFFFFF; --bar:#002D45; --bar-fg:#FFFFFF; --second:#63ADB1; --ok:#357B68; --bad:#DA5138; --note:#FFFFFF;
+  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --bar:#002D45; --bar-fg:#F2F1E6; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --bar:#002D45; --bar-fg:#F2F1E6; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;margin:0;
+  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:860px;margin:0 auto;display:grid;gap:28px}
+h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
+h2{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--head);margin:0 0 10px}
+p{margin:0 0 10px;max-width:68ch}
+.eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:18px}
+.app{border:1px solid var(--bar);padding:0;overflow:hidden}
+.app .bar{background:var(--bar);color:var(--bar-fg);padding:8px 14px;font-family:var(--serif);font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.app .body{padding:16px 14px;display:grid;gap:12px}
+input[type=text],textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:7px 9px;min-width:0}
+textarea{width:100%;resize:vertical;min-height:52px;box-sizing:border-box}
+button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
+button.ghost{background:transparent;color:var(--head);border:1px solid var(--line)}
+button[disabled]{opacity:.5;cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#results{min-height:48px;display:grid;gap:6px}
+.part{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:baseline;border:1px solid var(--line-soft);border-radius:4px;padding:8px 10px;background:var(--bg)}
+.part .num{font-family:var(--mono);font-size:13px}
+.part .price{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.part .stock{grid-column:2/4;font-size:13px;color:var(--muted)}
+.notice{border:1px dashed var(--line);border-radius:4px;padding:10px 12px;background:var(--bg)}
+.rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
+.rubric ol{margin:6px 0 0;padding-left:20px}
+.rubric li{margin:4px 0}
+.gwt{display:grid;grid-template-columns:62px 1fr;gap:4px 10px;font-size:15px}
+.gwt b{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:3px}
+.q{font-family:var(--mono);background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:0 5px}
+/* The plan: numbered lines, each a radio target. */
+.plan{display:grid;gap:0;counter-reset:ln}
+.plan label{display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:start;padding:10px 12px;border-top:1px solid var(--line-soft);cursor:pointer}
+.plan label:first-child{border-top:0}
+.plan .n{font-family:var(--mono);font-size:13px;color:var(--muted);padding-top:3px}
+.plan .txt{line-height:1.45}
+.plan input{margin-top:6px}
+.plan label.wrong .txt{text-decoration:line-through;text-decoration-color:var(--bad);text-decoration-thickness:2px;color:var(--muted)}
+.plan label.vague .txt::after{content:" — not codable yet";color:var(--accent);font-size:14px}
+.rewrite{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:10px 12px;border-top:1px solid var(--line-soft)}
+.scn{display:grid;gap:10px;border-top:1px solid var(--line-soft);padding-block:18px}
+.scn:first-child{border-top:0;padding-top:0}
+.scn h3{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--head);margin:0}
+.actual{font-family:var(--mono);font-size:13px;white-space:pre-wrap;border-left:3px solid var(--line-soft);padding:6px 10px;min-height:40px;color:var(--muted)}
+.actual.ran{color:var(--fg);border-left-color:var(--second)}
+.actual.fail{border-left-color:var(--bad)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.switch{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.switch button{background:transparent;color:var(--head);border:0;border-radius:0;padding:6px 12px}
+.switch button[aria-pressed=true]{background:var(--bar);color:var(--bar-fg)}
+pre.code{font-family:var(--mono);font-size:12.5px;line-height:1.5;background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:12px;overflow-x:auto;margin:0}
+pre.code .add{color:var(--ok)}
+details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
+</style>
+<style>
+.step{display:grid;gap:10px}
+.step .eyebrow b{color:var(--head);letter-spacing:0;text-transform:none;font-family:var(--serif);font-size:19px;margin-left:8px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:720px){.cards{grid-template-columns:1fr}}
+.card{border:1px solid var(--line-soft);border-radius:4px;padding:12px;background:var(--bg);display:grid;gap:6px;cursor:pointer;align-content:start}
+.card:has(input:checked){border-color:var(--head);box-shadow:inset 0 0 0 1px var(--head)}
+.card h4{font-family:var(--serif);font-weight:400;font-size:17px;color:var(--head);margin:0;display:flex;gap:8px;align-items:center}
+.card dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:14px}
+.card dt{color:var(--muted)}.card dd{margin:0}
+.fixes{display:grid;gap:8px}
+.fixes label{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;border:1px solid var(--line-soft);border-radius:4px;padding:8px 10px;background:var(--bg);cursor:pointer}
+.fixes label:has(input:checked){border-color:var(--head)}
+.fixes code{font-family:var(--mono);font-size:12.5px}
+.trace{font-family:var(--mono);font-size:13px;display:grid;gap:3px;border-left:3px solid var(--line-soft);padding:6px 10px}
+.locked{opacity:.45;pointer-events:none}
+.fbrow{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line-soft)}
+.fbrow:first-child{border-top:0}
+.fbhead{display:flex;gap:10px;align-items:baseline}
+.fbhead b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.fbhead b.ok{color:var(--ok)}.fbhead b.thin{color:var(--bad)}
+.fblabel{font-family:var(--serif);color:var(--head)}
+.fbnote{font-size:15px}
+.pass{color:var(--ok);font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.failtag{color:var(--bad);font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+</style></head><body>
+
+<main>
+  <header>
+    <div class="eyebrow">Coding with GPT · Session 2 · In-class puzzle</div>
+    <h1>Ship the fix</h1>
+    <p>Same six lines of code, same story. The plan is fixed. Now take the no-results scenario through the rest of the four steps: decide line 5, run the scenarios, and deal with what fails.</p>
+    <p><em>As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair.</em></p>
+  </header>
+
+  <section class="rubric">
+    <div class="eyebrow">Be ready to explain</div>
+    <ol>
+      <li>Your choice in step 3, in terms of where HinH is distinctive and what a 1.0 is for. Not in terms of which option is "best."</li>
+      <li>Which question in step 4 found the problem, and why the other two couldn't have.</li>
+      <li>Which of the three fixes you picked, and what the wrong ones would have done instead.</li>
+      <li>Which step the failed test sent you back to, and what you'd change there so it doesn't happen again.</li>
+    </ol>
+  </section>
+
+  <section class="panel step">
+    <div class="eyebrow">Step 1 <b>Focus and communicate design intent</b></div>
+    <p class="muted" style="margin:0">Given. Three scenarios the story needs; the app has to pass all three.</p>
+    <div class="gwt"><b>1</b><div>Given Trent has part <span class="q">HX-2201</span> in his hand, when he enters it and searches, then he sees that one part with its price and availability.</div></div>
+    <div class="gwt"><b>2</b><div>Given Trent enters a part number that matches nothing, when he searches, then he sees that there are no results for what he entered, and he is offered a way to get help identifying the part.</div></div>
+    <div class="gwt"><b>3</b><div>Given Trent is typing fast on his phone and doesn't hit shift, when he enters <span class="q">hx-2201</span> and searches, then he sees the blower motor.</div></div>
+  </section>
+
+  <section class="panel step">
+    <div class="eyebrow">Step 2 <b>Unpack it into codable steps</b></div>
+    <p class="muted" style="margin:0">Done in the opener. Line 5 is still a decision, not a plan.</p>
+    <ol style="margin:0;padding-left:22px;line-height:1.7">
+      <li>Get the part number the user typed.</li>
+      <li>Find the parts in the catalog whose number starts with what he typed.</li>
+      <li>Show each part found, with its name, price, and availability.</li>
+      <li>If nothing was found, say so, repeating exactly what he typed.</li>
+      <li>Offer a way to get help identifying the part. <span style="color:var(--accent)">← which way?</span></li>
+    </ol>
+  </section>
+
+  <section class="panel step" id="step3">
+    <div class="eyebrow">Step 3 <b>Effectuate between alternatives</b></div>
+    <p class="muted" style="margin:0">The AI laid out three ways to do line 5. It has an opinion. It doesn't know where HinH is headed. Pick one.</p>
+    <div class="cards" id="cards"></div>
+    <textarea id="why" placeholder="Why this one, for HinH, for a 1.0? One or two sentences. The reason should be about the business, not the technology."></textarea>
+  </section>
+
+  <section class="panel app" id="app">
+    <div class="bar"><span>HinH Parts Lookup v1.1 <span class="muted" style="color:inherit;opacity:.8" id="variant"></span></span><span class="muted" style="color:inherit;opacity:.8;font-weight:400">6 parts in catalog</span></div>
+    <div class="body">
+      <div class="muted" style="font-size:14px" id="apphint">Pick a card in step 3 to build the app.</div>
+      <div id="results" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="panel step locked" id="step4">
+    <div class="eyebrow">Step 4 <b>Test and debug</b></div>
+    <p class="muted" style="margin:0">Each scenario is a test. Write the Then in your own words, then run it.</p>
+    <div id="scenarios"></div>
+
+    <div id="debug" hidden style="display:grid;gap:12px;border-top:1px solid var(--line-soft);padding-top:14px">
+      <h2 style="margin:0">Scenario 3 failed. Where?</h2>
+      <p class="muted" style="margin:0">Analytical beats trial and error. Three questions, in order; the trace answers each one for the input <span class="q">hx-2201</span>.</p>
+      <div class="trace" id="trace"></div>
+      <div class="row" style="gap:16px">
+        <span>So the problem is in:</span>
+        <label><input type="radio" name="where" value="input"> getting the input</label>
+        <label><input type="radio" name="where" value="search"> the search</label>
+        <label><input type="radio" name="where" value="display"> the display</label>
+      </div>
+
+      <h2 style="margin:6px 0 0">Pick the one-line fix</h2>
+      <p class="muted" style="margin:0">The structure is sound. One line changes. Which?</p>
+      <div class="fixes" id="fixes"></div>
+      <div class="row"><button type="button" id="apply" disabled>Apply and rerun all three</button><span class="muted" style="font-size:13px" id="applymsg"></span></div>
+
+      <h2 style="margin:6px 0 0">The loop</h2>
+      <p class="muted" style="margin:0">A failed test sends you back to the plan; a muddled plan sends you back to the intent. Which step did this one send you back to, and what would you change there?</p>
+      <div class="row" style="gap:16px">
+        <label><input type="radio" name="back" value="1"> Step 1, the intent</label>
+        <label><input type="radio" name="back" value="2"> Step 2, the plan</label>
+        <label><input type="radio" name="back" value="3"> Step 3, the choice</label>
+      </div>
+      <textarea id="backwhy" placeholder="What you'd change there, in one sentence."></textarea>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Check my work</h2>
+    <p class="muted">Not graded. An AI reads your reasons against the story and the note and says where your thinking is thin. Class code is on the Canvas page.</p>
+    <div class="row">
+      <input id="code" type="text" placeholder="Class code" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
+      <button type="button" id="check">Check</button>
+      <span class="muted" id="status" hidden></span>
+    </div>
+    <div id="feedback" style="margin-top:12px;display:grid;gap:8px"></div>
+  </section>
+
+  <details>
+    <summary>Show the code (after you've applied a fix)</summary>
+    <p class="muted" style="margin-top:8px">The whole thing. The line that changed in step 4 is marked.</p>
+<pre class="code" id="codeview"></pre>
+  </details>
+</main>
+
+<script>
+const catalog = [
+  {part_number:"HX-2201", name:"Blower motor, 1/2 HP", price:184.00, in_stock:true},
+  {part_number:"CP-0450", name:"Run capacitor, 45 µF", price:22.50, in_stock:true},
+  {part_number:"CP-0450-L", name:"Run capacitor, 45 µF, low-temp", price:31.00, in_stock:false},
+  {part_number:"TH-7710", name:"Thermostat, programmable", price:96.00, in_stock:true},
+  {part_number:"FL-1620", name:"Filter, 16×20 pleated", price:14.25, in_stock:false},
+  {part_number:"IG-3300", name:"Hot surface igniter", price:61.00, in_stock:true},
+];
+
+// ---- Step 3: the alternatives for plan line 5 ----
+const cards=[
+  {id:"phone", title:"A. Call the parts desk", how:"A tap-to-call link to HinH's parts desk.", fixed:"an hour", variable:"desk time per call", data:"stays at HinH", when:"works today", help:"No parts match “{q}”. Call the parts desk: (434) 555-0142"},
+  {id:"sms", title:"B. Text a photo to the desk", how:"Trent texts a photo of the label; the desk replies with the number. Built on Twilio.", fixed:"a day, plus an account", variable:"about 1¢ a message, plus desk time", data:"passes through a vendor", when:"this week", help:"No parts match “{q}”. Text a photo of the label to (434) 555-0143 and the desk will find it."},
+  {id:"ai", title:"C. AI identifies it from a photo", how:"Trent photographs the part; a vision API returns likely matches from the catalog.", fixed:"a week or two", variable:"a few cents an image", data:"photos go to the vendor", when:"after the 1.0", help:"No parts match “{q}”. Photograph the part and we'll identify it. [coming soon]"},
+];
+const cardsEl=document.getElementById("cards");
+cards.forEach(c=>{ const l=document.createElement("label"); l.className="card";
+  l.innerHTML=`<h4><input type="radio" name="card" value="${c.id}">${c.title}</h4><div style="font-size:15px">${c.how}</div>
+  <dl><dt>Fixed cost</dt><dd>${c.fixed}</dd><dt>Variable cost</dt><dd>${c.variable}</dd><dt>Trent's data</dt><dd>${c.data}</dd><dt>Ships</dt><dd>${c.when}</dd></dl>`;
+  cardsEl.append(l); });
+function card(){ const c=document.querySelector("input[name=card]:checked"); return c?cards.find(x=>x.id===c.value):null; }
+
+// ---- The app. `fix` is which one-line change has been applied (null until step 4). ----
+let fix=null;
+const results=document.getElementById("results");
+function normalize(q){ return fix==="upper" ? q.toUpperCase() : q; }
+function search(query){
+  const q=normalize(query);
+  if(fix==="includes") return catalog.filter(p => p.part_number.includes(q));
+  return catalog.filter(p => p.part_number.startsWith(q));
+}
+function rowFor(p){
+  const d=document.createElement("div"); d.className="part";
+  d.innerHTML=`<span class="num"></span><span class="name"></span><span class="price"></span><span class="stock"></span>`;
+  d.querySelector(".num").textContent = fix==="display" ? p.part_number.toUpperCase() : p.part_number;
+  d.querySelector(".name").textContent=p.name; d.querySelector(".price").textContent="$"+p.price.toFixed(2);
+  d.querySelector(".stock").textContent=p.in_stock?"In stock":"Backordered"; return d;
+}
+function render(parts,q){
+  results.innerHTML="";
+  if(parts.length>0){ for(const p of parts) results.append(rowFor(p)); }
+  else { const n=document.createElement("div"); n.className="notice"; n.textContent=(card()||cards[0]).help.replace("{q}",q); results.append(n); }
+}
+function outcome(parts,q){
+  if(parts.length) return `searched "${q}" → ${parts.length} result${parts.length>1?"s":""}:\n`+parts.map(p=>`  ${p.part_number}  ${p.name}  $${p.price.toFixed(2)}  ${p.in_stock?"In stock":"Backordered"}`).join("\n");
+  return `searched "${q}" → notice: ${(card()||cards[0]).help.replace("{q}",q)}`;
+}
+// Pass/fail against the story, independent of what's on screen.
+const expect=[ r=>r.length===1&&r[0].part_number==="HX-2201", r=>r.length===0, r=>r.length===1&&r[0].part_number==="HX-2201" ];
+
+// ---- Step 4 scenarios ----
+const scenarios=[
+  {given:"Trent has part HX-2201 in his hand", q:"HX-2201"},
+  {given:"Trent has a part whose number is not in the catalog", q:"ZZ-9999"},
+  {given:"Trent is typing fast on his phone and doesn't hit shift", q:"hx-2201"},
+];
+const ran=[false,false,false];
+const host=document.getElementById("scenarios");
+scenarios.forEach((s,i)=>{ const n=i+1; const el=document.createElement("div"); el.className="scn";
+  el.innerHTML=`<h3>Scenario ${n}</h3>
+    <div class="gwt"><b>Given</b><div>${s.given},</div><b>When</b><div>he enters <span class="q">${s.q}</span> and searches,</div>
+    <b>Then</b><textarea id="then-${n}" placeholder="he sees …"></textarea></div>
+    <div class="row"><button class="ghost" type="button" id="run-${n}">Run scenario ${n}</button><span id="tag-${n}"></span></div>
+    <div class="actual" id="actual-${n}">Write the Then first, then run.</div>`;
+  host.append(el);
+  document.getElementById("run-"+n).onclick=()=>{
+    const t=document.getElementById("then-"+n); if(!t.value.trim()){ t.focus(); t.placeholder="Write the Then first, then run."; t.style.borderColor="var(--bad)"; return; } t.style.borderColor="";
+    runScenario(i);
+  };
+});
+function runScenario(i){
+  const s=scenarios[i], r=search(s.q); render(r,s.q);
+  const ok=expect[i](r); ran[i]=true;
+  const a=document.getElementById("actual-"+(i+1)); a.textContent=outcome(r,s.q); a.classList.add("ran"); a.classList.toggle("fail",!ok);
+  const tag=document.getElementById("tag-"+(i+1)); tag.className=ok?"pass":"failtag"; tag.textContent=ok?"PASS":"FAIL · not what the story says";
+  if(ran.every(Boolean)) document.getElementById("debug").hidden=false;
+  if(i===2 && fix===null) trace(s.q);   // the trace is of the failure, so it stays put once a fix is applied
+  save();
+}
+function trace(q){
+  const u=normalize(q), found=search(q).length;
+  document.getElementById("trace").innerHTML=[
+    `1. Is the part number arriving as entered?   input = "${q}"  → yes`,
+    `2. Is the search finding the part?           search("${q}") compares "${u}" with "HX-2201" → ${found} found  → ${found?"yes":"no"}`,
+    `3. Are the results being displayed?          render() got ${found} parts, showed ${found?found+" row(s)":"the no-results notice"}  → yes, it showed what it was given`,
+  ].map(x=>`<div>${x}</div>`).join("");
+}
+
+// ---- The three candidate fixes ----
+const fixes=[
+  {id:"includes", code:'return catalog.filter(p => p.part_number.includes(query));', note:"match anywhere in the number, not just the start"},
+  {id:"upper",    code:'const q = query.toUpperCase();   // then compare q', note:"compare in one case"},
+  {id:"display",  code:'d.querySelector(".num").textContent = p.part_number.toUpperCase();', note:"show the number in upper case"},
+];
+const fxEl=document.getElementById("fixes");
+fixes.forEach(f=>{ const l=document.createElement("label"); l.innerHTML=`<input type="radio" name="fix" value="${f.id}"><span><code>${f.code}</code><br><span class="muted" style="font-size:14px">${f.note}</span></span>`; fxEl.append(l); });
+document.addEventListener("change",e=>{ if(e.target.name==="fix") document.getElementById("apply").disabled=false; if(e.target.name==="card") onCard(); });
+let applied=[];
+document.getElementById("apply").onclick=()=>{
+  const f=document.querySelector("input[name=fix]:checked"); if(!f) return;
+  fix=f.value; applied.push(fix);
+  scenarios.forEach((_,i)=>runScenario(i));
+  const pass=scenarios.every((s,i)=>expect[i](search(s.q)));
+  document.getElementById("applymsg").textContent = pass ? "All three pass." : "Still failing. Look at the trace again: what did your line change?";
+  document.getElementById("variant").textContent = "· fix: "+fix; renderCode(); save();
+};
+function onCard(){ const c=card(); if(!c) return;
+  document.getElementById("step4").classList.remove("locked");
+  document.getElementById("apphint").textContent=`Built with option ${c.title.slice(0,1)}. Run the scenarios in step 4; the app shows the last one you ran.`;
+  render(catalog,""); renderCode(); save();
+}
+
+function renderCode(){
+  const mark=s=>`<span class="add">${s}</span>`;
+  const srch = fix==="upper" ? `  ${mark('const q = query.toUpperCase();')}\n  return catalog.filter(p => p.part_number.startsWith(${mark('q')}));`
+             : fix==="includes" ? `  return catalog.filter(p => p.part_number.${mark('includes')}(query));`
+             : `  return catalog.filter(p => p.part_number.startsWith(query));`;
+  const num = fix==="display" ? mark('p.part_number.toUpperCase()') : 'p.part_number';
+  const c=card();
+  document.getElementById("codeview").innerHTML=
+`function search(query) {
+${srch}
+}
+
+function render(parts, query) {
+  results.innerHTML = "";
+  if (parts.length > 0) {
+    for (const p of parts) results.append(rowFor(p));
+  } else {
+    notice(\`${c? c.help.replace("{q}","${query}") : 'No parts match "${query}". …'}\`);
+  }
+}
+
+function rowFor(p) {
+  // …
+  num.textContent = ${num};
+  // …
+}`;
+}
+
+// ---- Draft persistence (per viewer, best effort) ----
+function v(id){ const e=document.getElementById(id); return e?e.value.trim():""; }
+function radio(n){ const c=document.querySelector(`input[name=${n}]:checked`); return c?c.value:"not answered"; }
+function save(){ try{ localStorage.setItem("stf-draft", JSON.stringify({fields:[...document.querySelectorAll("textarea,input[type=text]")].map(e=>e.value), radios:[...document.querySelectorAll("input[type=radio]")].map(e=>e.checked)})); }catch(e){} }
+document.addEventListener("input",save);
+try{ const d=JSON.parse(localStorage.getItem("stf-draft")||"null"); if(d){ [...document.querySelectorAll("textarea,input[type=text]")].forEach((e,i)=>{ if(d.fields[i]!=null) e.value=d.fields[i]; }); [...document.querySelectorAll("input[type=radio]")].forEach((e,i)=>{ e.checked=!!d.radios[i]; }); if(card()) onCard(); if(document.querySelector("input[name=fix]:checked")) document.getElementById("apply").disabled=false; } }catch(e){}
+
+// ---- Check my work ----
+const GRADER_URL="https://shrill-wood-3253.acowan.workers.dev/grade";
+const PUZZLE_ID="s2-ship-the-fix";
+function collect(){
+  const c=card();
+  return { items:[
+    {label:"Step 3 choice", chose:c?c.title:"none", why:v("why")},
+    {label:"Where it broke", answer:radio("where"), trace_shown:document.getElementById("debug").hidden?"no":"yes"},
+    {label:"The fix", fixes_tried:applied.join(" → ")||"none applied", all_pass: scenarios.every((s,i)=>expect[i](search(s.q)))?"yes":"no"},
+    {label:"The loop", back_to_step:radio("back"), change:v("backwhy")},
+  ], predictions: scenarios.map((s,i)=>({n:i+1, when:s.q, then:v("then-"+(i+1))})) };
+}
+const codeEl=document.getElementById("code"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
+try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
+document.getElementById("check").onclick=async()=>{
+  const code=codeEl.value.trim(); if(!code){ codeEl.focus(); return; }
+  try{ localStorage.setItem("cwg-code",code); }catch(e){}
+  statusEl.hidden=false; statusEl.textContent="Reading your answers…"; fb.innerHTML="";
+  try{
+    const r=await fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:PUZZLE_ID,code,answers:collect()})});
+    const d=await r.json();
+    if(!r.ok){ statusEl.textContent=d.error||("Error "+r.status); return; }
+    statusEl.hidden=true;
+    (d.results||[]).forEach(res=>{ const el=document.createElement("div"); el.className="fbrow";
+      el.innerHTML=`<div class="fbhead"><b class="${res.verdict==="ok"?"ok":"thin"}">${res.verdict==="ok"?"OK":"THIN"}</b><span class="fblabel"></span></div><div class="fbnote"></div>`;
+      el.querySelector(".fblabel").textContent=res.label; el.querySelector(".fbnote").textContent=res.note||""; fb.append(el); });
+    if(d.summary){ const s=document.createElement("p"); s.textContent=d.summary; fb.append(s); }
+  }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
+};
+renderCode();
+</script>
+</body></html>

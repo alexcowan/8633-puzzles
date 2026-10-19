@@ -1,0 +1,289 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stage, Commit, Blame</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same worksheet layout and COWAN+ palette as the Session 1 pages. */
+:root{
+  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
+  --accent:#DA5138; --accent-fg:#FFFFFF; --bar:#002D45; --bar-fg:#FFFFFF; --second:#63ADB1; --ok:#357B68; --bad:#DA5138; --note:#FFFFFF;
+  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --bar:#002D45; --bar-fg:#F2F1E6; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --bar:#002D45; --bar-fg:#F2F1E6; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;margin:0;
+  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:860px;margin:0 auto;display:grid;gap:28px}
+h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
+h2{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--head);margin:0 0 10px}
+p{margin:0 0 10px;max-width:68ch}
+.eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:18px}
+.app{border:1px solid var(--bar);padding:0;overflow:hidden}
+.app .bar{background:var(--bar);color:var(--bar-fg);padding:8px 14px;font-family:var(--serif);font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.app .body{padding:16px 14px;display:grid;gap:12px}
+input[type=text],textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:7px 9px;min-width:0}
+textarea{width:100%;resize:vertical;min-height:52px;box-sizing:border-box}
+button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
+button.ghost{background:transparent;color:var(--head);border:1px solid var(--line)}
+button[disabled]{opacity:.5;cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#results{min-height:48px;display:grid;gap:6px}
+.part{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:baseline;border:1px solid var(--line-soft);border-radius:4px;padding:8px 10px;background:var(--bg)}
+.part .num{font-family:var(--mono);font-size:13px}
+.part .price{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.part .stock{grid-column:2/4;font-size:13px;color:var(--muted)}
+.notice{border:1px dashed var(--line);border-radius:4px;padding:10px 12px;background:var(--bg)}
+.rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
+.rubric ol{margin:6px 0 0;padding-left:20px}
+.rubric li{margin:4px 0}
+.gwt{display:grid;grid-template-columns:62px 1fr;gap:4px 10px;font-size:15px}
+.gwt b{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:3px}
+.q{font-family:var(--mono);background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:0 5px}
+/* The plan: numbered lines, each a radio target. */
+.plan{display:grid;gap:0;counter-reset:ln}
+.plan label{display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:start;padding:10px 12px;border-top:1px solid var(--line-soft);cursor:pointer}
+.plan label:first-child{border-top:0}
+.plan .n{font-family:var(--mono);font-size:13px;color:var(--muted);padding-top:3px}
+.plan .txt{line-height:1.45}
+.plan input{margin-top:6px}
+.plan label.wrong .txt{text-decoration:line-through;text-decoration-color:var(--bad);text-decoration-thickness:2px;color:var(--muted)}
+.plan label.vague .txt::after{content:" — not codable yet";color:var(--accent);font-size:14px}
+.rewrite{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:10px 12px;border-top:1px solid var(--line-soft)}
+.scn{display:grid;gap:10px;border-top:1px solid var(--line-soft);padding-block:18px}
+.scn:first-child{border-top:0;padding-top:0}
+.scn h3{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--head);margin:0}
+.actual{font-family:var(--mono);font-size:13px;white-space:pre-wrap;border-left:3px solid var(--line-soft);padding:6px 10px;min-height:40px;color:var(--muted)}
+.actual.ran{color:var(--fg);border-left-color:var(--second)}
+.actual.fail{border-left-color:var(--bad)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.switch{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.switch button{background:transparent;color:var(--head);border:0;border-radius:0;padding:6px 12px}
+.switch button[aria-pressed=true]{background:var(--bar);color:var(--bar-fg)}
+pre.code{font-family:var(--mono);font-size:12.5px;line-height:1.5;background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:12px;overflow-x:auto;margin:0}
+pre.code .add{color:var(--ok)}
+details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
+</style>
+<style>
+.hunk{display:grid;grid-template-columns:auto 1fr;gap:12px;border:1px solid var(--line-soft);border-radius:4px;background:var(--bg);padding:10px 12px;margin-bottom:10px;cursor:pointer}
+.hunk:has(input:checked){border-color:var(--head);box-shadow:inset 0 0 0 1px var(--head)}
+.hunk .where{font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:4px}
+.hunk pre{font-family:var(--mono);font-size:12.5px;line-height:1.5;margin:0;white-space:pre-wrap;overflow-x:auto}
+.hunk .del{color:var(--bad)}.hunk .add{color:var(--ok)}
+.hunk .verdict{font-family:var(--mono);font-size:12px;letter-spacing:.06em;margin-top:6px}
+.hunk .verdict.ok{color:var(--ok)}.hunk .verdict.no{color:var(--bad)}
+.hunk select{font:inherit;font-size:14px;color:var(--fg);background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:3px 6px;margin-top:6px}
+.strip{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:stretch}
+@media (max-width:640px){.strip{grid-template-columns:1fr}}
+.cm{border:1px solid var(--line-soft);border-radius:4px;background:var(--bg);padding:10px;display:grid;gap:4px;cursor:pointer;text-align:left;color:var(--fg);font:inherit;align-content:start}
+.cm[aria-pressed=true]{border-color:var(--head);box-shadow:inset 0 0 0 1px var(--head);background:var(--panel)}
+.cm .sha{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.cm .msg{font-size:14px;line-height:1.35}
+.cm .who{font-size:12px;color:var(--muted)}
+.cm .lights{display:flex;gap:4px;margin-top:2px}
+.light{width:14px;height:14px;border-radius:50%;background:var(--line-soft)}
+.light.p{background:var(--ok)}.light.f{background:var(--bad)}
+.tests{display:grid;gap:8px}
+.test{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:baseline;border-top:1px solid var(--line-soft);padding-top:8px}
+.test:first-child{border-top:0;padding-top:0}
+.test .n{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.test .res{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.test .res.p{color:var(--ok)}.test .res.f{color:var(--bad)}
+.test .out{font-family:var(--mono);font-size:12.5px;color:var(--muted);grid-column:2/4}
+.fbrow{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line-soft)}
+.fbrow:first-child{border-top:0}
+.fbhead{display:flex;gap:10px;align-items:baseline}
+.fbhead b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.fbhead b.ok{color:var(--ok)}.fbhead b.thin{color:var(--bad)}
+.fblabel{font-family:var(--serif);color:var(--head)}
+.fbnote{font-size:15px}
+a{color:var(--head)}
+</style></head><body>
+
+<main>
+  <header>
+    <div class="eyebrow">Coding with GPT · Session 2 · In-class puzzle</div>
+    <h1>Stage, commit, blame</h1>
+    <p>You asked an AI to ship the fix from the last puzzle. It did, and a few other things besides. Two rounds: first decide what goes in the commit, then read a real history to find out what broke.</p>
+    <p>The repo is real: <a href="https://github.com/alexcowan/hinh-parts-lookup" target="_blank" rel="noopener">github.com/alexcowan/hinh-parts-lookup</a>. The diffs live there, not here.</p>
+  </header>
+
+  <section class="rubric">
+    <div class="eyebrow">Be ready to explain</div>
+    <ol>
+      <li>Why a hunk that fixes a real bug can still be the wrong thing to put in this commit.</li>
+      <li>What your commit message would tell a teammate who's never seen the diff.</li>
+      <li>Which commit broke scenario 2, how you found it without reading all five diffs, and whether its message told the truth.</li>
+      <li>The one line you'd change to fix it, and what its commit message says.</li>
+    </ol>
+  </section>
+
+  <section class="panel">
+    <h2>Round 1 · Stage only what belongs</h2>
+    <p>Below is everything the AI changed in your working copy. The commit you're making is: <b>“Show a notice and a way to get help when nothing matches.”</b> Check the hunks that belong in it.</p>
+    <div id="hunks"></div>
+    <div class="row"><button type="button" id="stage">Check what I staged</button><span class="muted" style="font-size:14px" id="stagemsg"></span></div>
+    <div id="after" hidden style="display:grid;gap:10px;margin-top:10px">
+      <div class="gwt" style="grid-template-columns:auto 1fr"><b style="padding-top:9px">message</b><textarea id="msg" placeholder="What changed and why, in one line a teammate could read in the log."></textarea></div>
+      <p class="muted" style="margin:0">Now the hunks you left out. Each one goes somewhere: pick where, under each hunk above.</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Round 2 · Which commit broke it?</h2>
+    <p>A week later the no-results notice is gone again. Here's <code>main</code>, oldest to newest. Click a commit to run the three scenarios as the code stood then. The diff and the message are on GitHub; the lights are here.</p>
+    <div class="strip" id="strip"></div>
+    <div class="panel" style="margin-top:12px;display:grid;gap:10px" id="at">
+      <div class="row" style="justify-content:space-between"><span class="eyebrow" id="atlabel">Pick a commit</span><a id="atlink" href="#" target="_blank" rel="noopener" hidden>Read this diff on GitHub ↗</a></div>
+      <div class="tests" id="tests"></div>
+    </div>
+    <div style="display:grid;gap:12px;margin-top:14px">
+      <div class="row" style="gap:16px"><span>Scenario 2 broke at commit:</span><span class="row" id="brokeradios" style="gap:12px"></span></div>
+      <div class="row" style="gap:16px;align-items:start"><span style="padding-top:2px">Its message:</span>
+        <span style="display:grid;gap:4px">
+          <label><input type="radio" name="truth" value="whole"> told the whole story</label>
+          <label><input type="radio" name="truth" value="partial"> was true, but the commit did more than it said</label>
+          <label><input type="radio" name="truth" value="false"> described something the commit didn't do</label>
+        </span></div>
+      <div class="gwt" style="grid-template-columns:auto 1fr"><b style="padding-top:9px">the fix</b><input id="fixline" type="text" style="font-family:var(--mono)" placeholder="The one line, as it should read"></div>
+      <div class="gwt" style="grid-template-columns:auto 1fr"><b style="padding-top:9px">message</b><textarea id="fixmsg" placeholder="Commit message for the fix. Say why, not just what."></textarea></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Check my work</h2>
+    <p class="muted">Not graded. The staging is checked here on the page. An AI reads your two messages and your fix and says where your thinking is thin. Class code is on the Canvas page.</p>
+    <div class="row">
+      <input id="code" type="text" placeholder="Class code" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
+      <button type="button" id="check">Check</button>
+      <span class="muted" id="status" hidden></span>
+    </div>
+    <div id="feedback" style="margin-top:12px;display:grid;gap:8px"></div>
+  </section>
+</main>
+
+<script>
+// ---------- Round 1: the AI's working-copy diff, as five hunks ----------
+const hunks=[
+  {id:"H1", where:"app.js · search()", belongs:false, disp:"second",
+   lines:[["-","  return catalog.filter(p => p.part_number.startsWith(query));"],["+","  const q = query.toUpperCase();"],["+","  return catalog.filter(p => p.part_number.startsWith(q));"]],
+   why:"Fixes scenario 3, not scenario 2. A real fix, its own commit."},
+  {id:"H2", where:"app.js · render()", belongs:true,
+   lines:[["-","  for (const p of parts) results.append(rowFor(p));"],["+","  if (parts.length > 0) {"],["+","    for (const p of parts) results.append(rowFor(p));"],["+","  } else {"],["+","    notice(`No parts match \"${query}\".`);"],["+","  }"]],
+   why:"This is the notice. It's the commit."},
+  {id:"H3", where:"app.js · render(), the notice text", belongs:true,
+   lines:[["-","    notice(`No parts match \"${query}\".`);"],["+","    notice(`No parts match \"${query}\". Call the parts desk: (434) 555-0142`);"]],
+   why:"The way to get help. Same scenario, same commit."},
+  {id:"H4", where:"app.js · rowFor()", belongs:false, disp:"discard",
+   lines:[["-","  d.querySelector(\".stock\").textContent = p.in_stock ? \"In stock\" : \"Backordered\";"],["+","  d.querySelector(\".stock\").textContent = p.in_stock ? \"In stock\" : \"Back-ordered\";"]],
+   why:"Nobody asked for this. A drive-by. Out, or ask why."},
+  {id:"H5", where:"app.js · catalog", belongs:false, disp:"discard",
+   lines:[["+","  {part_number:\"HX-2201-B\", name:\"Blower motor, 1/2 HP (test)\", price:0.01, in_stock:true},"]],
+   why:"Test data in the real catalog. Out, or ask why."},
+];
+const hEl=document.getElementById("hunks");
+hunks.forEach(h=>{ const l=document.createElement("label"); l.className="hunk"; l.id="hunk-"+h.id;
+  l.innerHTML=`<input type="checkbox" name="hunk" value="${h.id}" style="margin-top:4px"><div><div class="where">${h.id} · ${h.where}</div><pre>${h.lines.map(([s,t])=>`<span class="${s==="+"?"add":"del"}">${s} ${esc(t)}</span>`).join("\n")}</pre><div class="verdict" id="v-${h.id}"></div>
+  <select id="d-${h.id}" hidden aria-label="Where does ${h.id} go?"><option value="">Where does this go?</option><option value="second">A second commit of its own</option><option value="discard">Discard it</option><option value="ask">Ask the AI why it did this before deciding</option></select></div>`;
+  hEl.append(l); });
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+let stagingChecked=false, stagingRight=false;
+document.getElementById("stage").onclick=()=>{
+  const picked=[...document.querySelectorAll("input[name=hunk]:checked")].map(e=>e.value);
+  let right=true;
+  hunks.forEach(h=>{ const on=picked.includes(h.id); const ok=on===h.belongs; if(!ok) right=false;
+    const v=document.getElementById("v-"+h.id); v.className="verdict "+(ok?"ok":"no");
+    v.textContent=(ok?"RIGHT · ":"NOT YET · ")+h.why;
+    document.getElementById("d-"+h.id).hidden = h.belongs; });
+  stagingChecked=true; stagingRight=right;
+  document.getElementById("stagemsg").textContent = right ? "Two hunks, one story. Now write the message." : "Fix the ones marked NOT YET, then check again.";
+  document.getElementById("after").hidden=false; save();
+};
+
+// ---------- Round 2: the real history ----------
+const REPO="https://github.com/alexcowan/hinh-parts-lookup";
+const commits=[
+  {sha:"8f32493", who:"Sri", msg:"Parts lookup 1.0: catalog, search by number, show results", v:{upper:false, notice:false, guard:"length"}},
+  {sha:"5d2e988", who:"Frangelico", msg:"Show a notice and the parts desk number when nothing matches", v:{upper:false, notice:true, guard:"length"}},
+  {sha:"7394ac2", who:"Sri", msg:"Match part numbers regardless of case", v:{upper:true, notice:true, guard:"length"}},
+  {sha:"2e581b2", who:"Frangelico", msg:"Show how many are in stock instead of in/out", v:{upper:true, notice:true, guard:"truthy"}},
+  {sha:"e12ce7b", who:"Sri", msg:"README: how to run it locally", v:{upper:true, notice:true, guard:"truthy"}},
+];
+const catalog=["HX-2201","CP-0450","CP-0450-L","TH-7710","FL-1620","IG-3300"];
+// Behaviour of app.js at a given commit, reduced to what the scenarios can see.
+function runAt(v,q){
+  const qq=v.upper?q.toUpperCase():q;
+  const parts=catalog.filter(n=>n.startsWith(qq));
+  const showNotice = v.notice && (v.guard==="length" ? parts.length===0 : !parts);   // `if (parts)` is always true for an array
+  if(parts.length) return {parts, out:parts.length+" result"+(parts.length>1?"s":"")+": "+parts.join(", ")};
+  return {parts, out: showNotice ? `notice: No parts match "${q}". Call the parts desk…` : "(blank — nothing shown)"};
+}
+const scenarios=[
+  {n:1,q:"HX-2201", then:"he sees the blower motor", pass:r=>r.parts.length===1},
+  {n:2,q:"ZZ-9999", then:"he sees there are no results and a way to get help", pass:r=>r.out.startsWith("notice")},
+  {n:3,q:"hx-2201", then:"he sees the blower motor", pass:r=>r.parts.length===1},
+];
+const strip=document.getElementById("strip"); let at=-1;
+commits.forEach((c,i)=>{ const b=document.createElement("button"); b.type="button"; b.className="cm"; b.setAttribute("aria-pressed","false"); b.id="cm-"+i;
+  const lights=scenarios.map(s=>`<span class="light" id="l-${i}-${s.n}"></span>`).join("");
+  b.innerHTML=`<span class="sha">${i+1} · ${c.sha}</span><span class="msg">${c.msg}</span><span class="who">${c.who}</span><span class="lights">${lights}</span>`;
+  b.onclick=()=>select(i); strip.append(b);
+  const r=document.createElement("label"); r.innerHTML=`<input type="radio" name="broke" value="${i+1}"> ${i+1}`; document.getElementById("brokeradios").append(r); });
+let visited=new Set();
+function select(i){ at=i; visited.add(i+1);
+  commits.forEach((_,j)=>document.getElementById("cm-"+j).setAttribute("aria-pressed",String(j===i)));
+  const c=commits[i];
+  document.getElementById("atlabel").textContent=`Commit ${i+1} · ${c.sha} · ${c.msg}`;
+  const a=document.getElementById("atlink"); a.hidden=false; a.href=`${REPO}/commit/${c.sha}`;
+  const t=document.getElementById("tests"); t.innerHTML="";
+  scenarios.forEach(s=>{ const r=runAt(c.v,s.q), ok=s.pass(r);
+    document.getElementById(`l-${i}-${s.n}`).className="light "+(ok?"p":"f");
+    const d=document.createElement("div"); d.className="test";
+    d.innerHTML=`<span class="n">${s.n}</span><span>enters <span class="q">${s.q}</span> → should: ${s.then}</span><span class="res ${ok?"p":"f"}">${ok?"PASS":"FAIL"}</span><span class="out">${esc(r.out)}</span>`;
+    t.append(d); });
+  save();
+}
+
+// ---------- persistence + check ----------
+function v(id){ const e=document.getElementById(id); return e?e.value.trim():""; }
+function radio(n){ const c=document.querySelector(`input[name=${n}]:checked`); return c?c.value:"not answered"; }
+function save(){ try{ localStorage.setItem("scb-draft", JSON.stringify({f:[...document.querySelectorAll("textarea,input[type=text],select")].map(e=>e.value), r:[...document.querySelectorAll("input[type=radio],input[type=checkbox]")].map(e=>e.checked)})); }catch(e){} }
+document.addEventListener("input",save); document.addEventListener("change",save);
+try{ const d=JSON.parse(localStorage.getItem("scb-draft")||"null"); if(d){ [...document.querySelectorAll("textarea,input[type=text],select")].forEach((e,i)=>{ if(d.f[i]!=null) e.value=d.f[i]; }); [...document.querySelectorAll("input[type=radio],input[type=checkbox]")].forEach((e,i)=>{ e.checked=!!d.r[i]; }); } }catch(e){}
+
+const GRADER_URL="https://shrill-wood-3253.acowan.workers.dev/grade";
+const PUZZLE_ID="s2-stage-commit-blame";
+function collect(){
+  const picked=[...document.querySelectorAll("input[name=hunk]:checked")].map(e=>e.value);
+  const dispositions=hunks.filter(h=>!h.belongs).map(h=>`${h.id}: ${v("d-"+h.id)||"not decided"}`).join("; ");
+  return { items:[
+    {label:"Staging", staged:picked.join(", ")||"nothing", correct_staging: stagingChecked ? (stagingRight?"yes":"no") : "not checked", unstaged_hunks:dispositions},
+    {label:"Commit message", message:v("msg")},
+    {label:"Which commit broke it", answer:radio("broke"), commits_opened:[...visited].sort().join(","), message_truth:radio("truth")},
+    {label:"The fix", line:v("fixline"), message:v("fixmsg")},
+  ]};
+}
+const codeEl=document.getElementById("code"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
+try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
+document.getElementById("check").onclick=async()=>{
+  const code=codeEl.value.trim(); if(!code){ codeEl.focus(); return; }
+  try{ localStorage.setItem("cwg-code",code); }catch(e){}
+  statusEl.hidden=false; statusEl.textContent="Reading your answers…"; fb.innerHTML="";
+  try{
+    const r=await fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:PUZZLE_ID,code,answers:collect()})});
+    const d=await r.json();
+    if(!r.ok){ statusEl.textContent=d.error||("Error "+r.status); return; }
+    statusEl.hidden=true;
+    (d.results||[]).forEach(res=>{ const el=document.createElement("div"); el.className="fbrow";
+      el.innerHTML=`<div class="fbhead"><b class="${res.verdict==="ok"?"ok":"thin"}">${res.verdict==="ok"?"OK":"THIN"}</b><span class="fblabel"></span></div><div class="fbnote"></div>`;
+      el.querySelector(".fblabel").textContent=res.label; el.querySelector(".fbnote").textContent=res.note||""; fb.append(el); });
+    if(d.summary){ const s=document.createElement("p"); s.textContent=d.summary; fb.append(s); }
+  }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
+};
+</script>
+</body></html>

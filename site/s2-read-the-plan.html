@@ -1,0 +1,255 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Read the Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same worksheet layout and COWAN+ palette as the Session 1 pages. */
+:root{
+  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
+  --accent:#DA5138; --accent-fg:#FFFFFF; --bar:#002D45; --bar-fg:#FFFFFF; --second:#63ADB1; --ok:#357B68; --bad:#DA5138; --note:#FFFFFF;
+  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --bar:#002D45; --bar-fg:#F2F1E6; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --bar:#002D45; --bar-fg:#F2F1E6; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;margin:0;
+  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:860px;margin:0 auto;display:grid;gap:28px}
+h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
+h2{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--head);margin:0 0 10px}
+p{margin:0 0 10px;max-width:68ch}
+.eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:18px}
+.app{border:1px solid var(--bar);padding:0;overflow:hidden}
+.app .bar{background:var(--bar);color:var(--bar-fg);padding:8px 14px;font-family:var(--serif);font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.app .body{padding:16px 14px;display:grid;gap:12px}
+input[type=text],textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:7px 9px;min-width:0}
+textarea{width:100%;resize:vertical;min-height:52px;box-sizing:border-box}
+button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
+button.ghost{background:transparent;color:var(--head);border:1px solid var(--line)}
+button[disabled]{opacity:.5;cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#results{min-height:48px;display:grid;gap:6px}
+.part{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:baseline;border:1px solid var(--line-soft);border-radius:4px;padding:8px 10px;background:var(--bg)}
+.part .num{font-family:var(--mono);font-size:13px}
+.part .price{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.part .stock{grid-column:2/4;font-size:13px;color:var(--muted)}
+.notice{border:1px dashed var(--line);border-radius:4px;padding:10px 12px;background:var(--bg)}
+.rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
+.rubric ol{margin:6px 0 0;padding-left:20px}
+.rubric li{margin:4px 0}
+.gwt{display:grid;grid-template-columns:62px 1fr;gap:4px 10px;font-size:15px}
+.gwt b{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:3px}
+.q{font-family:var(--mono);background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:0 5px}
+/* The plan: numbered lines, each a radio target. */
+.plan{display:grid;gap:0;counter-reset:ln}
+.plan label{display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:start;padding:10px 12px;border-top:1px solid var(--line-soft);cursor:pointer}
+.plan label:first-child{border-top:0}
+.plan .n{font-family:var(--mono);font-size:13px;color:var(--muted);padding-top:3px}
+.plan .txt{line-height:1.45}
+.plan input{margin-top:6px}
+.plan label.wrong .txt{text-decoration:line-through;text-decoration-color:var(--bad);text-decoration-thickness:2px;color:var(--muted)}
+.plan label.vague .txt::after{content:" — not codable yet";color:var(--accent);font-size:14px}
+.rewrite{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:10px 12px;border-top:1px solid var(--line-soft)}
+.scn{display:grid;gap:10px;border-top:1px solid var(--line-soft);padding-block:18px}
+.scn:first-child{border-top:0;padding-top:0}
+.scn h3{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--head);margin:0}
+.actual{font-family:var(--mono);font-size:13px;white-space:pre-wrap;border-left:3px solid var(--line-soft);padding:6px 10px;min-height:40px;color:var(--muted)}
+.actual.ran{color:var(--fg);border-left-color:var(--second)}
+.actual.fail{border-left-color:var(--bad)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.switch{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.switch button{background:transparent;color:var(--head);border:0;border-radius:0;padding:6px 12px}
+.switch button[aria-pressed=true]{background:var(--bar);color:var(--bar-fg)}
+pre.code{font-family:var(--mono);font-size:12.5px;line-height:1.5;background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:12px;overflow-x:auto;margin:0}
+pre.code .add{color:var(--ok)}
+details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
+</style></head><body>
+
+<main>
+  <header>
+    <div class="eyebrow">Coding with GPT · Session 2 · Opener, as a class</div>
+    <h1>Read the plan before the code</h1>
+    <p>Last time, the HinH parts lookup failed a scenario the story needs: a part number that isn't in the catalog gets a blank screen. We asked an AI to fix it, and asked to see its plan before it wrote any code. Here's the story, the scenario, and the plan it drafted.</p>
+  </header>
+
+  <section class="panel">
+    <div class="eyebrow">Step 1 · The intent we gave it</div>
+    <p style="margin-top:6px"><em>As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair.</em></p>
+    <div class="gwt" style="margin-top:8px">
+      <b>Given</b><div>Trent enters a part number that matches nothing in the catalog,</div>
+      <b>When</b><div>he searches,</div>
+      <b>Then</b><div>he sees that there are no results for what he entered, and he is offered a way to get help identifying the part.</div>
+    </div>
+  </section>
+
+  <section class="rubric">
+    <div class="eyebrow">What we're practicing</div>
+    <ol>
+      <li>Reading five lines of plan is cheaper than reading a hundred lines of code. Find the problem here, not there.</li>
+      <li>A plan line is wrong when it contradicts the Then. It's vague when you couldn't hand it to a coder as is.</li>
+      <li>When the plan surprises you, the problem is usually back in step 1.</li>
+    </ol>
+  </section>
+
+  <section class="panel">
+    <div class="eyebrow">Step 2 · The plan the AI drafted</div>
+    <p class="muted" style="margin-top:6px">Two questions. Which line is <b>wrong</b>, given the Then? Which line <b>can't be coded yet</b>? Mark one of each.</p>
+    <div class="plan" id="plan"></div>
+    <div class="rewrite"><span class="n muted" style="font-family:var(--mono);font-size:13px;padding-top:9px">fix</span>
+      <textarea id="rewrite" placeholder="Rewrite the wrong line so it says what the Then says. One sentence."></textarea></div>
+  </section>
+
+  <section class="panel app">
+    <div class="bar"><span>HinH Parts Lookup</span>
+      <span class="switch" role="group" aria-label="Which plan to run">
+        <button type="button" id="sw-draft" aria-pressed="true">Run the plan as drafted</button>
+        <button type="button" id="sw-fixed" aria-pressed="false" disabled title="Mark the wrong line and rewrite it first">Run it with line 4 fixed</button>
+      </span>
+    </div>
+    <div class="body">
+      <div class="muted" style="font-size:14px" id="hint">The code below does exactly what the plan says. Predict each scenario, then run it.</div>
+      <div id="results" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Scenarios</h2>
+    <div id="scenarios"></div>
+  </section>
+
+  <details>
+    <summary>Show the code the plan became (for after we've run the scenarios)</summary>
+    <p class="muted" style="margin-top:8px">Line 4 of the plan is the <code>else</code> branch. Nothing in the code is "wrong"; it does what it was told. The green lines are what the fix changes.</p>
+<pre class="code" id="codeview"></pre>
+  </details>
+</main>
+
+<script>
+const catalog = [
+  {part_number:"HX-2201", name:"Blower motor, 1/2 HP", price:184.00, in_stock:true},
+  {part_number:"CP-0450", name:"Run capacitor, 45 µF", price:22.50, in_stock:true},
+  {part_number:"CP-0450-L", name:"Run capacitor, 45 µF, low-temp", price:31.00, in_stock:false},
+  {part_number:"TH-7710", name:"Thermostat, programmable", price:96.00, in_stock:true},
+  {part_number:"FL-1620", name:"Filter, 16×20 pleated", price:14.25, in_stock:false},
+  {part_number:"IG-3300", name:"Hot surface igniter", price:61.00, in_stock:true},
+];
+const plan = [
+  "Get the part number the user typed.",
+  "Find the parts in the catalog whose number starts with what he typed.",
+  "Show each part found, with its name, price, and availability.",
+  "If nothing was found, show the whole catalog so he can browse for it.",
+  "Offer a way to get help identifying the part.",
+];
+const WRONG=4, VAGUE=5;
+const FIXED_LINE="If nothing was found, say so, repeating exactly what he typed.";
+
+// Build the plan with two radio groups: "wrong" and "vague".
+const planEl=document.getElementById("plan");
+plan.forEach((t,i)=>{
+  const n=i+1; const l=document.createElement("label"); l.id="pl-"+n;
+  l.innerHTML=`<span class="n">${n}.</span><span class="txt">${t}</span>
+    <span class="row" style="gap:12px;font-size:13px">
+      <span class="row" style="gap:4px"><input type="radio" name="wrong" value="${n}" aria-label="Line ${n} is wrong"> wrong</span>
+      <span class="row" style="gap:4px"><input type="radio" name="vague" value="${n}" aria-label="Line ${n} is not codable yet"> can't code yet</span>
+    </span>`;
+  planEl.append(l);
+});
+function pick(name){ const c=document.querySelector(`input[name=${name}]:checked`); return c?+c.value:0; }
+let mode="draft";
+function refresh(){
+  const w=pick("wrong"), v=pick("vague");
+  plan.forEach((_,i)=>{ const l=document.getElementById("pl-"+(i+1)); l.classList.toggle("wrong",i+1===w); l.classList.toggle("vague",i+1===v); });
+  const rw=document.getElementById("rewrite").value.trim();
+  const ready = w===WRONG && rw.length>8;
+  const sf=document.getElementById("sw-fixed"); sf.disabled=!ready; sf.title=ready?"":"Mark the wrong line and rewrite it first";
+  if(!ready && mode==="fixed") setMode("draft");
+  renderCode();
+}
+document.addEventListener("input",refresh);
+
+// The app: two implementations of the same plan, differing only in line 4.
+const results=document.getElementById("results");
+function search(query){ return catalog.filter(p => p.part_number.startsWith(query)); }
+function rowFor(p){
+  const d=document.createElement("div"); d.className="part";
+  d.innerHTML=`<span class="num"></span><span class="name"></span><span class="price"></span><span class="stock"></span>`;
+  d.querySelector(".num").textContent=p.part_number; d.querySelector(".name").textContent=p.name;
+  d.querySelector(".price").textContent="$"+p.price.toFixed(2); d.querySelector(".stock").textContent=p.in_stock?"In stock":"Backordered";
+  return d;
+}
+function helpLine(){ const d=document.createElement("div"); d.className="muted"; d.style.fontSize="14px"; d.textContent="Need help identifying a part? [coming soon]"; return d; }
+function renderDraft(parts, q){
+  results.innerHTML="";
+  if(parts.length>0){ for(const p of parts) results.append(rowFor(p)); }
+  else { for(const p of catalog) results.append(rowFor(p)); }          // plan line 4, as drafted
+  results.append(helpLine());                                             // plan line 5
+}
+function renderFixed(parts, q){
+  results.innerHTML="";
+  if(parts.length>0){ for(const p of parts) results.append(rowFor(p)); }
+  else { const n=document.createElement("div"); n.className="notice"; n.textContent=`No parts match "${q}".`; results.append(n); }
+  results.append(helpLine());
+}
+function describe(parts,q,fixed){
+  if(parts.length) return `searched "${q}" → ${parts.length} result${parts.length>1?"s":""} shown:\n`+parts.map(p=>`  ${p.part_number}  ${p.name}  $${p.price.toFixed(2)}`).join("\n")+"\n  + a 'need help?' line";
+  return fixed ? `searched "${q}" → notice: No parts match "${q}".\n  + a 'need help?' line`
+               : `searched "${q}" → ${catalog.length} results shown (the whole catalog), nothing says they aren't matches\n  + a 'need help?' line`;
+}
+function setMode(m){ mode=m; document.getElementById("sw-draft").setAttribute("aria-pressed",m==="draft"); document.getElementById("sw-fixed").setAttribute("aria-pressed",m==="fixed");
+  document.getElementById("hint").textContent = m==="draft" ? "The code below does exactly what the plan says. Predict each scenario, then run it." : "Same code, with line 4 doing what the Then says. Run scenario 2 again."; renderCode(); }
+document.getElementById("sw-draft").onclick=()=>setMode("draft");
+document.getElementById("sw-fixed").onclick=()=>setMode("fixed");
+
+const scenarios=[
+  {given:"Trent has part HX-2201 in his hand", q:"HX-2201"},
+  {given:"Trent has a part whose number is not in the catalog", q:"ZZ-9999"},
+  {given:"Trent has part CP-0450 in his hand", q:"CP-0450"},
+];
+const host=document.getElementById("scenarios");
+scenarios.forEach((s,i)=>{ const n=i+1; const el=document.createElement("div"); el.className="scn";
+  el.innerHTML=`<h3>Scenario ${n}</h3>
+    <div class="gwt"><b>Given</b><div>${s.given},</div><b>When</b><div>he enters <span class="q">${s.q}</span> and searches,</div>
+    <b>Then</b><textarea id="then-${n}" placeholder="he sees …"></textarea></div>
+    <div class="row"><button class="ghost" type="button" id="run-${n}">Run scenario ${n}</button><span class="muted" style="font-size:13px" id="which-${n}"></span></div>
+    <div class="actual" id="actual-${n}">Write the Then first, then run.</div>`;
+  host.append(el);
+  document.getElementById("run-"+n).onclick=()=>{
+    const t=document.getElementById("then-"+n); if(!t.value.trim()){ t.focus(); t.placeholder="Write the Then first, then run."; t.style.borderColor="var(--bad)"; return; } t.style.borderColor="";
+    const r=search(s.q); (mode==="fixed"?renderFixed:renderDraft)(r,s.q);
+    const a=document.getElementById("actual-"+n); a.textContent=describe(r,s.q,mode==="fixed"); a.classList.add("ran");
+    a.classList.toggle("fail", n===2 && mode!=="fixed");
+    document.getElementById("which-"+n).textContent = mode==="fixed" ? "ran with line 4 fixed" : "ran as drafted";
+  };
+});
+
+function renderCode(){
+  const fixed=mode==="fixed";
+  const l4 = fixed
+    ? `<span class="add">  } else {                                   // plan line 4, fixed
+    notice(\`No parts match "\${query}".\`);
+  }</span>`
+    : `  } else {                                   // plan line 4, as drafted
+    for (const p of catalog) results.append(rowFor(p));
+  }`;
+  document.getElementById("codeview").innerHTML=
+`function search(query) {                      // plan lines 1–2
+  return catalog.filter(part => part.part_number.startsWith(query));
+}
+
+function render(parts, query) {
+  results.innerHTML = "";
+  if (parts.length > 0) {                      // plan line 3
+    for (const p of parts) results.append(rowFor(p));
+${l4}
+  offerHelp();                                 // plan line 5: offer … what, exactly?
+}`;
+}
+renderCode();
+refresh();
+</script>
+</body></html>

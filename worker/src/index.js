@@ -16,6 +16,26 @@ const RUBRICS = {
       "The student's own scenario needs a Given, an exact When, a Then, and a reason the story requires it. If the app passed it, say so: the point was to find one it fails.",
     ],
   },
+
+  // Session 2 puzzles send `answers.items`, an array of {label, ...fields}; one verdict per item.
+  "s2-ship-the-fix": {
+    story: "As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair. The scenario being fixed: when nothing matches, Trent sees that there are no results for what he entered and is offered a way to get help. The student took that fix through four steps: intent, plan, choosing between alternatives, test and debug.",
+    guidance: [
+      "Step 3 choice: any of the three options (call the desk, text a photo via Twilio, AI photo identification) can be right. What matters is the reason. It passes if it refers to HinH's business: what is distinctive to HinH, what a 1.0 is for, variable vs fixed cost, who holds Trent's data, or technical debt. A reason that is only about which technology is better or cooler is thin. No reason is the main miss.",
+      "Where it broke: the correct answer is the search. The input arrived as typed ('hx-2201') and the display showed what it was given; the search compared lower case against upper case and found nothing. 'Input' or 'display' is thin; say which trace line rules it out.",
+      "The fix: the right one-line change is upper-casing the query before comparing. If fixes_tried shows 'includes' or 'display' first, that is fine as long as they ended with all_pass yes; note in one phrase what the wrong one would have done (includes: matches anywhere, still case-sensitive; display: changes what is shown, not what is compared). If all_pass is no, say so.",
+      "The loop: step 2 (the plan said 'starts with what he typed', which quietly assumed matching case) or step 1 (the scenarios didn't say case shouldn't matter until scenario 3) are both defensible. Step 3 is thin: the choice of help option had nothing to do with case. The change proposed should make the assumption explicit in the plan or the scenario.",
+    ],
+  },
+  "s2-stage-commit-blame": {
+    story: "As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair. Round 1: the student chose which hunks of an AI's diff belong in the commit 'Show a notice and a way to get help when nothing matches' (the page checked this; correct is H2 and H3 only) and wrote its message. Round 2: a five-commit history where commit 4 ('Show how many are in stock instead of in/out') also changed `if (parts.length > 0)` to `if (parts)`, which is always true for an array, so the no-results notice never shows. The fix is to restore `if (parts.length > 0)` (or `parts.length === 0` in the else).",
+    guidance: [
+      "Staging: report correct_staging as given. For unstaged hunks, H1 (the case fix) should go in a second commit; H4 (a wording change nobody asked for) and H5 (test data in the catalog) should be discarded or questioned; either is fine. Putting H4 or H5 in a second commit is thin: say that nothing asked for them.",
+      "Commit message: passes if a teammate could tell from the one line what changed for Trent and why, without the diff. 'Fix bug' or 'update render' is thin. Mentioning the notice or the no-results case and the reason is enough; a 50-72 character subject is ideal but do not fail on length alone.",
+      "Which commit broke it: the answer is 4. Its message was true but the commit did more than it said ('partial'). If commits_opened shows they clicked only commits 1-3 or all five in order without using the lights, note that the lights let you find it in two clicks. If they answered 'false' for the message, say the message was accurate about the stock change; the problem is what it left out.",
+      "The fix: the line must restore a length check on parts (e.g. 'if (parts.length > 0) {'). A line that touches the notice text or the catalog is thin. The message should say why (the empty check was broken by commit 4, an array is always truthy), not just 'fix notice'.",
+    ],
+  },
 };
 
 export default {
@@ -44,14 +64,17 @@ export default {
     const answers = JSON.stringify(body.answers || {});
     if (answers.length > 8000) return json({ error: "Submission too long." }, 413, cors);
 
-    const items = body.answers && Array.isArray(body.answers.scenarios) ? body.answers.scenarios : [];
-    const labels = items.map(s => `Scenario ${s.n}`).concat(["Your scenario"]);
+    // Labels: Session 1 pages send `scenarios` (+ an implied "Your scenario"); later pages send `items` with their own labels.
+    const a = body.answers || {};
+    const labels = Array.isArray(a.items)
+      ? a.items.map(it => String(it.label || "")).filter(Boolean)
+      : (Array.isArray(a.scenarios) ? a.scenarios.map(s => `Scenario ${s.n}`) : []).concat(["Your scenario"]);
     const system = [
-      "You review an in-class puzzle for an MBA course on coding with AI. The student predicted what a small app would do, ran it, and wrote notes. You are not grading; you are telling them where their thinking is thin.",
+      "You review an in-class puzzle for an MBA course on coding with AI. The student worked a small, concrete exercise and wrote notes. You are not grading; you are telling them where their thinking is thin.",
       "The user story the app was built for: " + rubric.story,
       "How to judge:",
       ...rubric.guidance.map((g, i) => `${i + 1}. ${g}`),
-      "Give one verdict per item, in this order: " + labels.join(", ") + ". 'ok' means the prediction and any note engage with the story; 'thin' means something is missing. The note is one sentence, under 20 words, that says what is missing or what was done well. Be plain and specific; do not restate the student's text.",
+      "Give one verdict per item, in this order: " + labels.join(", ") + ". 'ok' means the answer and any note engage with the story and the guidance above; 'thin' means something is missing. The note is one sentence, under 20 words, that says what is missing or what was done well. Be plain and specific; do not restate the student's text.",
       "Then one sentence of summary, under 30 words.",
       "Respond with JSON only, no prose around it, in this shape:",
       `{"results":[{"label":"Scenario 1","verdict":"ok","note":"one sentence"}, ...],"summary":"one sentence"}`,
