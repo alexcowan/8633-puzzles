@@ -60,6 +60,11 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .scn h3{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--head);margin:0}
 .actual{font-family:var(--mono);font-size:13px;white-space:pre-wrap;border-left:3px solid var(--line-soft);padding:6px 10px;min-height:40px;color:var(--muted)}
 .actual.ran{color:var(--fg);border-left-color:var(--second)}
+.actual.ran{animation:flash .6s ease-out}
+@keyframes flash{from{background:color-mix(in srgb,var(--second) 25%,transparent)}to{background:transparent}}
+@media (prefers-reduced-motion:reduce){.actual.ran{animation:none}}
+.runs{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:8px}
+
 .actual.fail{border-left-color:var(--bad)}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .switch{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
@@ -200,6 +205,9 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
 </main>
 
 <script>
+function mark(a){ a.classList.remove("ran"); void a.offsetWidth; mark(a); a.dataset.runs=(+a.dataset.runs||0)+1;
+  let r=a.parentElement.querySelector(".runs[data-for='"+a.id+"']"); if(!r){ r=document.createElement("span"); r.className="runs"; r.dataset.for=a.id; const btn=a.parentElement.querySelector("button.ghost"); (btn?btn.parentElement:a).insertAdjacentElement(btn?"beforeend":"beforebegin",r); }
+  r.textContent = a.dataset.runs>1 ? "run "+a.dataset.runs+"×" : ""; }
 const catalog = [
   {part_number:"HX-2201", name:"Blower motor, 1/2 HP", price:184.00, in_stock:true},
   {part_number:"CP-0450", name:"Run capacitor, 45 µF", price:22.50, in_stock:true},
@@ -273,7 +281,7 @@ scenarios.forEach((s,i)=>{ const n=i+1; const el=document.createElement("div"); 
 function runScenario(i){
   const s=scenarios[i], r=search(s.q); render(r,s.q);
   const ok=expect[i](r); ran[i]=true;
-  const a=document.getElementById("actual-"+(i+1)); a.textContent=outcome(r,s.q); a.classList.add("ran"); a.classList.toggle("fail",!ok);
+  const a=document.getElementById("actual-"+(i+1)); a.textContent=outcome(r,s.q); mark(a); a.classList.toggle("fail",!ok);
   const tag=document.getElementById("tag-"+(i+1)); tag.className=ok?"pass":"failtag"; tag.textContent=ok?"PASS":"FAIL · not what the story says";
   if(ran.every(Boolean)) document.getElementById("debug").hidden=false;
   if(i===2 && fix===null) trace(s.q);   // the trace is of the failure, so it stays put once a fix is applied

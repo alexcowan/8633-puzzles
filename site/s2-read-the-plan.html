@@ -60,6 +60,11 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .scn h3{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--head);margin:0}
 .actual{font-family:var(--mono);font-size:13px;white-space:pre-wrap;border-left:3px solid var(--line-soft);padding:6px 10px;min-height:40px;color:var(--muted)}
 .actual.ran{color:var(--fg);border-left-color:var(--second)}
+.actual.ran{animation:flash .6s ease-out}
+@keyframes flash{from{background:color-mix(in srgb,var(--second) 25%,transparent)}to{background:transparent}}
+@media (prefers-reduced-motion:reduce){.actual.ran{animation:none}}
+.runs{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:8px}
+
 .actual.fail{border-left-color:var(--bad)}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .switch{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
@@ -130,6 +135,9 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
 </main>
 
 <script>
+function mark(a){ a.classList.remove("ran"); void a.offsetWidth; mark(a); a.dataset.runs=(+a.dataset.runs||0)+1;
+  let r=a.parentElement.querySelector(".runs[data-for='"+a.id+"']"); if(!r){ r=document.createElement("span"); r.className="runs"; r.dataset.for=a.id; const btn=a.parentElement.querySelector("button.ghost"); (btn?btn.parentElement:a).insertAdjacentElement(btn?"beforeend":"beforebegin",r); }
+  r.textContent = a.dataset.runs>1 ? "run "+a.dataset.runs+"×" : ""; }
 const catalog = [
   {part_number:"HX-2201", name:"Blower motor, 1/2 HP", price:184.00, in_stock:true},
   {part_number:"CP-0450", name:"Run capacitor, 45 µF", price:22.50, in_stock:true},
@@ -221,7 +229,7 @@ scenarios.forEach((s,i)=>{ const n=i+1; const el=document.createElement("div"); 
   document.getElementById("run-"+n).onclick=()=>{
     const t=document.getElementById("then-"+n); if(!t.value.trim()){ t.focus(); t.placeholder="Write the Then first, then run."; t.style.borderColor="var(--bad)"; return; } t.style.borderColor="";
     const r=search(s.q); (mode==="fixed"?renderFixed:renderDraft)(r,s.q);
-    const a=document.getElementById("actual-"+n); a.textContent=describe(r,s.q,mode==="fixed"); a.classList.add("ran");
+    const a=document.getElementById("actual-"+n); a.textContent=describe(r,s.q,mode==="fixed"); mark(a);
     a.classList.toggle("fail", n===2 && mode!=="fixed");
     document.getElementById("which-"+n).textContent = mode==="fixed" ? "ran with line 4 fixed" : "ran as drafted";
   };
