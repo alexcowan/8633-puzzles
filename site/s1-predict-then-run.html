@@ -73,17 +73,17 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
     <h1>Predict, then run</h1>
     <p>Below is a working 1.0 of the HVAC in a Hurry part lookup. The story it was built for:</p>
     <p><em>As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair.</em></p>
-    <p>Four scenarios are started for you. For each one, write the <b>Then</b> before you touch the app. Then run it and compare. Finish by writing one scenario the story needs that this app fails.</p>
+    <p>Five scenarios are started for you. For each one, write the <b>Then</b> before you touch the app. Then run it and compare. Finish by writing one scenario the story needs that this app fails.</p>
   </header>
 
   <section class="panel app">
     <div class="bar"><span>HinH Parts Lookup v1.0</span><span class="muted" style="color:inherit;opacity:.8;font-weight:400">6 parts in catalog</span></div>
     <div class="body">
       <div class="search">
-        <input id="q" type="text" placeholder="Locked until you've run the four scenarios below" autocomplete="off" aria-label="Part number" disabled>
+        <input id="q" type="text" placeholder="Locked until you've run the five scenarios below" autocomplete="off" aria-label="Part number" disabled>
         <button id="go" type="button" disabled>Search</button>
       </div>
-      <div class="muted" id="lockmsg" style="font-size:14px">This is the whole catalog. The search box unlocks once you've run all four scenarios below; each scenario shows its result where you run it.</div>
+      <div class="muted" id="lockmsg" style="font-size:14px">This is the whole catalog. The search box unlocks once you've run all five scenarios below; each scenario shows its result where you run it.</div>
       <div id="results" aria-live="polite"></div>
     </div>
   </section>
@@ -92,7 +92,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
     <div class="eyebrow">Be ready to explain</div>
     <ol>
       <li>Each Then says what Trent gets (price, availability, a count), not what the screen does.</li>
-      <li>Which of the four you got wrong, and what you'd assumed.</li>
+      <li>Which of the five you got wrong, and what you'd assumed.</li>
       <li>Scenario 2: is two results a bug or a feature? Your reason should come from the story, not the code.</li>
       <li>Scenario 4: the part is in the catalog. Bug or feature? Does your answer square with scenario 2 (same search rule, opposite result)?</li>
       <li>Your own scenario: why the story requires it, and what the app did instead.</li>
@@ -178,11 +178,11 @@ document.getElementById("go").onclick=()=>render(search(document.getElementById(
 document.getElementById("q").addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("go").click(); });
 render(catalog);
 function unlockCheck(){
-  const all=[1,2,3,4].every(n=>{ const a=document.getElementById("actual-"+n); return a&&a.classList.contains("ran"); });
+  const all=[1,2,3,4,5].every(n=>{ const a=document.getElementById("actual-"+n); return a&&a.classList.contains("ran"); });
   const q=document.getElementById("q"), go=document.getElementById("go"), m=document.getElementById("lockmsg");
   q.disabled=!all; go.disabled=!all; m.hidden=all; if(!all) q.value="";
   document.getElementById("results").classList.toggle("locked",!all);
-  q.placeholder=all?"Part number":"Locked until you've run the four scenarios below";
+  q.placeholder=all?"Part number":"Locked until you've run the five scenarios below";
 }
 document.addEventListener("input",unlockCheck);
 
@@ -191,6 +191,7 @@ const scenarios=[
   {given:"Trent has part CP-0450 in his hand", q:"CP-0450"},
   {given:"Trent has a part whose number is not in the catalog", q:"ZZ-9999"},
   {given:"The label on Trent's part is half worn off; he can read the digits but not the letters", q:"0450"},
+  {given:"Trent is typing fast on his phone and doesn't hit shift", q:"hx-2201"},
 ];
 const host=document.getElementById("scenarios");
 scenarios.forEach((s,i)=>{
@@ -212,7 +213,7 @@ scenarios.forEach((s,i)=>{
           <label><input type="radio" name="m-${n}" value="no" id="m-${n}-n"> No</label>
           <label><input type="radio" name="m-${n}" value="partly" id="m-${n}-p"> Partly</label>
         </div>
-        ${n===2?'<textarea id="bug-2" placeholder="Two results: bug or feature? Why, in terms of the story?"></textarea>':''}${n===4?'<textarea id="bug-4" placeholder="Nothing found: bug or feature? Does your answer agree with what you said for scenario 2?"></textarea>':''}
+        ${n===2?'<textarea id="bug-2" placeholder="Two results: bug or feature? Why, in terms of the story?"></textarea>':''}${n===4?'<textarea id="bug-4" placeholder="Nothing found: bug or feature? Does your answer agree with what you said for scenario 2?"></textarea>':''}${n===5?'<textarea id="bug-5" placeholder="Nothing found: bug or feature? Why?"></textarea>':''}
       </div>
     </div>
     <div><button class="ghost" type="button" id="run-${n}">Run scenario ${n}</button></div>`;
@@ -245,7 +246,7 @@ function m(n){ const c=document.querySelector(`input[name=m-${n}]:checked`); ret
 function actual(id){ const a=document.getElementById(id); return a.classList.contains("ran")?a.textContent:"not run"; }
 function collect(){
   return {
-    scenarios: scenarios.map((s,i)=>({ n:i+1, given:s.given, when:s.q, then:v("then-"+(i+1)), actual:actual("actual-"+(i+1)), matched:m(i+1), ...(i===1?{bug_or_feature:v("bug-2")}:{}), ...(i===3?{bug_or_feature:v("bug-4")}:{}) })),
+    scenarios: scenarios.map((s,i)=>({ n:i+1, given:s.given, when:s.q, then:v("then-"+(i+1)), actual:actual("actual-"+(i+1)), matched:m(i+1), ...(i===1?{bug_or_feature:v("bug-2")}:{}), ...(i===3?{bug_or_feature:v("bug-4")}:{}), ...(i===4?{bug_or_feature:v("bug-5")}:{}) })),
     own: { given:v("x-given"), when:v("x-when"), then:v("x-then"), actual:actual("x-actual"), why:v("x-why") },
   };
 }
