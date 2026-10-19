@@ -78,10 +78,10 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
     <div class="bar"><span>HinH Parts Lookup v1.0</span><span class="muted" style="color:inherit;opacity:.8;font-weight:400">6 parts in catalog</span></div>
     <div class="body">
       <div class="search">
-        <input id="q" type="text" placeholder="Locked until you've written all five Thens" autocomplete="off" aria-label="Part number" disabled>
+        <input id="q" type="text" placeholder="Locked until you've run the scenarios below" autocomplete="off" aria-label="Part number" disabled>
         <button id="go" type="button" disabled>Search</button>
       </div>
-      <div class="muted" id="lockmsg" style="font-size:14px">The search box unlocks once every scenario below has a Then. Predict first.</div>
+      <div class="muted" id="lockmsg" style="font-size:14px">The search box unlocks once you've run all five scenarios below. Predict first, then run.</div>
       <div id="results" aria-live="polite"></div>
     </div>
   </section>
@@ -174,11 +174,11 @@ document.getElementById("go").onclick=()=>render(search(document.getElementById(
 document.getElementById("q").addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("go").click(); });
 render(catalog);
 function unlockCheck(){
-  const all=[1,2,3,4,5].every(n=>{ const t=document.getElementById("then-"+n); return t&&t.value.trim(); });
+  const all=[1,2,3,4,5].every(n=>{ const a=document.getElementById("actual-"+n); return a&&a.classList.contains("ran"); });
   const q=document.getElementById("q"), go=document.getElementById("go"), m=document.getElementById("lockmsg");
   q.disabled=!all; go.disabled=!all; m.hidden=all; if(!all) q.value="";
   document.getElementById("results").classList.toggle("locked",!all);
-  q.placeholder=all?"Part number":"Locked until you've written all five Thens";
+  q.placeholder=all?"Part number":"Locked until you've run the scenarios below";
 }
 document.addEventListener("input",unlockCheck);
 
@@ -218,7 +218,7 @@ scenarios.forEach((s,i)=>{
     const t=document.getElementById(`then-${n}`); if(!t.value.trim()){ t.focus(); t.placeholder="Write your Then first, then run."; t.style.borderColor="var(--bad)"; return; } t.style.borderColor="";
     const r=search(s.q); render(r);
     const a=document.getElementById(`actual-${n}`); a.textContent=describe(r, s.q); a.classList.add("ran");
-    build();
+    build(); unlockCheck();
   };
 });
 document.getElementById("x-run").onclick=()=>{
