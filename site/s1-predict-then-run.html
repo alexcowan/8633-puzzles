@@ -83,7 +83,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
         <input id="q" type="text" placeholder="Locked until you've run the scenarios below" autocomplete="off" aria-label="Part number" disabled>
         <button id="go" type="button" disabled>Search</button>
       </div>
-      <div class="muted" id="lockmsg" style="font-size:14px">The search box unlocks once you've run all five scenarios below. Predict first, then run.</div>
+      <div class="muted" id="lockmsg" style="font-size:14px">This is the whole catalog. The search box unlocks once you've run all five scenarios below; each scenario shows its result where you run it.</div>
       <div id="results" aria-live="polite"></div>
     </div>
   </section>
@@ -220,14 +220,14 @@ scenarios.forEach((s,i)=>{
   host.append(el);
   document.getElementById(`run-${n}`).onclick=()=>{
     const t=document.getElementById(`then-${n}`); if(!t.value.trim()){ t.focus(); t.placeholder="Write your Then first, then run."; t.style.borderColor="var(--bad)"; return; } t.style.borderColor="";
-    const r=search(s.q); render(r);
+    const r=search(s.q);
     const a=document.getElementById(`actual-${n}`); a.textContent=describe(r, s.q); a.classList.add("ran");
     build(); unlockCheck();
   };
 });
 document.getElementById("x-run").onclick=()=>{
   const q=document.getElementById("x-when").value;
-  const r=search(q); render(r);
+  const r=search(q);
   const a=document.getElementById("x-actual"); a.textContent=describe(r, q); a.classList.add("ran"); build();
 };
 
