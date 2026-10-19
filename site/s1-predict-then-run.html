@@ -94,7 +94,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
       <li>Each Then says what Trent gets (price, availability, a count), not what the screen does.</li>
       <li>Which of the five you got wrong, and what you'd assumed.</li>
       <li>Scenario 2: is two results a bug or a feature? Your reason should come from the story, not the code.</li>
-      <li>Scenario 4: the part is in the catalog. Should Trent have found it? What does the story say?</li>
+      <li>Scenario 4: the part is in the catalog. Bug or feature? Does your answer square with scenario 2 (same search rule, opposite result)?</li>
       <li>Your own scenario: why the story requires it, and what the app did instead.</li>
     </ol>
   </section>
@@ -213,7 +213,7 @@ scenarios.forEach((s,i)=>{
           <label><input type="radio" name="m-${n}" value="no" id="m-${n}-n"> No</label>
           <label><input type="radio" name="m-${n}" value="partly" id="m-${n}-p"> Partly</label>
         </div>
-        ${n===2?'<textarea id="bug-2" placeholder="Bug or feature? Why, in terms of the story?"></textarea>':''}
+        ${n===2?'<textarea id="bug-2" placeholder="Two results: bug or feature? Why, in terms of the story?"></textarea>':''}${n===4?'<textarea id="bug-4" placeholder="Nothing found: bug or feature? Does your answer agree with what you said for scenario 2?"></textarea>':''}
       </div>
     </div>
     <div><button class="ghost" type="button" id="run-${n}">Run scenario ${n}</button></div>`;
@@ -246,7 +246,7 @@ function m(n){ const c=document.querySelector(`input[name=m-${n}]:checked`); ret
 function actual(id){ const a=document.getElementById(id); return a.classList.contains("ran")?a.textContent:"not run"; }
 function collect(){
   return {
-    scenarios: scenarios.map((s,i)=>({ n:i+1, given:s.given, when:s.q, then:v("then-"+(i+1)), actual:actual("actual-"+(i+1)), matched:m(i+1), ...(i===1?{bug_or_feature:v("bug-2")}:{}) })),
+    scenarios: scenarios.map((s,i)=>({ n:i+1, given:s.given, when:s.q, then:v("then-"+(i+1)), actual:actual("actual-"+(i+1)), matched:m(i+1), ...(i===1?{bug_or_feature:v("bug-2")}:{}), ...(i===3?{bug_or_feature:v("bug-4")}:{}) })),
     own: { given:v("x-given"), when:v("x-when"), then:v("x-then"), actual:actual("x-actual"), why:v("x-why") },
   };
 }

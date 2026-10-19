@@ -13,7 +13,7 @@ const RUBRICS = {
       "Each Then says what Trent gets (price, availability, a count), not what the screen does.",
       "The student ran all five scenarios and reported honestly which predictions were wrong, with what they had assumed.",
       "Scenario 2: the student took a position on whether two results is a bug or a feature, with a reason that comes from the story, not the code.",
-      "Scenario 4: the student noticed the part is in the catalog and said whether Trent should have found it, in terms of the story.",
+      "Scenario 4: the student took a bug-or-feature position on finding nothing, and reconciled it with their scenario 2 position (both come from the same prefix-match rule).",
       "The student's own scenario is one the story requires, and the app fails it.",
     ],
   },
