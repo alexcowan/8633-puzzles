@@ -9,12 +9,11 @@ const MAX_TOKENS = 1500;
 const RUBRICS = {
   "s1-predict-then-run": {
     story: "As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair.",
-    criteria: [
-      "Each Then says what Trent gets (price, availability, a count), not what the screen does.",
-      "The student ran all five scenarios and reported honestly which predictions were wrong, with what they had assumed.",
-      "Scenario 2: the student took a position on whether two results is a bug or a feature, with a reason that comes from the story, not the code.",
-      "Scenario 4: the student took a bug-or-feature position on finding nothing, and reconciled it with their scenario 2 position (both come from the same prefix-match rule).",
-      "The student's own scenario is one the story requires, and the app fails it.",
+    // What the grader looks at, per scenario. Lenient on wording, strict on engagement.
+    guidance: [
+      "A prediction counts if it says, in any words, what Trent would get: a part, several parts, nothing, a count, a price. 'Just the one part' is fine. Only fail a prediction that is blank, or that describes screen mechanics with no outcome for Trent.",
+      "Where the scenario asks bug-or-feature, the student needs a position AND a reason that mentions Trent, the repair, or the story. A reason about the code is not enough. No position at all is the main miss.",
+      "The student's own scenario needs a Given, an exact When, a Then, and a reason the story requires it. If the app passed it, say so: the point was to find one it fails.",
     ],
   },
 };
@@ -45,14 +44,17 @@ export default {
     const answers = JSON.stringify(body.answers || {});
     if (answers.length > 8000) return json({ error: "Submission too long." }, 413, cors);
 
+    const items = body.answers && Array.isArray(body.answers.scenarios) ? body.answers.scenarios : [];
+    const labels = items.map(s => `Scenario ${s.n}`).concat(["Your scenario"]);
     const system = [
-      "You grade an in-class puzzle for an MBA course on coding with AI. Be direct and specific. Each note is one short sentence, under 25 words, that says what is missing or what was done well.",
-      "The user story the puzzle is about: " + rubric.story,
-      "Judge each criterion below as pass or fail on the student's answers. 'Then' clauses that describe screens, buttons or fields fail criterion 1.",
-      "Criteria:",
-      ...rubric.criteria.map((c, i) => `${i + 1}. ${c}`),
-      "Respond with JSON only, no prose around it. results has exactly one entry per criterion, numbered 1 to " + rubric.criteria.length + ", in this shape:",
-      `{"results":[{"n":1,"pass":true,"note":"one sentence"}, ...],"summary":"one sentence"}`,
+      "You review an in-class puzzle for an MBA course on coding with AI. The student predicted what a small app would do, ran it, and wrote notes. You are not grading; you are telling them where their thinking is thin.",
+      "The user story the app was built for: " + rubric.story,
+      "How to judge:",
+      ...rubric.guidance.map((g, i) => `${i + 1}. ${g}`),
+      "Give one verdict per item, in this order: " + labels.join(", ") + ". 'ok' means the prediction and any note engage with the story; 'thin' means something is missing. The note is one sentence, under 20 words, that says what is missing or what was done well. Be plain and specific; do not restate the student's text.",
+      "Then one sentence of summary, under 30 words.",
+      "Respond with JSON only, no prose around it, in this shape:",
+      `{"results":[{"label":"Scenario 1","verdict":"ok","note":"one sentence"}, ...],"summary":"one sentence"}`,
     ].join("\n");
 
     const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -81,9 +83,13 @@ export default {
     try { parsed = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)); }
     catch { return json({ error: "Grader returned something unreadable.", raw: text.slice(0, 300) }, 502, cors); }
 
-    // Keep the page honest: one verdict per criterion, in order, nothing extra.
-    const results = rubric.criteria.map((_, i) => (parsed.results || []).find(r => r.n === i + 1) || { n: i + 1, pass: false, note: "No verdict returned for this criterion." });
-    return json({ criteria: rubric.criteria, results, summary: parsed.summary || "" }, 200, cors);
+    // One verdict per item, in order; fill any the model skipped.
+    const got = Array.isArray(parsed.results) ? parsed.results : [];
+    const results = labels.map(l => {
+      const r = got.find(x => x && typeof x.label === "string" && x.label.toLowerCase() === l.toLowerCase());
+      return r ? { label: l, verdict: r.verdict === "ok" ? "ok" : "thin", note: String(r.note || "") } : { label: l, verdict: "thin", note: "No comment returned for this item." };
+    });
+    return json({ results, summary: String(parsed.summary || "") }, 200, cors);
   },
 };
 

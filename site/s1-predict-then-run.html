@@ -55,6 +55,15 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 #results.locked .part{border-style:dashed}
 .match{display:flex;gap:14px;font-size:14px;flex-wrap:wrap}
 .match label{display:flex;gap:5px;align-items:center}
+.fbrow{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line-soft)}
+.fbrow:first-child{border-top:0}
+.fbhead{display:flex;gap:10px;align-items:baseline}
+.fbhead b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.fbhead b.ok{color:var(--ok)}
+.fbhead b.thin{color:var(--bad)}
+.fblabel{font-family:var(--serif);color:var(--head)}
+.fbmine{font-size:14px}
+.fbnote{font-size:15px}
 .rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
 .rubric ol{margin:6px 0 0;padding-left:20px}
 .rubric li{margin:4px 0}
@@ -125,7 +134,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
 
   <section class="panel">
     <h2>Check my work</h2>
-    <p class="muted">Not graded. An AI reads your answers against the list above and tells you where they're thin. Class code is on the Canvas page.</p>
+    <p class="muted">Not graded. An AI reads each scenario's prediction and notes against the story and says where your thinking is thin. Class code is on the Canvas page.</p>
     <div class="row">
       <input id="code" type="text" placeholder="Class code" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
       <button type="button" id="check">Check</button>
@@ -261,10 +270,14 @@ document.getElementById("check").onclick=async()=>{
     const d=await r.json();
     if(!r.ok){ statusEl.textContent=d.error||("Error "+r.status); return; }
     statusEl.hidden=true;
-    (d.results||[]).forEach(res=>{
-      const c=d.criteria[res.n-1]||""; const el=document.createElement("div");
-      el.className="gwt"; el.innerHTML=`<b style="color:${res.pass?"var(--ok)":"var(--bad)"}">${res.pass?"PASS":"THIN"}</b><div><div>${c}</div><div class="muted"></div></div>`;
-      el.querySelector(".muted").textContent=res.note||""; fb.append(el);
+    const ans=collect();
+    (d.results||[]).forEach((res,i)=>{
+      const src = i<ans.scenarios.length ? ans.scenarios[i] : ans.own;
+      const el=document.createElement("div"); el.className="fbrow";
+      const mine = src ? `Predicted: ${src.then||"(blank)"} · Actual: ${(src.actual||"").split("\n")[0]}${src.matched?" · Matched: "+src.matched:""}${src.bug_or_feature?" · Note: "+src.bug_or_feature:""}${src.why?" · Why: "+src.why:""}` : "";
+      el.innerHTML=`<div class="fbhead"><b class="${res.verdict==="ok"?"ok":"thin"}">${res.verdict==="ok"?"OK":"THIN"}</b><span class="fblabel"></span></div><div class="muted fbmine"></div><div class="fbnote"></div>`;
+      el.querySelector(".fblabel").textContent=res.label; el.querySelector(".fbmine").textContent=mine; el.querySelector(".fbnote").textContent=res.note||"";
+      fb.append(el);
     });
     if(d.summary){ const s=document.createElement("p"); s.textContent=d.summary; fb.append(s); }
   }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
