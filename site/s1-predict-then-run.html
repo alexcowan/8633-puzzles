@@ -49,8 +49,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .run{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:560px){.run{grid-template-columns:1fr}}
 .col{display:grid;gap:6px;min-width:0}
-.actual{font-family:var(--mono);font-size:13px;white-space:pre-wrap;background:var(--bg);border:1px dashed var(--line);border-radius:4px;padding:8px;min-height:52px;color:var(--muted)}
-.actual.ran{color:var(--fg);border-style:solid}
+.actual{font-family:var(--mono);font-size:13px;white-space:pre-wrap;background:transparent;border:0;border-left:3px solid var(--line-soft);padding:6px 10px;min-height:44px;color:var(--muted)}
+.actual.ran{color:var(--fg);border-left-color:var(--second)}
 #results.locked{opacity:.55}
 #results.locked .part{border-style:dashed}
 .match{display:flex;gap:14px;font-size:14px;flex-wrap:wrap}
@@ -60,7 +60,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .rubric li{margin:4px 0}
 pre.code{font-family:var(--mono);font-size:12.5px;line-height:1.5;background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:12px;overflow-x:auto;margin:0}
 details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
-.part,.scn,.gwt .q,.actual,input[type=text],textarea,pre.code{border-color:var(--line-soft)}
+.part,.scn,.gwt .q,input[type=text],textarea,pre.code{border-color:var(--line-soft)}
 #submission{font-family:var(--mono);font-size:12.5px;min-height:220px}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .toast{font-size:13px;color:var(--ok)}
@@ -115,7 +115,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
         <b>Then</b><textarea id="x-then" placeholder="he sees …"></textarea>
       </div>
       <div class="run">
-        <div class="col"><span class="eyebrow">Actual</span><div class="actual" id="x-actual">Not run yet.</div></div>
+        <div class="col"><span class="eyebrow">Actual</span><div class="actual" id="x-actual">— not run yet —</div></div>
         <div class="col"><span class="eyebrow">Why this matters for the story</span><textarea id="x-why" placeholder="One or two sentences."></textarea></div>
       </div>
       <div><button class="ghost" type="button" id="x-run">Run my scenario</button></div>
@@ -205,7 +205,7 @@ scenarios.forEach((s,i)=>{
       <b>Then</b><textarea id="then-${n}" placeholder="he sees …"></textarea>
     </div>
     <div class="run">
-      <div class="col"><span class="eyebrow">Actual</span><div class="actual" id="actual-${n}">Write your Then first, then run.</div></div>
+      <div class="col"><span class="eyebrow">Actual</span><div class="actual" id="actual-${n}">— not run yet —</div></div>
       <div class="col">
         <span class="eyebrow">Did it match what you wrote?</span>
         <div class="match">
