@@ -115,7 +115,8 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
       <li>Your choice in step 3, in terms of where HinH is distinctive and what a 1.0 is for. Not in terms of which option is "best."</li>
       <li>Which question in step 4 found the problem, and why the other two couldn't have.</li>
       <li>Which of the three fixes you picked, and what the wrong ones would have done instead.</li>
-      <li>Which step the failed test sent you back to, and what you'd change there so it doesn't happen again.</li>
+      <li>Why scenario 3 failed when you didn't touch anything near it, and what that says about which scenarios to run.</li>
+      <li>Your rewrite of plan line 2, and whether it would have caught scenario 3 before any code was written.</li>
     </ol>
   </section>
 
@@ -156,11 +157,12 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
 
   <section class="panel step locked" id="step4">
     <div class="eyebrow">Step 4 <b>Test and debug</b></div>
-    <p class="muted" style="margin:0">Each scenario is a test. Write the Then in your own words, then run it.</p>
+    <p class="muted" style="margin:0">Each scenario is a test, and you run all of them every time, not just the one you touched. Write the Then in your own words, then run it.</p>
     <div id="scenarios"></div>
 
     <div id="debug" hidden style="display:grid;gap:12px;border-top:1px solid var(--line-soft);padding-top:14px">
       <h2 style="margin:0">Scenario 3 failed. Where?</h2>
+      <p style="margin:0">Your help option passed (scenario 2). What failed has nothing to do with it: this bug was in the 1.0 all along, and scenario 3 is the first time anyone tested for it. That's why you run every scenario, not just the one you changed.</p>
       <p class="muted" style="margin:0">Analytical beats trial and error. Three questions, in order; the trace answers each one for the input <span class="q">hx-2201</span>.</p>
       <div class="trace" id="trace"></div>
       <div class="row" style="gap:16px">
@@ -175,14 +177,9 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
       <div class="fixes" id="fixes"></div>
       <div class="row"><button type="button" id="apply" disabled>Apply and rerun all three</button><span class="muted" style="font-size:13px" id="applymsg"></span></div>
 
-      <h2 style="margin:6px 0 0">The loop</h2>
-      <p class="muted" style="margin:0">A failed test sends you back to the plan; a muddled plan sends you back to the intent. Which step did this one send you back to, and what would you change there?</p>
-      <div class="row" style="gap:16px">
-        <label><input type="radio" name="back" value="1"> Step 1, the intent</label>
-        <label><input type="radio" name="back" value="2"> Step 2, the plan</label>
-        <label><input type="radio" name="back" value="3"> Step 3, the choice</label>
-      </div>
-      <textarea id="backwhy" placeholder="What you'd change there, in one sentence."></textarea>
+      <h2 style="margin:6px 0 0">Back to the plan</h2>
+      <p class="muted" style="margin:0">The code fix is one line. But the plan let it through: line 2 says <em>"Find the parts in the catalog whose number starts with what he typed,"</em> which quietly assumed Trent types it the way the catalog has it. A failed test sends you back to the plan. Rewrite line 2 so that scenario 3 would have been caught before any code was written.</p>
+      <div class="gwt" style="grid-template-columns:28px 1fr"><b style="padding-top:9px">2.</b><textarea id="backwhy" placeholder="Find the parts in the catalog whose number …"></textarea></div>
     </div>
   </section>
 
@@ -364,7 +361,7 @@ function collect(){
     {label:"Step 3 choice", chose:c?c.title:"none", why:v("why")},
     {label:"Where it broke", answer:radio("where"), trace_shown:document.getElementById("debug").hidden?"no":"yes"},
     {label:"The fix", fixes_tried:applied.join(" → ")||"none applied", all_pass: scenarios.every((s,i)=>expect[i](search(s.q)))?"yes":"no"},
-    {label:"The loop", back_to_step:radio("back"), change:v("backwhy")},
+    {label:"The loop", plan_line_2_rewritten:v("backwhy")},
   ], predictions: scenarios.map((s,i)=>({n:i+1, when:s.q, then:v("then-"+(i+1))})) };
 }
 const codeEl=document.getElementById("code"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
