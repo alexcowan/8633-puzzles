@@ -27,6 +27,8 @@ p{margin:0 0 10px;max-width:68ch}
 .app{border:1px solid var(--bar);padding:0;overflow:hidden}
 .app .bar{background:var(--bar);color:var(--bar-fg);padding:8px 14px;font-family:var(--serif);font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .app .body{padding:16px 14px;display:grid;gap:12px}
+.search{display:flex;gap:8px;flex-wrap:wrap}
+.search input{flex:1 1 200px}
 input[type=text],textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:7px 9px;min-width:0}
 textarea{width:100%;resize:vertical;min-height:52px;box-sizing:border-box}
 button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
@@ -122,6 +124,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
     </div>
     <div class="body">
       <div class="muted" style="font-size:14px" id="hint">This app does exactly what the plan says, line by line. Write a Then for each scenario below, then run it here.</div>
+      <div class="search"><input id="q" type="text" placeholder="Part number" autocomplete="off" aria-label="Part number"><button id="go" type="button">Search</button></div>
       <div id="results" aria-live="polite"></div>
     </div>
   </section>
@@ -215,6 +218,12 @@ function describe(parts,q,fixed){
   return fixed ? `searched "${q}" → notice: No parts match "${q}".\n  + a 'need help?' line`
                : `searched "${q}" → ${catalog.length} results shown (the whole catalog), nothing says they aren't matches\n  + a 'need help?' line`;
 }
+function runQuery(q){
+  const fixedL4 = mode==="fixed" && window.pickedLine===WRONG;
+  const r=search(q); (fixedL4?renderFixed:renderDraft)(r,q); return {r,fixedL4};
+}
+document.getElementById("go").onclick=()=>runQuery(document.getElementById("q").value);
+document.getElementById("q").addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("go").click(); });
 function setMode(m){ mode=m; document.getElementById("sw-draft").setAttribute("aria-pressed",m==="draft"); document.getElementById("sw-fixed").setAttribute("aria-pressed",m==="fixed");
   document.getElementById("hint").textContent = m==="draft" ? "This app does exactly what the plan says, line by line. Write a Then for each scenario below, then run it here." : (window.pickedLine===WRONG ? "Same app, with line 4 doing what the Then says. Run scenario 2 again." : "Same app, with your rewrite of line "+window.pickedLine+". Run scenario 2 again and see whether anything changed."); renderCode(); }
 document.getElementById("sw-draft").onclick=()=>setMode("draft");
@@ -235,8 +244,8 @@ scenarios.forEach((s,i)=>{ const n=i+1; const el=document.createElement("div"); 
   host.append(el);
   document.getElementById("run-"+n).onclick=()=>{
     const t=document.getElementById("then-"+n); if(!t.value.trim()){ t.focus(); t.placeholder="Write the Then first, then run."; t.style.borderColor="var(--bad)"; return; } t.style.borderColor="";
-    const fixedL4 = mode==="fixed" && window.pickedLine===WRONG;
-    const r=search(s.q); (fixedL4?renderFixed:renderDraft)(r,s.q);
+    document.getElementById("q").value=s.q;            // line 1: what Trent typed
+    const {r,fixedL4}=runQuery(s.q);
     const a=document.getElementById("actual-"+n); a.textContent=describe(r,s.q,fixedL4); mark(a);
     a.classList.toggle("fail", n===2 && !(fixedL4 && !window.deletedLine));
     document.getElementById("which-"+n).textContent = mode==="fixed" ? (fixedL4 ? (window.deletedLine ? "ran with line 4 deleted" : "ran with line 4 fixed") : "ran with line "+window.pickedLine+(window.deletedLine?" deleted":" rewritten")+" — line 4 still as drafted") : "ran as drafted";
