@@ -82,15 +82,15 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
   <header>
     <div class="eyebrow">Coding with GPT · Session 2 · Opener, as a class</div>
     <h1>Read the plan before the code</h1>
-    <p>Last time, the HinH parts lookup failed a scenario the story needs: a part number that isn't in the catalog gets a blank screen. We asked an AI to fix it, and asked to see its plan before it wrote any code. Here's the story, the scenario, and the plan it drafted.</p>
+    <p>Last time, the HinH parts lookup failed a scenario the story needs: a part number that isn't in the catalog gets a blank screen. We asked an AI to fix it. It drafted a plan and built the app from it. Run the scenarios first. When one fails, find the line in the plan that caused it.</p>
   </header>
 
   <section class="rubric">
     <div class="eyebrow">What we're practicing</div>
     <ol>
-      <li>Reading five lines of plan is cheaper than reading a hundred lines of code. Find the problem here, not there.</li>
-      <li>A plan line is wrong when it contradicts the Then. Fix it in the plan, in plain words, before anyone touches code.</li>
-      <li>When the plan surprises you, the problem is usually back in step 1.</li>
+      <li>A Then says what Trent gets. Write it before you run.</li>
+      <li>When a scenario fails, look in the plan before the code. Five lines are cheaper to read than a hundred.</li>
+      <li>A plan line is wrong when it contradicts the Then. Fix it in plain words, then rebuild.</li>
     </ol>
   </section>
 
@@ -105,14 +105,8 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
   </section>
 
 
-  <section class="panel">
-    <div class="eyebrow">Step 2 · The plan the AI drafted</div>
-    <p style="margin-top:6px">One of these five lines contradicts the Then. Which one? Mark it, then rewrite it so it says what the Then says.</p>
-    <div class="plan" id="plan"></div>
-    <div class="rewrite" id="rewrite-row" hidden><span class="n muted" id="rewrite-n" style="font-family:var(--mono);font-size:13px;padding-top:9px">4.</span>
-      <div style="display:grid;gap:6px"><textarea id="rewrite" placeholder="Rewrite the line so it says what the Then says. One sentence."></textarea>
-      <label class="row" style="gap:6px;font-size:14px"><input type="checkbox" id="delete-line"> or just delete it</label></div></div>
-  </section>
+
+
 
   <section class="panel app">
     <div class="bar"><span>HinH Parts Lookup</span>
@@ -130,12 +124,23 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
   </section>
 
   <section class="panel">
-    <h2>Scenarios</h2>
+    <div class="eyebrow">Step 2 · Run it as built</div>
+    <p class="muted" style="margin-top:6px">Write the Then for each scenario, then run it. The app above shows the last one you ran.</p>
     <div id="scenarios"></div>
   </section>
 
+  <section class="panel">
+    <div class="eyebrow">Step 3 · Find it in the plan</div>
+    <p style="margin-top:6px">This is the plan the app was built from. One of these five lines contradicts the Then, and it's why scenario 2 failed. Which one? Mark it, then rewrite it so it says what the Then says.</p>
+    <div class="plan" id="plan"></div>
+    <div class="rewrite" id="rewrite-row" hidden><span class="n muted" id="rewrite-n" style="font-family:var(--mono);font-size:13px;padding-top:9px">4.</span>
+      <div style="display:grid;gap:6px"><textarea id="rewrite" placeholder="Rewrite the line so it says what the Then says. One sentence."></textarea>
+      <label class="row" style="gap:6px;font-size:14px"><input type="checkbox" id="delete-line"> or just delete it</label>
+      <div class="row"><button type="button" id="rebuild" disabled>Rebuild with your fix and rerun scenario 2</button><span class="muted" style="font-size:14px" id="rebuild-msg"></span></div></div></div>
+  </section>
+
   <details>
-    <summary>Show the code the plan became (for after we've run the scenarios)</summary>
+    <summary>Show the code the plan became (for after we've fixed the plan)</summary>
     <p class="muted" style="margin-top:8px">Three pieces: the button gets the input and calls the other two; <code>search</code> decides what matches; <code>render</code> decides what Trent sees. Line 4 of the plan is the <code>else</code> branch. Nothing here is "wrong"; it does what it was told. The green parts are what the fix changes.</p>
 <pre class="code" id="codeview"></pre>
   </details>
@@ -183,7 +188,7 @@ function refresh(){
   document.getElementById("rewrite-row").hidden = w===0;
   document.getElementById("rewrite-n").textContent = w ? w+"." : "";
   plan.forEach((_,i)=>{ const l=document.getElementById("pl-"+(i+1)); l.classList.toggle("wrong",i+1===w); });
-  const sf=document.getElementById("sw-fixed"); sf.disabled=!ready; sf.title=ready?"":"Mark the wrong line and rewrite it first";
+  const sf=document.getElementById("sw-fixed"); sf.disabled=!ready; document.getElementById("rebuild").disabled=!ready; sf.title=ready?"":"Mark the wrong line and rewrite it first";
   if(!ready && mode==="fixed") setMode("draft");
   renderCode();
 }
@@ -227,6 +232,13 @@ document.getElementById("part-number").addEventListener("keydown",e=>{ if(e.key=
 function setMode(m){ mode=m; document.getElementById("sw-draft").setAttribute("aria-pressed",m==="draft"); document.getElementById("sw-fixed").setAttribute("aria-pressed",m==="fixed");
   document.getElementById("hint").textContent = m==="draft" ? "This app does exactly what the plan says, line by line. Write a Then for each scenario below, then run it here." : (window.pickedLine===WRONG ? "Same app, with line 4 doing what the Then says. Run scenario 2 again." : "Same app, with your rewrite of line "+window.pickedLine+". Run scenario 2 again and see whether anything changed."); renderCode(); }
 document.getElementById("sw-draft").onclick=()=>setMode("draft");
+document.getElementById("rebuild").onclick=()=>{
+  setMode("fixed");
+  const t2=document.getElementById("then-2"); if(!t2.value.trim()) t2.value="(rerun after the fix)";
+  document.getElementById("run-2").click();
+  document.getElementById("rebuild-msg").textContent = document.getElementById("actual-2").classList.contains("fail") ? "Scenario 2 still fails. Look at what Trent sees now." : "Scenario 2 passes.";
+  document.getElementById("actual-2").scrollIntoView({behavior:"smooth",block:"center"});
+};
 document.getElementById("sw-fixed").onclick=()=>setMode("fixed");
 
 const scenarios=[
