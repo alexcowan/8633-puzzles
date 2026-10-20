@@ -89,8 +89,8 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
     <div class="bar"><span>HinH Parts Lookup v1.0</span><span class="muted" style="color:inherit;opacity:.8;font-weight:400">6 parts in catalog</span></div>
     <div class="body">
       <div class="search">
-        <input id="q" type="text" placeholder="Locked until you've run the five scenarios below" autocomplete="off" aria-label="Part number" disabled>
-        <button id="go" type="button" disabled>Search</button>
+        <input id="part-number" type="text" placeholder="Locked until you've run the five scenarios below" autocomplete="off" aria-label="Part number" disabled>
+        <button id="search-button" type="button" disabled>Search</button>
       </div>
       <div class="muted" id="lockmsg" style="font-size:14px">This is the whole catalog. The search box unlocks once you've run all five scenarios below; each scenario shows its result where you run it.</div>
       <div id="results" aria-live="polite"></div>
@@ -183,12 +183,12 @@ function describe(parts, q){
   if(!parts.length) return head+"(nothing shown — the results area is blank)";
   return head+parts.length+" result"+(parts.length>1?"s":"")+" shown:\n"+parts.map(p=>`  ${p.part_number}  ${p.name}  $${p.price.toFixed(2)}  ${p.in_stock?"In stock":"Backordered"}`).join("\n");
 }
-document.getElementById("go").onclick=()=>render(search(document.getElementById("q").value));
-document.getElementById("q").addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("go").click(); });
+document.getElementById("search-button").onclick=()=>render(search(document.getElementById("part-number").value));
+document.getElementById("part-number").addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("search-button").click(); });
 render(catalog);
 function unlockCheck(){
   const all=[1,2,3,4,5].every(n=>{ const a=document.getElementById("actual-"+n); return a&&a.classList.contains("ran"); });
-  const q=document.getElementById("q"), go=document.getElementById("go"), m=document.getElementById("lockmsg");
+  const q=document.getElementById("part-number"), go=document.getElementById("search-button"), m=document.getElementById("lockmsg");
   q.disabled=!all; go.disabled=!all; m.hidden=all; if(!all) q.value="";
   document.getElementById("results").classList.toggle("locked",!all);
   q.placeholder=all?"Part number":"Locked until you've run the five scenarios below";

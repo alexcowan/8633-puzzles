@@ -124,7 +124,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
     </div>
     <div class="body">
       <div class="muted" style="font-size:14px" id="hint">This app does exactly what the plan says, line by line. Write a Then for each scenario below, then run it here.</div>
-      <div class="search"><input id="q" type="text" placeholder="Part number" autocomplete="off" aria-label="Part number"><button id="go" type="button">Search</button></div>
+      <div class="search"><input id="part-number" type="text" placeholder="Part number" autocomplete="off" aria-label="Part number"><button id="search-button" type="button">Search</button></div>
       <div id="results" aria-live="polite"></div>
     </div>
   </section>
@@ -222,8 +222,8 @@ function runQuery(q){
   const fixedL4 = mode==="fixed" && window.pickedLine===WRONG;
   const r=search(q); (fixedL4?renderFixed:renderDraft)(r,q); return {r,fixedL4};
 }
-document.getElementById("go").onclick=()=>runQuery(document.getElementById("q").value);
-document.getElementById("q").addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("go").click(); });
+document.getElementById("search-button").onclick=()=>runQuery(document.getElementById("part-number").value);
+document.getElementById("part-number").addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("search-button").click(); });
 function setMode(m){ mode=m; document.getElementById("sw-draft").setAttribute("aria-pressed",m==="draft"); document.getElementById("sw-fixed").setAttribute("aria-pressed",m==="fixed");
   document.getElementById("hint").textContent = m==="draft" ? "This app does exactly what the plan says, line by line. Write a Then for each scenario below, then run it here." : (window.pickedLine===WRONG ? "Same app, with line 4 doing what the Then says. Run scenario 2 again." : "Same app, with your rewrite of line "+window.pickedLine+". Run scenario 2 again and see whether anything changed."); renderCode(); }
 document.getElementById("sw-draft").onclick=()=>setMode("draft");
@@ -244,7 +244,7 @@ scenarios.forEach((s,i)=>{ const n=i+1; const el=document.createElement("div"); 
   host.append(el);
   document.getElementById("run-"+n).onclick=()=>{
     const t=document.getElementById("then-"+n); if(!t.value.trim()){ t.focus(); t.placeholder="Write the Then first, then run."; t.style.borderColor="var(--bad)"; return; } t.style.borderColor="";
-    document.getElementById("q").value=s.q;            // line 1: what Trent typed
+    document.getElementById("part-number").value=s.q;            // line 1: what Trent typed
     const {r,fixedL4}=runQuery(s.q);
     const a=document.getElementById("actual-"+n); a.textContent=describe(r,s.q,fixedL4); mark(a);
     a.classList.toggle("fail", n===2 && !(fixedL4 && !window.deletedLine));
@@ -268,8 +268,8 @@ ${add('    notice(`No parts match "${query}".`);')}
   }`;
   document.getElementById("codeview").innerHTML=
 `// The button: get what Trent typed, search, show the result.
-go.onclick = () => {
-  const q = document.getElementById("q").value;   // plan line 1
+searchButton.onclick = () => {
+  const q = document.getElementById("part-number").value;   // plan line 1
 ${call}
 };
 
