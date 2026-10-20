@@ -1,0 +1,251 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pick a Way to Get Help</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same worksheet layout and COWAN+ palette as the Session 1 pages. */
+:root{
+  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
+  --accent:#DA5138; --accent-fg:#FFFFFF; --bar:#002D45; --bar-fg:#FFFFFF; --second:#63ADB1; --ok:#357B68; --bad:#DA5138; --note:#FFFFFF;
+  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --bar:#002D45; --bar-fg:#F2F1E6; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --bar:#002D45; --bar-fg:#F2F1E6; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;margin:0;
+  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:860px;margin:0 auto;display:grid;gap:28px}
+h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
+h2{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--head);margin:0 0 10px}
+p{margin:0 0 10px;max-width:68ch}
+.eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:18px}
+.app{border:1px solid var(--bar);padding:0;overflow:hidden}
+.app .bar{background:var(--bar);color:var(--bar-fg);padding:8px 14px;font-family:var(--serif);font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.app .body{padding:16px 14px;display:grid;gap:12px}
+.search{display:flex;gap:8px;flex-wrap:wrap}
+.search input{flex:1 1 200px}
+input[type=text],textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:7px 9px;min-width:0}
+textarea{width:100%;resize:vertical;min-height:52px;box-sizing:border-box}
+button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
+button.ghost{background:transparent;color:var(--head);border:1px solid var(--line)}
+button[disabled]{opacity:.5;cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#results{min-height:48px;display:grid;gap:6px}
+.part{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:baseline;border:1px solid var(--line-soft);border-radius:4px;padding:8px 10px;background:var(--bg)}
+.part .num{font-family:var(--mono);font-size:13px}
+.part .price{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.part .stock{grid-column:2/4;font-size:13px;color:var(--muted)}
+.notice{border:1px dashed var(--line);border-radius:4px;padding:10px 12px;background:var(--bg)}
+.rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
+.rubric ol{margin:6px 0 0;padding-left:20px}
+.rubric li{margin:4px 0}
+.gwt{display:grid;grid-template-columns:62px 1fr;gap:4px 10px;font-size:15px}
+.gwt b{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:3px}
+.q{font-family:var(--mono);background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:0 5px}
+/* The plan: numbered lines, each a radio target. */
+.plan{display:grid;gap:0;counter-reset:ln}
+.plan label{display:grid;grid-template-columns:auto 28px 1fr;gap:12px;align-items:start;padding:10px 12px;border-top:1px solid var(--line-soft);cursor:pointer}
+.plan label:first-child{border-top:0}
+.plan .n{font-family:var(--mono);font-size:13px;color:var(--muted);padding-top:3px}
+.plan .txt{line-height:1.45}
+.plan input{margin-top:6px}
+.plan label.wrong .txt{text-decoration:line-through;text-decoration-color:var(--bad);text-decoration-thickness:2px;color:var(--muted)}
+.rewrite{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:10px 12px 0;border-top:1px solid var(--line-soft)}
+.rewrite[hidden]{display:none}
+.scn{display:grid;gap:10px;border-top:1px solid var(--line-soft);padding-block:18px}
+.scn:first-child{border-top:0;padding-top:0}
+.scn h3{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--head);margin:0}
+.actual{font-family:var(--mono);font-size:13px;white-space:pre-wrap;border-left:3px solid var(--line-soft);padding:6px 10px;min-height:40px;color:var(--muted)}
+.actual.ran{color:var(--fg);border-left-color:var(--second)}
+.actual.ran{animation:flash .6s ease-out}
+@keyframes flash{from{background:color-mix(in srgb,var(--second) 25%,transparent)}to{background:transparent}}
+@media (prefers-reduced-motion:reduce){.actual.ran{animation:none}}
+.runs{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:8px}
+
+.actual.fail{border-left-color:var(--bad)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.switch{display:inline-flex;border:1px solid rgba(255,255,255,.55);border-radius:4px;overflow:hidden}
+.switch button{background:transparent;color:var(--bar-fg);border:0;border-radius:0;padding:6px 12px;font-family:var(--sans);font-size:14px}
+.switch button[aria-pressed=true]{background:var(--accent);color:var(--accent-fg)}
+.switch button[disabled]{opacity:.45}
+pre.code{font-family:var(--mono);font-size:12.5px;line-height:1.5;background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:12px;overflow-x:auto;margin:0}
+pre.code .add{color:var(--ok)}
+details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
+</style>
+<style>
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:720px){.cards{grid-template-columns:1fr}}
+.card{border:1px solid var(--line-soft);border-radius:4px;padding:12px;background:var(--bg);display:grid;gap:6px;cursor:pointer;align-content:start}
+.card:has(input:checked){border-color:var(--head);box-shadow:inset 0 0 0 1px var(--head)}
+.card h4{font-family:var(--serif);font-weight:400;font-size:17px;color:var(--head);margin:0;display:flex;gap:8px;align-items:center}
+.card dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:14px}
+.card dt{color:var(--muted)}.card dd{margin:0}
+.search{display:flex;gap:8px;flex-wrap:wrap}.search input{flex:1 1 200px}
+.locked{opacity:.45;pointer-events:none}
+.fbrow{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line-soft)}
+.fbrow:first-child{border-top:0}
+.fbhead{display:flex;gap:10px;align-items:baseline}
+.fbhead b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.fbhead b.ok{color:var(--ok)}.fbhead b.thin{color:var(--bad)}
+.fblabel{font-family:var(--serif);color:var(--head)}
+.fbnote{font-size:15px}
+.pass{color:var(--ok);font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+</style></head><body>
+
+<main>
+  <header>
+    <div class="eyebrow">Coding with GPT · Session 2 · Puzzle 2, in pairs</div>
+    <h1>Pick a way to get help</h1>
+    <p>The plan is fixed, except for line 5. "Offer a way to get help identifying the part" is right, but it can't be coded until someone decides <em>which</em> way. That decision is step 3 of the four: effectuating between alternatives. The AI laid out three. It has an opinion; it doesn't know where HinH is headed. You do.</p>
+  </header>
+
+  <section class="rubric">
+    <div class="eyebrow">Be ready to explain</div>
+    <ol>
+      <li>Your pick, in terms of where HinH is distinctive and what a 1.0 is for. Not in terms of which option is "best."</li>
+      <li>What it would cost HinH to change its mind six months from now.</li>
+    </ol>
+  </section>
+
+  <section class="panel">
+    <div class="eyebrow">The plan</div>
+    <ol style="margin:8px 0 0;padding-left:22px;line-height:1.7">
+      <li>Get the part number the user typed.</li>
+      <li>Find the parts in the catalog whose number starts with what he typed.</li>
+      <li>Show each part found, with its name, price, and availability.</li>
+      <li>If nothing was found, say so, repeating exactly what he typed.</li>
+      <li>Offer a way to get help identifying the part. <span style="color:var(--accent)">← which way?</span></li>
+    </ol>
+  </section>
+
+  <section class="panel" style="display:grid;gap:10px">
+    <div class="eyebrow">Three ways to do line 5</div>
+    <div class="cards" id="cards"></div>
+    <textarea id="why" placeholder="Why this one, for HinH, for a 1.0? One or two sentences. The reason should be about the business, not the technology."></textarea>
+  </section>
+
+  <section class="panel app locked" id="app">
+    <div class="bar"><span>HinH Parts Lookup <span style="opacity:.8" id="variant"></span></span><span style="opacity:.8;font-size:14px;font-family:var(--sans)">6 parts in catalog</span></div>
+    <div class="body">
+      <div class="muted" style="font-size:14px" id="apphint">Pick a card above to build line 5.</div>
+      <div class="search"><input id="part-number" type="text" placeholder="Part number" autocomplete="off" aria-label="Part number"><button id="search-button" type="button">Search</button></div>
+      <div id="results" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="panel locked" id="scn-panel">
+    <h2>See what Trent sees</h2>
+    <p class="muted">Write the Then, then run it. Scenario 2 is the one your choice changes.</p>
+    <div id="scenarios"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Check my work</h2>
+    <p class="muted">Not graded. An AI reads your reason and says whether it's about HinH's business or just about the technology. Class code is on the Canvas page.</p>
+    <div class="row">
+      <input id="code" type="text" placeholder="Class code" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
+      <button type="button" id="check">Check</button>
+      <span class="muted" id="status" hidden></span>
+    </div>
+    <div id="feedback" style="margin-top:12px;display:grid;gap:8px"></div>
+  </section>
+</main>
+
+<script>
+const catalog = [
+  {part_number:"HX-2201", name:"Blower motor, 1/2 HP", price:184.00, in_stock:true},
+  {part_number:"CP-0450", name:"Run capacitor, 45 µF", price:22.50, in_stock:true},
+  {part_number:"CP-0450-L", name:"Run capacitor, 45 µF, low-temp", price:31.00, in_stock:false},
+  {part_number:"TH-7710", name:"Thermostat, programmable", price:96.00, in_stock:true},
+  {part_number:"FL-1620", name:"Filter, 16×20 pleated", price:14.25, in_stock:false},
+  {part_number:"IG-3300", name:"Hot surface igniter", price:61.00, in_stock:true},
+];
+const cards=[
+  {id:"phone", title:"A. Call the parts desk", how:"A tap-to-call link to HinH's parts desk.", fixed:"an hour", variable:"desk time per call", data:"stays at HinH", when:"works today", help:"Call the parts desk: (434) 555-0142"},
+  {id:"sms", title:"B. Text a photo to the desk", how:"Trent texts a photo of the label; the desk replies with the number. Built on Twilio.", fixed:"a day, plus an account", variable:"about 1¢ a message, plus desk time", data:"passes through a vendor", when:"this week", help:"Text a photo of the label to (434) 555-0143 and the desk will find it."},
+  {id:"ai", title:"C. AI identifies it from a photo", how:"Trent photographs the part; a vision API returns likely matches from the catalog.", fixed:"a week or two", variable:"a few cents an image", data:"photos go to the vendor", when:"after the 1.0", help:"Photograph the part and we'll identify it. [coming soon]"},
+];
+const cardsEl=document.getElementById("cards");
+cards.forEach(c=>{ const l=document.createElement("label"); l.className="card";
+  l.innerHTML=`<h4><input type="radio" name="card" value="${c.id}">${c.title}</h4><div style="font-size:15px">${c.how}</div>
+  <dl><dt>Fixed cost</dt><dd>${c.fixed}</dd><dt>Variable cost</dt><dd>${c.variable}</dd><dt>Trent's data</dt><dd>${c.data}</dd><dt>Ships</dt><dd>${c.when}</dd></dl>`;
+  cardsEl.append(l); });
+function card(){ const c=document.querySelector("input[name=card]:checked"); return c?cards.find(x=>x.id===c.value):null; }
+
+const results=document.getElementById("results");
+function search(query){ return catalog.filter(p => p.part_number.startsWith(query)); }
+function rowFor(p){
+  const d=document.createElement("div"); d.className="part";
+  d.innerHTML=`<span class="num"></span><span class="name"></span><span class="price"></span><span class="stock"></span>`;
+  d.querySelector(".num").textContent=p.part_number; d.querySelector(".name").textContent=p.name;
+  d.querySelector(".price").textContent="$"+p.price.toFixed(2); d.querySelector(".stock").textContent=p.in_stock?"In stock":"Backordered"; return d;
+}
+function render(parts, query){
+  results.innerHTML="";
+  if(parts.length>0){ for(const p of parts) results.append(rowFor(p)); }
+  else { const n=document.createElement("div"); n.className="notice"; n.textContent=`No parts match "${query}". `+card().help; results.append(n); }
+}
+const box=document.getElementById("part-number");
+document.getElementById("search-button").onclick=()=>{ if(card()) render(search(box.value), box.value); };
+box.addEventListener("keydown",e=>{ if(e.key==="Enter") document.getElementById("search-button").click(); });
+
+const scenarios=[
+  {given:"Trent has part HX-2201 in his hand", q:"HX-2201"},
+  {given:"Trent has a part whose number is not in the catalog", q:"ZZ-9999"},
+];
+const host=document.getElementById("scenarios");
+scenarios.forEach((s,i)=>{ const n=i+1; const el=document.createElement("div"); el.className="scn";
+  el.innerHTML=`<h3>Scenario ${n}</h3>
+    <div class="gwt"><b>Given</b><div>${s.given},</div><b>When</b><div>he enters <span class="q">${s.q}</span> and searches,</div>
+    <b>Then</b><textarea id="then-${n}" placeholder="he sees …"></textarea></div>
+    <div class="row"><button class="ghost" type="button" id="run-${n}">Run scenario ${n}</button></div>
+    <div class="actual" id="actual-${n}">Write the Then first, then run.</div>`;
+  host.append(el);
+  document.getElementById("run-"+n).onclick=()=>{
+    const t=document.getElementById("then-"+n); if(!t.value.trim()){ t.focus(); t.placeholder="Write the Then first, then run."; t.style.borderColor="var(--bad)"; return; } t.style.borderColor="";
+    box.value=s.q; const r=search(s.q); render(r,s.q);
+    const a=document.getElementById("actual-"+n); a.classList.remove("ran"); void a.offsetWidth; a.classList.add("ran");
+    a.textContent = r.length ? `searched "${s.q}" → ${r.length} result: ${r.map(p=>p.part_number+"  "+p.name).join(", ")}` : `searched "${s.q}" → notice: No parts match "${s.q}". ${card().help}`;
+    save();
+  };
+});
+function onCard(){ const c=card(); if(!c) return;
+  ["app","scn-panel"].forEach(id=>document.getElementById(id).classList.remove("locked"));
+  document.getElementById("variant").textContent="· line 5: option "+c.title.slice(0,1);
+  document.getElementById("apphint").textContent="Built with your pick. Run the scenarios below, or type a part number.";
+  render(catalog,""); save();
+}
+document.addEventListener("change",e=>{ if(e.target.name==="card") onCard(); });
+
+function v(id){ const e=document.getElementById(id); return e?e.value.trim():""; }
+function save(){ try{ localStorage.setItem("pick-draft", JSON.stringify({f:[...document.querySelectorAll("textarea")].map(e=>e.value), c:(card()||{}).id||""})); }catch(e){} }
+document.addEventListener("input",save);
+try{ const d=JSON.parse(localStorage.getItem("pick-draft")||"null"); if(d){ [...document.querySelectorAll("textarea")].forEach((e,i)=>{ if(d.f[i]!=null) e.value=d.f[i]; }); if(d.c){ const r=document.querySelector(`input[name=card][value=${d.c}]`); if(r){ r.checked=true; onCard(); } } } }catch(e){}
+
+// Check my work: same grader rubric as before, one item only.
+const GRADER_URL="https://shrill-wood-3253.acowan.workers.dev/grade";
+const PUZZLE_ID="s2-ship-the-fix";
+function collect(){ const c=card(); return { items:[ {label:"Step 3 choice", chose:c?c.title:"none", why:v("why")} ] }; }
+const codeEl=document.getElementById("code"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
+try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
+document.getElementById("check").onclick=async()=>{
+  const code=codeEl.value.trim(); if(!code){ codeEl.focus(); return; }
+  try{ localStorage.setItem("cwg-code",code); }catch(e){}
+  statusEl.hidden=false; statusEl.textContent="Reading your answer…"; fb.innerHTML="";
+  try{
+    const r=await fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:PUZZLE_ID,code,answers:collect()})});
+    const d=await r.json();
+    if(!r.ok){ statusEl.textContent=d.error||("Error "+r.status); return; }
+    statusEl.hidden=true;
+    (d.results||[]).forEach(res=>{ const el=document.createElement("div"); el.className="fbrow";
+      el.innerHTML=`<div class="fbhead"><b class="${res.verdict==="ok"?"ok":"thin"}">${res.verdict==="ok"?"OK":"THIN"}</b><span class="fblabel"></span></div><div class="fbnote"></div>`;
+      el.querySelector(".fblabel").textContent="Your pick and reason"; el.querySelector(".fbnote").textContent=res.note||""; fb.append(el); });
+  }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
+};
+</script>
+</body></html>

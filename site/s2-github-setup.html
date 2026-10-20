@@ -1,0 +1,171 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Set Up for Class 3</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Same worksheet layout and COWAN+ palette as the Session 1 pages. */
+:root{
+  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
+  --accent:#DA5138; --accent-fg:#FFFFFF; --bar:#002D45; --bar-fg:#FFFFFF; --second:#63ADB1; --ok:#357B68; --bad:#DA5138; --note:#FFFFFF;
+  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --bar:#002D45; --bar-fg:#F2F1E6; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --bar:#002D45; --bar-fg:#F2F1E6; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;margin:0;
+  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+main{max-width:860px;margin:0 auto;display:grid;gap:28px}
+h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
+h2{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--head);margin:0 0 10px}
+p{margin:0 0 10px;max-width:68ch}
+.eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:18px}
+.app{border:1px solid var(--bar);padding:0;overflow:hidden}
+.app .bar{background:var(--bar);color:var(--bar-fg);padding:8px 14px;font-family:var(--serif);font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.app .body{padding:16px 14px;display:grid;gap:12px}
+.search{display:flex;gap:8px;flex-wrap:wrap}
+.search input{flex:1 1 200px}
+input[type=text],textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:7px 9px;min-width:0}
+textarea{width:100%;resize:vertical;min-height:52px;box-sizing:border-box}
+button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
+button.ghost{background:transparent;color:var(--head);border:1px solid var(--line)}
+button[disabled]{opacity:.5;cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#results{min-height:48px;display:grid;gap:6px}
+.part{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:baseline;border:1px solid var(--line-soft);border-radius:4px;padding:8px 10px;background:var(--bg)}
+.part .num{font-family:var(--mono);font-size:13px}
+.part .price{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.part .stock{grid-column:2/4;font-size:13px;color:var(--muted)}
+.notice{border:1px dashed var(--line);border-radius:4px;padding:10px 12px;background:var(--bg)}
+.rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
+.rubric ol{margin:6px 0 0;padding-left:20px}
+.rubric li{margin:4px 0}
+.gwt{display:grid;grid-template-columns:62px 1fr;gap:4px 10px;font-size:15px}
+.gwt b{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:3px}
+.q{font-family:var(--mono);background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:0 5px}
+/* The plan: numbered lines, each a radio target. */
+.plan{display:grid;gap:0;counter-reset:ln}
+.plan label{display:grid;grid-template-columns:auto 28px 1fr;gap:12px;align-items:start;padding:10px 12px;border-top:1px solid var(--line-soft);cursor:pointer}
+.plan label:first-child{border-top:0}
+.plan .n{font-family:var(--mono);font-size:13px;color:var(--muted);padding-top:3px}
+.plan .txt{line-height:1.45}
+.plan input{margin-top:6px}
+.plan label.wrong .txt{text-decoration:line-through;text-decoration-color:var(--bad);text-decoration-thickness:2px;color:var(--muted)}
+.rewrite{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:10px 12px 0;border-top:1px solid var(--line-soft)}
+.rewrite[hidden]{display:none}
+.scn{display:grid;gap:10px;border-top:1px solid var(--line-soft);padding-block:18px}
+.scn:first-child{border-top:0;padding-top:0}
+.scn h3{font-family:var(--serif);font-size:19px;font-weight:400;color:var(--head);margin:0}
+.actual{font-family:var(--mono);font-size:13px;white-space:pre-wrap;border-left:3px solid var(--line-soft);padding:6px 10px;min-height:40px;color:var(--muted)}
+.actual.ran{color:var(--fg);border-left-color:var(--second)}
+.actual.ran{animation:flash .6s ease-out}
+@keyframes flash{from{background:color-mix(in srgb,var(--second) 25%,transparent)}to{background:transparent}}
+@media (prefers-reduced-motion:reduce){.actual.ran{animation:none}}
+.runs{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:8px}
+
+.actual.fail{border-left-color:var(--bad)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.switch{display:inline-flex;border:1px solid rgba(255,255,255,.55);border-radius:4px;overflow:hidden}
+.switch button{background:transparent;color:var(--bar-fg);border:0;border-radius:0;padding:6px 12px;font-family:var(--sans);font-size:14px}
+.switch button[aria-pressed=true]{background:var(--accent);color:var(--accent-fg)}
+.switch button[disabled]{opacity:.45}
+pre.code{font-family:var(--mono);font-size:12.5px;line-height:1.5;background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:12px;overflow-x:auto;margin:0}
+pre.code .add{color:var(--ok)}
+details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
+</style>
+<style>
+.steps{display:grid;gap:0;counter-reset:s}
+.step{display:grid;grid-template-columns:auto 1fr;gap:14px;border-top:1px solid var(--line-soft);padding:16px 0}
+.step:first-child{border-top:0;padding-top:4px}
+.step > input{margin-top:5px;width:18px;height:18px;accent-color:var(--ok)}
+.step h3{font-family:var(--serif);font-weight:400;font-size:19px;color:var(--head);margin:0 0 4px}
+.step:has(> input:checked) h3{color:var(--ok)}
+.step:has(> input:checked) h3::after{content:"  ✓";}
+.step p{margin:0 0 8px}
+.prompt{position:relative}
+.prompt pre{font-family:var(--mono);font-size:13px;line-height:1.5;background:var(--bg);border:1px solid var(--line-soft);border-left:3px solid var(--second);border-radius:4px;padding:10px 76px 10px 12px;margin:0;white-space:pre-wrap}
+.prompt button{position:absolute;top:6px;right:6px;padding:3px 9px;font-size:13px}
+.hands{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-top:4px}
+.tip{font-size:15px;color:var(--muted)}
+</style></head><body>
+
+<main>
+  <header>
+    <div class="eyebrow">Coding with GPT · Session 2 · In class, at your table</div>
+    <h1>Set up for Class 3</h1>
+    <p>You have a GitHub account and you've made a change to your team's repo. Next class you'll lay out one page of your product, and that work should go through version control. Today: get your team's repo onto your own machine, open it in Codex, and have Codex commit and push one change for you.</p>
+    <p>When you're done, help someone at your table who isn't. If you get stuck, write down where and why. That note is part of your Class 3 prep.</p>
+  </header>
+
+  <section class="rubric">
+    <div class="eyebrow">Done means</div>
+    <ol>
+      <li>Your Class 3 notes file is on GitHub, in your team's repo, under your username.</li>
+      <li>The commit changed only that file, and its message says what it is and why.</li>
+      <li>You can see a teammate's notes file on your own machine.</li>
+    </ol>
+  </section>
+
+  <section class="panel">
+    <div class="steps" id="steps">
+
+      <div class="step"><input type="checkbox" aria-label="Done">
+        <div><h3>Check where you are</h3>
+        <p>On GitHub, open your team's repo. Can you see a commit with your username on it? If not, go back to Exhibit 1 of the tech note and finish its checklist first.</p>
+        <div class="hands">Show of hands</div></div></div>
+
+      <div class="step"><input type="checkbox" aria-label="Done">
+        <div><h3>Make a folder for this class</h3>
+        <p>Somewhere you'll find it again, like <code>Documents/cgpt</code>. Not your Downloads folder, and not inside another repo.</p></div></div>
+
+      <div class="step"><input type="checkbox" aria-label="Done">
+        <div><h3>Open it in Codex</h3>
+        <p>In the Codex app, open that folder. Codex can only read and change files in the folder you give it, so this is where its work will land.</p></div></div>
+
+      <div class="step"><input type="checkbox" aria-label="Done">
+        <div><h3>Clone your team's repo</h3>
+        <p>Copy your repo's address from the green Code button on GitHub, then:</p>
+        <div class="prompt"><pre>Clone https://github.com/OWNER/REPO into this folder. Tell me each step you run and what it does.</pre><button class="ghost" type="button">Copy</button></div>
+        <p class="tip" style="margin-top:8px">Codex will ask before it reaches GitHub. That's the clone using the network; read it and approve. If it fails because git can't sign in to GitHub as you:</p>
+        <div class="prompt"><pre>Git on this machine can't reach my GitHub account. Help me sign in with the GitHub CLI, one step at a time.</pre><button class="ghost" type="button">Copy</button></div>
+        <p class="tip" style="margin-top:8px">Then open the cloned repo folder itself in Codex, so it's working inside the repo.</p>
+        <div class="hands">Show of hands</div></div></div>
+
+      <div class="step"><input type="checkbox" aria-label="Done">
+        <div><h3>Make a start on Class 3</h3>
+        <p>One small file, so you and your teammates never edit the same thing. Put in the user story for the page you'll lay out next class.</p>
+        <div class="prompt"><pre>Create a file named notes/YOURNAME-c3.md with one line: the user story for the page I'll lay out for Class 3, which is: [paste your story]. Don't change anything else.</pre><button class="ghost" type="button">Copy</button></div></div></div>
+
+      <div class="step"><input type="checkbox" aria-label="Done">
+        <div><h3>Have Codex commit and push it</h3>
+        <div class="prompt"><pre>Stage and commit only that file, with a message that says what it is and why. Show me the commit before you push. Then push it to GitHub.</pre><button class="ghost" type="button">Copy</button></div>
+        <p class="tip" style="margin-top:8px">Codex will ask before the push, because the push reaches GitHub. Read what it's about to run, then approve. Which step is it on: save, stage, commit, or push?</p></div></div>
+
+      <div class="step"><input type="checkbox" aria-label="Done">
+        <div><h3>Check it on GitHub</h3>
+        <p>Refresh your team's repo. Is your file there, with your message and your username? Click the commit: does it say <b>1 file changed</b>? If Codex changed more than you asked, ask it why.</p>
+        <div class="hands">Show of hands</div></div></div>
+
+      <div class="step"><input type="checkbox" aria-label="Done">
+        <div><h3>Pull your teammates' work</h3>
+        <div class="prompt"><pre>Pull the latest from GitHub and tell me what changed.</pre><button class="ghost" type="button">Copy</button></div>
+        <p class="tip" style="margin-top:8px">You should see your teammates' notes files on your machine. If someone isn't there yet, go help them.</p></div></div>
+
+    </div>
+  </section>
+</main>
+
+<script>
+document.querySelectorAll(".prompt button").forEach(b=>b.onclick=async()=>{
+  const t=b.previousElementSibling.textContent;
+  try{ await navigator.clipboard.writeText(t); b.textContent="Copied"; setTimeout(()=>b.textContent="Copy",1500); }catch(e){ b.textContent="Select and copy"; }
+});
+const boxes=[...document.querySelectorAll(".step > input")];
+try{ const d=JSON.parse(localStorage.getItem("gh-setup")||"[]"); boxes.forEach((b,i)=>b.checked=!!d[i]); }catch(e){}
+boxes.forEach(b=>b.onchange=()=>{ try{ localStorage.setItem("gh-setup", JSON.stringify(boxes.map(x=>x.checked))); }catch(e){} });
+</script>
+</body></html>
