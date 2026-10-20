@@ -108,9 +108,13 @@ export default {
 
     // One verdict per item, in order; fill any the model skipped.
     const got = Array.isArray(parsed.results) ? parsed.results : [];
-    const results = labels.map(l => {
-      const r = got.find(x => x && typeof x.label === "string" && x.label.toLowerCase() === l.toLowerCase());
-      return r ? { label: l, verdict: r.verdict === "ok" ? "ok" : "thin", note: String(r.note || "") } : { label: l, verdict: "thin", note: "No comment returned for this item." };
+    // Match by label, then fall back to position: the model sometimes rewords a label.
+    const norm = s => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    const results = labels.map((l, i) => {
+      const r = got.find(x => x && norm(x.label) === norm(l)) || got[i];
+      if (!r) return { label: l, verdict: "thin", note: "No comment returned for this item." };
+      const v = String(r.verdict || r.status || "").toLowerCase();
+      return { label: l, verdict: v === "ok" ? "ok" : "thin", note: String(r.note || r.comment || "") };
     });
     return json({ results, summary: String(parsed.summary || "") }, 200, cors);
   },
