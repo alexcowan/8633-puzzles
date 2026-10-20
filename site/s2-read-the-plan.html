@@ -133,7 +133,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
 
   <details>
     <summary>Show the code the plan became (for after we've run the scenarios)</summary>
-    <p class="muted" style="margin-top:8px">Line 4 of the plan is the <code>else</code> branch. Nothing in the code is "wrong"; it does what it was told. The green lines are what the fix changes.</p>
+    <p class="muted" style="margin-top:8px">Three pieces: the button gets the input and calls the other two; <code>search</code> decides what matches; <code>render</code> decides what Trent sees. Line 4 of the plan is the <code>else</code> branch. Nothing here is "wrong"; it does what it was told. The green parts are what the fix changes.</p>
 <pre class="code" id="codeview"></pre>
   </details>
 </main>
@@ -244,30 +244,40 @@ scenarios.forEach((s,i)=>{ const n=i+1; const el=document.createElement("div"); 
 });
 
 function renderCode(){
-  const fixed=mode==="fixed";
-  const l4 = (fixed && window.pickedLine===WRONG && window.deletedLine)
-    ? `<span class="add">  }                                          // plan line 4, deleted: nothing says "no results"</span>`
-    : (fixed && window.pickedLine===WRONG)
-    ? `<span class="add">  } else {                                   // plan line 4, fixed
-    notice(\`No parts match "\${query}".\`);
-  }</span>`
+  const fixed = mode==="fixed" && window.pickedLine===WRONG;
+  const add=s=>`<span class="add">${s}</span>`;
+  const sig = fixed && !window.deletedLine ? `function render(parts, ${add('query')}) {` : `function render(parts) {`;
+  const call = fixed && !window.deletedLine ? `  render(search(q), ${add('q')});` : `  render(search(q));`;
+  const l4 = fixed && window.deletedLine
+    ? `  }                                          ${add('// plan line 4, deleted: nothing says "no results"')}`
+    : fixed
+    ? `  } else {                                   // plan line 4, fixed
+${add('    notice(`No parts match "${query}".`);')}
+  }`
     : `  } else {                                   // plan line 4, as drafted
     for (const p of catalog) results.append(rowFor(p));
   }`;
   document.getElementById("codeview").innerHTML=
-`function search(query) {                      // plan lines 1–2
+`// The button: get what Trent typed, search, show the result.
+go.onclick = () => {
+  const q = document.getElementById("q").value;   // plan line 1
+${call}
+};
+
+// Decide what matches.
+function search(query) {                       // plan line 2
   return catalog.filter(part => part.part_number.startsWith(query));
 }
 
-function render(parts, query) {
+// Decide what Trent sees.
+${sig}
   results.innerHTML = "";
   if (parts.length > 0) {                      // plan line 3
     for (const p of parts) results.append(rowFor(p));
 ${l4}
   offerHelp();                                 // plan line 5: offer … what, exactly?
 }`;
-}
-renderCode();
+}renderCode();
 refresh();
 for(const p of catalog) results.append(rowFor(p));
 </script>
