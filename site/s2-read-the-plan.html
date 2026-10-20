@@ -53,7 +53,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .plan .txt{line-height:1.45}
 .plan input{margin-top:6px}
 .plan label.wrong .txt{text-decoration:line-through;text-decoration-color:var(--bad);text-decoration-thickness:2px;color:var(--muted)}
-.plan label.vague .txt::after{content:" \2190 not wrong, but which way? Not codable yet. That is the next puzzle.";color:var(--accent);font-size:14px}
 .rewrite{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:10px 12px 0;border-top:1px solid var(--line-soft)}
 .rewrite[hidden]{display:none}
 .scn{display:grid;gap:10px;border-top:1px solid var(--line-soft);padding-block:18px}
@@ -109,7 +108,8 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
     <p style="margin-top:6px">One of these five lines contradicts the Then. Which one? Mark it, then rewrite it so it says what the Then says.</p>
     <div class="plan" id="plan"></div>
     <div class="rewrite" id="rewrite-row" hidden><span class="n muted" id="rewrite-n" style="font-family:var(--mono);font-size:13px;padding-top:9px">4.</span>
-      <textarea id="rewrite" placeholder="Rewrite the line so it says what the Then says. One sentence."></textarea></div>
+      <div style="display:grid;gap:6px"><textarea id="rewrite" placeholder="Rewrite the line so it says what the Then says. One sentence."></textarea>
+      <label class="row" style="gap:6px;font-size:14px"><input type="checkbox" id="delete-line"> or just delete it</label></div></div>
   </section>
 
   <section class="panel app">
@@ -171,12 +171,15 @@ function pick(name){ const c=document.querySelector(`input[name=${name}]:checked
 let mode="draft";
 function refresh(){
   const w=pick("wrong");
-  const rw=document.getElementById("rewrite").value.trim();
-  const ready = w>0 && rw.length>8;
+  const del=document.getElementById("delete-line").checked;
+  const rwEl=document.getElementById("rewrite"); rwEl.disabled=del; if(del) rwEl.value="";
+  const rw=rwEl.value.trim();
+  const ready = w>0 && (rw.length>8 || del);
+  window.deletedLine = del;
   window.pickedLine = w;                      // any line, any rewrite: the run is the check, not the UI
   document.getElementById("rewrite-row").hidden = w===0;
   document.getElementById("rewrite-n").textContent = w ? w+"." : "";
-  plan.forEach((_,i)=>{ const l=document.getElementById("pl-"+(i+1)); l.classList.toggle("wrong",i+1===w); l.classList.toggle("vague", i+1===VAGUE && w===WRONG && ready); });
+  plan.forEach((_,i)=>{ const l=document.getElementById("pl-"+(i+1)); l.classList.toggle("wrong",i+1===w); });
   const sf=document.getElementById("sw-fixed"); sf.disabled=!ready; sf.title=ready?"":"Mark the wrong line and rewrite it first";
   if(!ready && mode==="fixed") setMode("draft");
   renderCode();
@@ -203,11 +206,12 @@ function renderDraft(parts, q){
 function renderFixed(parts, q){
   results.innerHTML="";
   if(parts.length>0){ for(const p of parts) results.append(rowFor(p)); }
-  else { const n=document.createElement("div"); n.className="notice"; n.textContent=`No parts match "${q}".`; results.append(n); }
+  else if(!window.deletedLine){ const n=document.createElement("div"); n.className="notice"; n.textContent=`No parts match "${q}".`; results.append(n); }
   results.append(helpLine());
 }
 function describe(parts,q,fixed){
   if(parts.length) return `searched "${q}" → ${parts.length} result${parts.length>1?"s":""} shown:\n`+parts.map(p=>`  ${p.part_number}  ${p.name}  $${p.price.toFixed(2)}`).join("\n")+"\n  + a 'need help?' line";
+  if(fixed && window.deletedLine) return `searched "${q}" → nothing shown, then a 'need help?' line (this is the C1 screen)`;
   return fixed ? `searched "${q}" → notice: No parts match "${q}".\n  + a 'need help?' line`
                : `searched "${q}" → ${catalog.length} results shown (the whole catalog), nothing says they aren't matches\n  + a 'need help?' line`;
 }
@@ -234,14 +238,16 @@ scenarios.forEach((s,i)=>{ const n=i+1; const el=document.createElement("div"); 
     const fixedL4 = mode==="fixed" && window.pickedLine===WRONG;
     const r=search(s.q); (fixedL4?renderFixed:renderDraft)(r,s.q);
     const a=document.getElementById("actual-"+n); a.textContent=describe(r,s.q,fixedL4); mark(a);
-    a.classList.toggle("fail", n===2 && !fixedL4);
-    document.getElementById("which-"+n).textContent = mode==="fixed" ? (fixedL4 ? "ran with line 4 fixed" : "ran with line "+window.pickedLine+" rewritten — line 4 still as drafted") : "ran as drafted";
+    a.classList.toggle("fail", n===2 && !(fixedL4 && !window.deletedLine));
+    document.getElementById("which-"+n).textContent = mode==="fixed" ? (fixedL4 ? (window.deletedLine ? "ran with line 4 deleted" : "ran with line 4 fixed") : "ran with line "+window.pickedLine+(window.deletedLine?" deleted":" rewritten")+" — line 4 still as drafted") : "ran as drafted";
   };
 });
 
 function renderCode(){
   const fixed=mode==="fixed";
-  const l4 = (fixed && window.pickedLine===WRONG)
+  const l4 = (fixed && window.pickedLine===WRONG && window.deletedLine)
+    ? `<span class="add">  }                                          // plan line 4, deleted: nothing says "no results"</span>`
+    : (fixed && window.pickedLine===WRONG)
     ? `<span class="add">  } else {                                   // plan line 4, fixed
     notice(\`No parts match "\${query}".\`);
   }</span>`
