@@ -1,0 +1,254 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Whose Rule Is It?</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!-- The app's own styles. This is the file you're debugging. -->
+<link rel="stylesheet" href="s3-whose-rule/parts.css">
+<style>
+/* Worksheet styles (COWAN+). Everything here is scoped to .ws so it never touches the HinH app. */
+:root{
+  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
+  --accent:#DA5138; --accent-fg:#FFFFFF; --second:#63ADB1; --ok:#357B68; --bad:#DA5138; --note:#FFFFFF;
+  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;margin:0;
+  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:860px;margin:0 auto;display:grid;gap:28px}
+.ws h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
+.ws h2{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--head);margin:0 0 10px}
+.ws p{margin:0 0 10px;max-width:68ch}
+.ws .eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ws .muted{color:var(--muted)}
+.ws.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:18px}
+.ws.rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
+.ws ol{margin:6px 0 0;padding-left:22px}
+.ws li{margin:5px 0}
+.ws kbd,.ws code{font-family:var(--mono);font-size:.82em;background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:0 5px}
+.ws input[type=text],.ws textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:7px 9px;min-width:0}
+.ws textarea{width:100%;resize:vertical;min-height:60px;box-sizing:border-box}
+.ws button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
+.ws button.ghost{background:transparent;color:var(--head);border:1px solid var(--line)}
+.ws button:focus-visible,.ws input:focus-visible,.ws textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ws .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ws details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
+.ws .q{display:grid;gap:6px;padding-block:14px;border-top:1px solid var(--line-soft)}
+.ws .q:first-of-type{border-top:0;padding-top:4px}
+.ws .q label{font-family:var(--serif);color:var(--head)}
+.ws .checks{display:grid;gap:6px;margin-top:12px}
+.ws .chk{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:baseline}
+.ws .chk b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.ws .chk b.ok{color:var(--ok)} .ws .chk b.no{color:var(--bad)}
+.ws .verdict{margin-top:10px;padding:10px 12px;border-radius:4px;background:var(--bg);border-left:3px solid var(--second)}
+.ws .verdict.no{border-left-color:var(--bad)}
+.ws .fbrow{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line-soft)}
+.ws .fbrow:first-child{border-top:0}
+.ws .fbhead{display:flex;gap:10px;align-items:baseline}
+.ws .fbhead b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.ws .fbhead b.ok{color:var(--ok)} .ws .fbhead b.thin{color:var(--bad)}
+.ws .fblabel{font-family:var(--serif);color:var(--head)}
+.ws .score{font-family:var(--serif);font-size:20px;color:var(--head)}
+</style></head><body>
+
+<main class="page">
+  <header class="ws">
+    <div class="eyebrow">Coding with GPT · Session 3 · Warm-up (class prep)</div>
+    <h1>Whose rule is it?</h1>
+    <p>Trent called from a job: <em>“The thermostat, TH-7710, shows up as backordered, so I almost drove across town for one. The supply house says it's on the shelf.”</em></p>
+    <p>The catalog data is right: TH-7710 is in stock, and the card even says so. The view is wrong. Your job is to find out <em>why</em> using your browser's developer tools on this page. Don't read the source first.</p>
+  </header>
+
+  <section class="ws rubric">
+    <div class="eyebrow">Be ready to explain</div>
+    <ol>
+      <li>Which rule makes TH-7710 look backordered, and where it lives (file and line).</li>
+      <li>Why that rule won over the other rules that also style the card.</li>
+      <li>The one-line change you'd commit, and why there instead of a style on the card.</li>
+    </ol>
+  </section>
+
+  <details class="ws">
+    <summary>Opening the developer tools</summary>
+    <div style="margin-top:10px">
+      <p>Use Chrome or another Chromium browser (Edge, Brave, Arc). Right-click the TH-7710 card and choose <b>Inspect</b>, or press <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>I</kbd> on a Mac (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> on Windows).</p>
+      <p>In the <b>Elements</b> panel, the card's HTML is highlighted. The <b>Styles</b> pane next to it lists every rule that applies to that element, the winner on top. A rule with a line through it lost. Each rule shows the file and line it came from on its right.</p>
+      <p>You can click any value in Styles and change it, or untick it. That changes this tab only. Nothing is saved.</p>
+      <p class="muted">Safari works too, after you turn on Settings → Advanced → “Show features for web developers.” Ad blockers and password managers sometimes add their own errors and elements to the tools. That's normal; ignore anything that isn't about this page.</p>
+    </div>
+  </details>
+
+  <!-- ===================== The app ===================== -->
+  <div class="hinh" id="app">
+    <div class="hinh-bar">HinH Parts Lookup</div>
+    <div class="hinh-body">
+      <div class="search">
+        <input id="part-number" type="text" placeholder="Part number" autocomplete="off" aria-label="Part number">
+        <button id="search-button" type="button">Search</button>
+      </div>
+      <div class="parts-grid" id="results">
+        <div class="catalog-part" data-part="HX-2201">
+          <span class="num">HX-2201</span><span class="name">Blower motor, 1/2 HP</span><span class="price">$184.00</span><span class="stock">In stock</span>
+        </div>
+        <div class="catalog-part" data-part="CP-0450">
+          <span class="num">CP-0450</span><span class="name">Run capacitor, 45 µF</span><span class="price">$22.50</span><span class="stock">In stock</span>
+        </div>
+        <div class="catalog-part backordered" data-part="CP-0450-L">
+          <span class="num">CP-0450-L</span><span class="name">Run capacitor, 45 µF, low-temp</span><span class="price">$31.00</span><span class="stock">Backordered</span>
+        </div>
+        <div class="catalog-part" id="featured" data-part="TH-7710">
+          <span class="num">TH-7710</span><span class="name">Thermostat, programmable</span><span class="price">$96.00</span><span class="stock">In stock</span>
+        </div>
+        <div class="catalog-part backordered" data-part="FL-1620">
+          <span class="num">FL-1620</span><span class="name">Filter, 16×20 pleated</span><span class="price">$14.25</span><span class="stock">Backordered</span>
+        </div>
+        <div class="catalog-part" data-part="IG-3300">
+          <span class="num">IG-3300</span><span class="name">Hot surface igniter</span><span class="price">$61.00</span><span class="stock">In stock</span>
+        </div>
+      </div>
+      <div class="no-results" id="no-results" hidden></div>
+    </div>
+  </div>
+  <!-- =================================================== -->
+
+  <section class="ws panel">
+    <h2>Fix it in the tools, then check</h2>
+    <ol>
+      <li>Inspect the TH-7710 card. In Styles, find the rule that makes it look backordered.</li>
+      <li>Change it right there in the tools until TH-7710 looks like the other in-stock parts, and nothing else on the page changes.</li>
+      <li>Click <b>Check the page</b>. It looks at the page as it is in your tab right now.</li>
+      <li>Then reload the page. Watch what happens to TH-7710.</li>
+    </ol>
+    <div class="row" style="margin-top:12px"><button type="button" id="check-page">Check the page</button><span class="muted" id="last"></span></div>
+    <div id="page-result"></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Your answers</h2>
+    <p class="muted">Saved in this browser as you type, so reloading won't lose them.</p>
+    <div class="q"><label for="a1">1. Which rule makes TH-7710 look backordered? Give the selector, the file, and the line.</label><textarea id="a1"></textarea></div>
+    <div class="q"><label for="a2">2. Other rules also style that card. Why did this one win?</label><textarea id="a2"></textarea></div>
+    <div class="q"><label for="a3">3. What one-line change would you commit, and why there instead of putting a style on the TH-7710 card itself?</label><textarea id="a3"></textarea></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Check my work</h2>
+    <p class="muted">An AI reads your three answers against the list above and tells you which ones hold up. Your score shows here and isn't recorded. Class code is on the Canvas page.</p>
+    <div class="row">
+      <input id="code" type="text" placeholder="Class code" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
+      <button type="button" id="grade">Check my answers</button>
+      <span class="muted" id="status" hidden></span>
+    </div>
+    <div id="feedback" style="margin-top:12px"></div>
+  </section>
+</main>
+
+<script>
+/* ---------- The app: search hides and shows the cards that are already on the page. ---------- */
+const box=document.getElementById("part-number"), none=document.getElementById("no-results");
+function runSearch(){
+  const q=box.value.trim().toUpperCase(); let shown=0;
+  document.querySelectorAll(".catalog-part").forEach(c=>{ const hit=c.dataset.part.startsWith(q); c.hidden=!hit; if(hit) shown++; });
+  none.hidden=shown>0; none.textContent=shown?"":`No parts match "${box.value.trim()}".`;
+}
+document.getElementById("search-button").onclick=runSearch;
+box.addEventListener("keydown",e=>{ if(e.key==="Enter") runSearch(); });
+
+/* ---------- Check the page: reads what the browser is actually drawing right now. ---------- */
+const KEY="cwg-s3-whose-rule";
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
+function store(patch){ try{ localStorage.setItem(KEY, JSON.stringify(Object.assign(load(),patch))); }catch(e){} }
+
+function edge(el){ const s=getComputedStyle(el); return s.borderLeftColor+" "+s.borderLeftWidth+" "+s.borderLeftStyle; }
+function sheet(){ return [...document.styleSheets].find(s=>s.href && s.href.includes("s3-whose-rule/parts.css")); }
+function howFixed(){
+  // Which route did the student take? Reported to the grader with the answers.
+  const cards=[...document.querySelectorAll(".catalog-part")];
+  if(cards.some(c=>(c.getAttribute("style")||"").trim())) return "a style attribute on a card";
+  if(!document.getElementById("featured")) return "removed id=\"featured\" from the TH-7710 card (HTML)";
+  let rule=null; try{ rule=[...sheet().cssRules].find(r=>r.selectorText==="#featured"); }catch(e){}
+  if(!rule) return "deleted the #featured rule (CSS)";
+  const v=rule.style.getPropertyValue("border-left-color");
+  if(!v) return "removed the declaration inside #featured (CSS)";
+  if(v.trim().toLowerCase()!=="#f99b1c") return "changed the color in #featured to "+v.trim()+" (CSS)";
+  return "something else";
+}
+function checkPage(){
+  const cards=[...document.querySelectorAll(".catalog-part")];
+  const th=cards.find(c=>c.dataset.part==="TH-7710");
+  const inStock=cards.filter(c=>!c.classList.contains("backordered"));
+  const back=cards.filter(c=>c.classList.contains("backordered"));
+  const ref=edge(cards.find(c=>c.dataset.part==="HX-2201"));
+  const c1=!!th && inStock.every(c=>edge(c)===ref);
+  const c2=back.length>0 && back.every(c=>edge(c)!==ref) && back.every(c=>edge(c)===edge(back[0]));
+  const c3=!cards.some(c=>(c.getAttribute("style")||"").trim());
+  return {checks:[
+    [c1,"TH-7710 looks like the other in-stock parts."],
+    [c2,"The backordered parts still look backordered."],
+    [c3,"No card has a one-off style of its own."],
+  ], passed:c1&&c2&&c3, how:howFixed()};
+}
+function showResult(r){
+  const host=document.getElementById("page-result"); host.innerHTML="";
+  const list=document.createElement("div"); list.className="checks";
+  r.checks.forEach(([ok,txt])=>{ const d=document.createElement("div"); d.className="chk";
+    d.innerHTML=`<b class="${ok?"ok":"no"}">${ok?"YES":"NOT YET"}</b><span></span>`; d.querySelector("span").textContent=txt; list.append(d); });
+  host.append(list);
+  const v=document.createElement("div"); v.className="verdict"+(r.passed?"":" no");
+  v.textContent = r.passed
+    ? "Fixed, in this tab. Now reload the page and look at TH-7710 again. Then answer question 3 with that in mind."
+    : (!r.checks[2][0] && r.checks[0][0]
+        ? "It looks right, but you got there with a style on the card itself. That's the kind of exception the next person can't find. Undo it and fix the rule."
+        : "Not yet. Keep looking at which rule wins in the Styles pane.");
+  host.append(v);
+}
+document.getElementById("check-page").onclick=()=>{
+  const r=checkPage(); showResult(r);
+  const s=load(); const tries=(s.tries||[]).concat([{passed:r.passed, how:r.how}]).slice(-8);
+  store({tries, passed:!!(s.passed||r.passed), how:r.passed?r.how:(s.how||"")});
+  showLast();
+};
+function showLast(){ const s=load(); document.getElementById("last").textContent = s.passed ? "You've passed this check before ("+s.how+")." : ""; }
+showLast();
+
+/* ---------- Answers: kept in this browser so a reload doesn't lose them. ---------- */
+const fields=["a1","a2","a3"];
+const saved=load(); fields.forEach(id=>{ const el=document.getElementById(id); if(saved[id]) el.value=saved[id]; el.addEventListener("input",()=>store({[id]:el.value})); });
+
+/* ---------- Check my work: the grader reads the three answers. ---------- */
+const GRADER_URL="https://shrill-wood-3253.acowan.workers.dev/grade";
+const PUZZLE_ID="s3-whose-rule";
+const LABELS=["Which rule, and where","Why it won","The commit"];
+const codeEl=document.getElementById("code"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
+try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
+function collect(){
+  const s=load(), v=id=>document.getElementById(id).value.trim();
+  return { page_check:{ passed:!!s.passed, fixed_by:s.how||"never passed", attempts:(s.tries||[]).length },
+           items:[ {label:LABELS[0], answer:v("a1")}, {label:LABELS[1], answer:v("a2")}, {label:LABELS[2], answer:v("a3")} ] };
+}
+document.getElementById("grade").onclick=async()=>{
+  const code=codeEl.value.trim(); if(!code){ codeEl.focus(); return; }
+  try{ localStorage.setItem("cwg-code",code); }catch(e){}
+  statusEl.hidden=false; statusEl.textContent="Reading your answers…"; fb.innerHTML="";
+  try{
+    const r=await fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:PUZZLE_ID,code,answers:collect()})});
+    const d=await r.json();
+    if(!r.ok){ statusEl.textContent=d.error||("Error "+r.status); return; }
+    statusEl.hidden=true;
+    const res=d.results||[], ok=res.filter(x=>x.verdict==="ok").length, pc=load().passed?1:0;
+    const sc=document.createElement("div"); sc.className="score"; sc.textContent=`${ok+pc} of ${res.length+1}`;
+    const sub=document.createElement("div"); sub.className="muted"; sub.textContent=`Page check: ${pc?"passed":"not passed yet"} · answers: ${ok} of ${res.length} hold up`;
+    fb.append(sc,sub);
+    const list=document.createElement("div"); list.style.marginTop="8px";
+    res.forEach(x=>{ const el=document.createElement("div"); el.className="fbrow";
+      el.innerHTML=`<div class="fbhead"><b class="${x.verdict==="ok"?"ok":"thin"}">${x.verdict==="ok"?"OK":"THIN"}</b><span class="fblabel"></span></div><div></div>`;
+      el.querySelector(".fblabel").textContent=x.label; el.lastElementChild.textContent=x.note||""; list.append(el); });
+    fb.append(list);
+    if(d.summary){ const s=document.createElement("p"); s.className="muted"; s.style.marginTop="8px"; s.textContent=d.summary; fb.append(s); }
+  }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
+};
+</script>
+</body></html>

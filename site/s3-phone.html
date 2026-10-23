@@ -1,0 +1,300 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Breaks at the Phone</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!-- The app's own styles. This is the file you're debugging. -->
+<link rel="stylesheet" href="s3-phone/parts.css">
+<style>
+/* Worksheet styles (COWAN+). Everything here is scoped to .ws so it never touches the HinH app. */
+:root{
+  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
+  --accent:#DA5138; --accent-fg:#FFFFFF; --second:#63ADB1; --ok:#357B68; --bad:#DA5138; --note:#FFFFFF;
+  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;margin:0;
+  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:860px;margin:0 auto;display:grid;gap:28px}
+.ws h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
+.ws h2{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--head);margin:0 0 10px}
+.ws p{margin:0 0 10px;max-width:68ch}
+.ws .eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ws .muted{color:var(--muted)}
+.ws.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:18px}
+.ws.rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
+.ws ol{margin:6px 0 0;padding-left:22px}
+.ws li{margin:5px 0}
+.ws kbd,.ws code{font-family:var(--mono);font-size:.82em;background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:0 5px}
+.ws input[type=text],.ws textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:7px 9px;min-width:0}
+.ws textarea{width:100%;resize:vertical;min-height:60px;box-sizing:border-box}
+.ws button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
+.ws button.ghost{background:transparent;color:var(--head);border:1px solid var(--line)}
+.ws button:focus-visible,.ws input:focus-visible,.ws textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ws .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ws details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
+.ws .q{display:grid;gap:6px;padding-block:14px;border-top:1px solid var(--line-soft)}
+.ws .q:first-of-type{border-top:0;padding-top:4px}
+.ws .q label{font-family:var(--serif);color:var(--head)}
+.ws .checks{display:grid;gap:6px;margin-top:12px}
+.ws .chk{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:baseline}
+.ws .chk b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.ws .chk b.ok{color:var(--ok)} .ws .chk b.no{color:var(--bad)}
+.ws .verdict{margin-top:10px;padding:10px 12px;border-radius:4px;background:var(--bg);border-left:3px solid var(--second)}
+.ws .verdict.no{border-left-color:var(--bad)}
+.ws .fbrow{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line-soft)}
+.ws .fbrow:first-child{border-top:0}
+.ws .fbhead{display:flex;gap:10px;align-items:baseline}
+.ws .fbhead b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.ws .fbhead b.ok{color:var(--ok)} .ws .fbhead b.thin{color:var(--bad)}
+.ws .fblabel{font-family:var(--serif);color:var(--head)}
+.ws .score{font-family:var(--serif);font-size:20px;color:var(--head)}
+.ws .gwt{display:grid;grid-template-columns:62px 1fr;gap:4px 10px}
+.ws .gwt b{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:4px}
+.ws .gwt .qv{font-family:var(--mono);font-size:.85em}
+</style></head><body>
+
+<main class="page">
+  <header class="ws">
+    <div class="eyebrow">Coding with GPT · Session 3 · In class, in pairs</div>
+    <h1>Breaks at the phone</h1>
+    <p>Trent uses HinH on his phone, standing in a customer's basement. The story: <em>As Trent the Technician, I want to see a part's price and whether it's in stock on my phone, so I can quote the customer on the spot.</em></p>
+    <p>On a laptop the page below looks fine. Your job is to find out what Trent sees on his phone, and why, using your browser's developer tools. Don't read the source first.</p>
+  </header>
+
+  <section class="ws rubric">
+    <div class="eyebrow">Be ready to explain</div>
+    <ol>
+      <li>What the story says Trent should see on his phone, and what he actually gets.</li>
+      <li>Which element is too wide, and by how much, using the four layers of the box model.</li>
+      <li>The one-line change you'd commit (file and line), and why it works on every phone, not only the one you tested.</li>
+    </ol>
+  </section>
+
+  <section class="ws panel">
+    <h2>1. Predict first</h2>
+    <p class="muted">Before you open any tools.</p>
+    <div class="gwt">
+      <b>Given</b><div>Trent's phone screen is 390 pixels wide,</div>
+      <b>When</b><div>he searches for <span class="qv">CP</span>,</div>
+      <b>Then</b><textarea id="then" placeholder="he sees …"></textarea>
+    </div>
+  </section>
+
+  <details class="ws">
+    <summary>Opening the developer tools, and pretending to be a phone</summary>
+    <div style="margin-top:10px">
+      <p>Use Chrome or another Chromium browser (Edge, Brave, Arc). Right-click anything in the HinH app and choose <b>Inspect</b>, or press <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>I</kbd> on a Mac (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> on Windows).</p>
+      <p><b>Device toolbar.</b> At the top left of the tools there's a small phone-and-tablet icon. Click it (or press <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd>, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd> on Windows, while the tools have focus). The page redraws at a phone's size. From the menu above the page, pick <b>iPhone 12 Pro</b>, or type <b>390</b> in the width box.</p>
+      <p><b>Box model.</b> Select an element in the Elements panel, then open the <b>Computed</b> tab. The nested boxes at the top are that element's margin, border, padding, and content, with the size of each.</p>
+      <p>You can change any value in the Styles pane, or untick it. That changes this tab only. Nothing is saved.</p>
+      <p class="muted">Safari: turn on Settings → Advanced → “Show features for web developers,” then Develop → Enter Responsive Design Mode. Ad blockers and password managers sometimes add their own errors and elements to the tools. That's normal; ignore anything that isn't about this page.</p>
+    </div>
+  </details>
+
+  <!-- ===================== The app ===================== -->
+  <div class="hinh" id="app">
+    <div class="hinh-bar">HinH Parts Lookup</div>
+    <div class="hinh-body">
+      <div class="search">
+        <input id="part-number" type="text" placeholder="Part number" autocomplete="off" aria-label="Part number">
+        <button id="search-button" type="button">Search</button>
+      </div>
+      <div class="parts-grid" id="results">
+        <div class="catalog-part" data-part="HX-2201">
+          <span class="num">HX-2201</span><span class="name">Blower motor, 1/2 HP</span><span class="price">$184.00</span><span class="stock">In stock</span>
+        </div>
+        <div class="catalog-part" data-part="CP-0450">
+          <span class="num">CP-0450</span><span class="name">Run capacitor, 45 µF</span><span class="price">$22.50</span><span class="stock">In stock</span>
+        </div>
+        <div class="catalog-part backordered" data-part="CP-0450-L">
+          <span class="num">CP-0450-L</span><span class="name">Run capacitor, 45 µF, low-temp</span><span class="price">$31.00</span><span class="stock">Backordered</span>
+        </div>
+        <div class="catalog-part" data-part="TH-7710">
+          <span class="num">TH-7710</span><span class="name">Thermostat, programmable</span><span class="price">$96.00</span><span class="stock">In stock</span>
+        </div>
+        <div class="catalog-part backordered" data-part="FL-1620">
+          <span class="num">FL-1620</span><span class="name">Filter, 16×20 pleated</span><span class="price">$14.25</span><span class="stock">Backordered</span>
+        </div>
+        <div class="catalog-part" data-part="IG-3300">
+          <span class="num">IG-3300</span><span class="name">Hot surface igniter</span><span class="price">$61.00</span><span class="stock">In stock</span>
+        </div>
+      </div>
+      <div class="no-results" id="no-results" hidden></div>
+    </div>
+  </div>
+  <!-- =================================================== -->
+
+  <section class="ws panel">
+    <h2>2. Run it on a phone</h2>
+    <p>Open the tools, turn on the device toolbar at 390 px, and search for <b>CP</b> in the app.</p>
+    <div class="q"><label for="got">What does Trent actually get?</label><textarea id="got" placeholder="he sees …"></textarea></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>3. Find it, fix it in the tools, then check</h2>
+    <ol>
+      <li>Find the element that's wider than the space it has. The box model in the Computed tab tells you by how much.</li>
+      <li>Find the rule in Styles that makes it that wide, and change it right there in the tools.</li>
+      <li>Click <b>Check the page</b>. It takes the styles as they are in your tab right now and tries them on a 390 px phone and a 1,200 px laptop, whatever size your window is.</li>
+    </ol>
+    <div class="row" style="margin-top:12px"><button type="button" id="check-page">Check the page</button><span class="muted" id="last"></span></div>
+    <div id="page-result"></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>4. Your answers</h2>
+    <p class="muted">Saved in this browser as you type, so reloading won't lose them.</p>
+    <div class="q"><label for="a2">Which element is too wide, and by how much? Give the content, padding, and border widths from the Computed tab, and the width of the space it sits in.</label><textarea id="a2"></textarea></div>
+    <div class="q"><label for="a3">What one-line change would you commit (file and line)? Why does it work on every phone, not only a 390 px one?</label><textarea id="a3"></textarea></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Check my work</h2>
+    <p class="muted">An AI reads your prediction and answers against the list above and tells you which ones hold up. Your score shows here and isn't recorded. Class code is on the Canvas page.</p>
+    <div class="row">
+      <input id="code" type="text" placeholder="Class code" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
+      <button type="button" id="grade">Check my answers</button>
+      <span class="muted" id="status" hidden></span>
+    </div>
+    <div id="feedback" style="margin-top:12px"></div>
+  </section>
+</main>
+
+<script>
+/* ---------- The app: search hides and shows the cards that are already on the page. ---------- */
+const box=document.getElementById("part-number"), none=document.getElementById("no-results");
+function runSearch(){
+  const q=box.value.trim().toUpperCase(); let shown=0;
+  document.querySelectorAll(".catalog-part").forEach(c=>{ const hit=c.dataset.part.startsWith(q); c.hidden=!hit; if(hit) shown++; });
+  none.hidden=shown>0; none.textContent=shown?"":`No parts match "${box.value.trim()}".`;
+}
+document.getElementById("search-button").onclick=runSearch;
+box.addEventListener("keydown",e=>{ if(e.key==="Enter") runSearch(); });
+
+/* ---------- Saved state ---------- */
+const KEY="cwg-s3-phone";
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
+function store(patch){ try{ localStorage.setItem(KEY, JSON.stringify(Object.assign(load(),patch))); }catch(e){} }
+
+/* ---------- Check the page ----------
+   Copies the app's HTML and the stylesheet exactly as they are in this tab (including anything
+   changed in the developer tools) into two hidden frames, 390 px and 1,200 px wide, and measures. */
+function sheet(){ return [...document.styleSheets].find(s=>s.href && s.href.includes("s3-phone/parts.css")); }
+function currentCSS(){ return [...sheet().cssRules].map(r=>r.cssText).join("\n"); }
+function phoneRule(){
+  // What the student left in the phone-size rule for the cards, for the grader.
+  try{
+    const m=[...sheet().cssRules].find(r=>r.media && /600px/.test(r.media.mediaText));
+    if(!m) return "phone rule (@media max-width: 600px) deleted";
+    const c=[...m.cssRules].find(r=>r.selectorText===".catalog-part");
+    const parts=[]; if(!c) return "the .catalog-part rule inside the phone rule is gone";
+    for(const p of c.style) parts.push(p+": "+c.style.getPropertyValue(p));
+    return parts.length ? ".catalog-part in the phone rule now has: "+parts.join("; ") : ".catalog-part in the phone rule is now empty";
+  }catch(e){ return "unknown"; }
+}
+function boxSizing(){ try{ return /box-sizing\s*:\s*border-box/.test(currentCSS()); }catch(e){ return false; } }
+
+function measure(width){
+  return new Promise(resolve=>{
+    const f=document.createElement("iframe");
+    f.setAttribute("aria-hidden","true"); f.tabIndex=-1;
+    f.style.cssText="position:absolute;left:-10000px;top:0;height:900px;border:0;width:"+width+"px";
+    f.srcdoc=`<!doctype html><html><head><meta charset="utf-8"><style>${currentCSS()}</style></head><body style="margin:0">${document.getElementById("app").outerHTML}</body></html>`;
+    f.onload=()=>{
+      const d=f.contentDocument, R=el=>el.getBoundingClientRect();
+      d.querySelectorAll(".catalog-part").forEach(c=>c.hidden=false);   // measure every card, whatever was searched
+      const app=d.getElementById("app"), grid=d.getElementById("results"), search=d.querySelector(".search");
+      const cards=[...d.querySelectorAll(".catalog-part")];
+      const g=R(grid), a=R(app), s=R(search), vw=d.documentElement.clientWidth;
+      const fits = cards.every(c=>R(c).right<=g.right+0.5 && R(c).left>=g.left-0.5);
+      const prices = cards.every(c=>{ const p=R(c.querySelector(".price")); return p.width>0 && p.right<=Math.min(a.right,vw)+0.5 && p.right<=R(c).right+0.5; });
+      const lefts=[...new Set(cards.map(c=>Math.round(R(c).left)))];
+      const rows={}; cards.forEach(c=>{ const t=Math.round(R(c).top); (rows[t]=rows[t]||[]).push(R(c)); });
+      const noOverlap = Object.values(rows).every(r=>r.sort((x,y)=>x.left-y.left).every((b,i)=>i===0||b.left>=r[i-1].right-0.5));
+      const fill = cards.every(c=>Math.abs(R(c).left-s.left)<=1) && cards.some(c=>Math.abs(R(c).right-s.right)<=1);
+      const inline = [...app.querySelectorAll("[style]")].some(el=>(el.getAttribute("style")||"").trim()) || (app.getAttribute("style")||"").trim()!=="";
+      f.remove();
+      resolve({width, fits, prices, columns:lefts.length, noOverlap, fill, inline});
+    };
+    document.body.append(f);
+  });
+}
+async function checkPage(){
+  const phone=await measure(390), laptop=await measure(1200);
+  const checks=[
+    [phone.fits, "On a 390 px phone, every card fits inside the screen."],
+    [phone.prices, "On a 390 px phone, Trent can see every price."],
+    [phone.fill, "On a 390 px phone, the cards still run the full width, lined up with the search box."],
+    [laptop.columns>=2 && laptop.noOverlap && laptop.fits, "On a 1,200 px laptop, the cards still sit side by side without overlapping."],
+    [!phone.inline, "No element in the app has a one-off style of its own."],
+  ];
+  return {checks, passed:checks.every(c=>c[0]), phone, laptop, rule:phoneRule(), border_box:boxSizing()};
+}
+function showResult(r){
+  const host=document.getElementById("page-result"); host.innerHTML="";
+  const list=document.createElement("div"); list.className="checks";
+  r.checks.forEach(([ok,txt])=>{ const d=document.createElement("div"); d.className="chk";
+    d.innerHTML=`<b class="${ok?"ok":"no"}">${ok?"YES":"NOT YET"}</b><span></span>`; d.querySelector("span").textContent=txt; list.append(d); });
+  host.append(list);
+  const v=document.createElement("div"); v.className="verdict"+(r.passed?"":" no");
+  v.textContent = r.passed
+    ? "Fixed, in this tab. Reload and it's back: the tools changed what your browser drew, not the file. Answer the last question with that in mind."
+    : (!r.checks[4][0]
+        ? "Something in the app now has a style of its own. That's an exception the next person can't find. Undo it and fix the rule."
+        : "Not yet. In the Computed tab, add up the layers of the card and compare them with the space the card is in.");
+  host.append(v);
+}
+document.getElementById("check-page").onclick=async()=>{
+  const btn=document.getElementById("check-page"); btn.disabled=true;
+  try{
+    const r=await checkPage(); showResult(r);
+    const s=load(); const tries=(s.tries||[]).concat([{passed:r.passed, rule:r.rule, border_box:r.border_box}]).slice(-8);
+    store({tries, passed:!!(s.passed||r.passed), fix:r.passed?r.rule+(r.border_box?" (and box-sizing: border-box somewhere)":""):(s.fix||"")});
+    showLast();
+  } finally { btn.disabled=false; }
+};
+function showLast(){ const s=load(); document.getElementById("last").textContent = s.passed ? "You've passed this check before." : ""; }
+showLast();
+
+/* ---------- Answers ---------- */
+const fields=["then","got","a2","a3"];
+const saved=load(); fields.forEach(id=>{ const el=document.getElementById(id); if(saved[id]) el.value=saved[id]; el.addEventListener("input",()=>store({[id]:el.value})); });
+
+/* ---------- Check my work ---------- */
+const GRADER_URL="https://shrill-wood-3253.acowan.workers.dev/grade";
+const PUZZLE_ID="s3-phone";
+const LABELS=["Then vs. what he got","The box","The commit"];
+const codeEl=document.getElementById("code"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
+try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
+function collect(){
+  const s=load(), v=id=>document.getElementById(id).value.trim();
+  return { page_check:{ passed:!!s.passed, fix_in_tools:s.fix||"never passed", attempts:(s.tries||[]).map(t=>(t.passed?"pass: ":"fail: ")+t.rule) },
+           items:[ {label:LABELS[0], then:v("then"), got:v("got")}, {label:LABELS[1], answer:v("a2")}, {label:LABELS[2], answer:v("a3")} ] };
+}
+document.getElementById("grade").onclick=async()=>{
+  const code=codeEl.value.trim(); if(!code){ codeEl.focus(); return; }
+  try{ localStorage.setItem("cwg-code",code); }catch(e){}
+  statusEl.hidden=false; statusEl.textContent="Reading your answers…"; fb.innerHTML="";
+  try{
+    const r=await fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:PUZZLE_ID,code,answers:collect()})});
+    const d=await r.json();
+    if(!r.ok){ statusEl.textContent=d.error||("Error "+r.status); return; }
+    statusEl.hidden=true;
+    const res=d.results||[], ok=res.filter(x=>x.verdict==="ok").length, pc=load().passed?1:0;
+    const sc=document.createElement("div"); sc.className="score"; sc.textContent=`${ok+pc} of ${res.length+1}`;
+    const sub=document.createElement("div"); sub.className="muted"; sub.textContent=`Page check: ${pc?"passed":"not passed yet"} · answers: ${ok} of ${res.length} hold up`;
+    fb.append(sc,sub);
+    const list=document.createElement("div"); list.style.marginTop="8px";
+    res.forEach(x=>{ const el=document.createElement("div"); el.className="fbrow";
+      el.innerHTML=`<div class="fbhead"><b class="${x.verdict==="ok"?"ok":"thin"}">${x.verdict==="ok"?"OK":"THIN"}</b><span class="fblabel"></span></div><div></div>`;
+      el.querySelector(".fblabel").textContent=x.label; el.lastElementChild.textContent=x.note||""; list.append(el); });
+    fb.append(list);
+    if(d.summary){ const s=document.createElement("p"); s.className="muted"; s.style.marginTop="8px"; s.textContent=d.summary; fb.append(s); }
+  }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
+};
+</script>
+</body></html>
