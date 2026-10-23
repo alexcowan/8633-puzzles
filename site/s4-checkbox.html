@@ -1,0 +1,248 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Checkbox That Does Nothing</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!-- The app's own styles. -->
+<link rel="stylesheet" href="s4-checkbox/parts.css">
+<style>
+/* Worksheet styles (COWAN+). Everything here is scoped to .ws so it never touches the HinH app. */
+:root{
+  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
+  --accent:#DA5138; --accent-fg:#FFFFFF; --second:#63ADB1; --ok:#357B68; --bad:#DA5138; --note:#FFFFFF;
+  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;margin:0;
+  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:860px;margin:0 auto;display:grid;gap:28px}
+.ws h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
+.ws h2{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--head);margin:0 0 10px}
+.ws p{margin:0 0 10px;max-width:68ch}
+.ws .eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ws .muted{color:var(--muted)}
+.ws.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:18px}
+.ws.rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
+.ws ol{margin:6px 0 0;padding-left:22px}
+.ws li{margin:5px 0}
+.ws kbd,.ws code{font-family:var(--mono);font-size:.82em;background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:0 5px}
+.ws input[type=text],.ws textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:7px 9px;min-width:0}
+.ws textarea{width:100%;resize:vertical;min-height:60px;box-sizing:border-box}
+.ws button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
+.ws button.ghost{background:transparent;color:var(--head);border:1px solid var(--line)}
+.ws button:focus-visible,.ws input:focus-visible,.ws textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ws .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ws details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
+.ws .q{display:grid;gap:6px;padding-block:14px;border-top:1px solid var(--line-soft)}
+.ws .q:first-of-type{border-top:0;padding-top:4px}
+.ws .q label{font-family:var(--serif);color:var(--head)}
+.ws .checks{display:grid;gap:6px;margin-top:12px}
+.ws .chk{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:baseline}
+.ws .chk b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.ws .chk b.ok{color:var(--ok)} .ws .chk b.no{color:var(--bad)}
+.ws .verdict{margin-top:10px;padding:10px 12px;border-radius:4px;background:var(--bg);border-left:3px solid var(--second)}
+.ws .verdict.no{border-left-color:var(--bad)}
+.ws .fbrow{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line-soft)}
+.ws .fbrow:first-child{border-top:0}
+.ws .fbhead{display:flex;gap:10px;align-items:baseline}
+.ws .fbhead b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.ws .fbhead b.ok{color:var(--ok)} .ws .fbhead b.thin{color:var(--bad)}
+.ws .fblabel{font-family:var(--serif);color:var(--head)}
+.ws .score{font-family:var(--serif);font-size:20px;color:var(--head)}
+</style></head><body>
+
+<main class="page">
+  <header class="ws">
+    <div class="eyebrow">Coding with GPT · Session 4 · Warm-up (class prep)</div>
+    <h1>The checkbox that does nothing</h1>
+    <p>The story: <em>As Trent the Technician, I want to see only the parts that are in stock, so I don't quote a customer a part I can't get today.</em></p>
+    <p>A designer cleaned up the parts page last week and added an “In stock only” checkbox. Search still works. Tick the box and nothing happens. Your job is to find out why using your browser's developer tools on this page. Don't read the source first.</p>
+  </header>
+
+  <section class="ws rubric">
+    <div class="eyebrow">Be ready to explain</div>
+    <ol>
+      <li>What the Console told you, and which file and line it pointed to.</li>
+      <li>Where the agreement between the page's HTML and its code is, and which side broke it.</li>
+      <li>The one-line change you'd commit, in which file, and why that side.</li>
+    </ol>
+  </section>
+
+  <details class="ws">
+    <summary>Opening the developer tools</summary>
+    <div style="margin-top:10px">
+      <p>Use Chrome or another Chromium browser (Edge, Brave, Arc). Press <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>J</kbd> on a Mac (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd> on Windows) to open the tools straight to the <b>Console</b>, or right-click the page, choose <b>Inspect</b>, and click the Console tab.</p>
+      <p>Errors in the Console are red. The link at the right of an error (a file name and a line number) opens that file at that line in the <b>Sources</b> panel. The <b>Elements</b> panel shows the page's HTML; right-click an element on the page and choose Inspect to jump to it.</p>
+      <p>You can change the HTML in Elements, and you can type JavaScript into the Console and press Enter to run it. Both change this tab only. Nothing is saved.</p>
+      <p class="muted">Safari works too, after you turn on Settings → Advanced → “Show features for web developers.” Ad blockers and password managers sometimes add their own errors to the Console. That's normal; look for the errors that name a file from this page.</p>
+    </div>
+  </details>
+
+  <!-- ===================== The app ===================== -->
+  <div class="hinh" id="app">
+    <div class="hinh-bar">HinH Parts Lookup</div>
+    <div class="hinh-body">
+      <div class="search">
+        <input id="part-number" type="text" placeholder="Part number" autocomplete="off" aria-label="Part number">
+        <button id="search-button" type="button">Search</button>
+      </div>
+      <label class="filters"><input type="checkbox" id="instock-only"> In stock only</label>
+      <div class="parts-grid" id="results">
+        <div class="catalog-part" data-part="HX-2201">
+          <span class="num">HX-2201</span><span class="name">Blower motor, 1/2 HP</span><span class="price">$184.00</span><span class="stock">In stock</span>
+        </div>
+        <div class="catalog-part" data-part="CP-0450">
+          <span class="num">CP-0450</span><span class="name">Run capacitor, 45 µF</span><span class="price">$22.50</span><span class="stock">In stock</span>
+        </div>
+        <div class="catalog-part backordered" data-part="CP-0450-L">
+          <span class="num">CP-0450-L</span><span class="name">Run capacitor, 45 µF, low-temp</span><span class="price">$31.00</span><span class="stock">Backordered</span>
+        </div>
+        <div class="catalog-part" data-part="TH-7710">
+          <span class="num">TH-7710</span><span class="name">Thermostat, programmable</span><span class="price">$96.00</span><span class="stock">In stock</span>
+        </div>
+        <div class="catalog-part backordered" data-part="FL-1620">
+          <span class="num">FL-1620</span><span class="name">Filter, 16×20 pleated</span><span class="price">$14.25</span><span class="stock">Backordered</span>
+        </div>
+        <div class="catalog-part" data-part="IG-3300">
+          <span class="num">IG-3300</span><span class="name">Hot surface igniter</span><span class="price">$61.00</span><span class="stock">In stock</span>
+        </div>
+      </div>
+      <div class="no-results" id="no-results" hidden></div>
+    </div>
+  </div>
+  <script src="s4-checkbox/parts-controller.js"></script>
+  <!-- =================================================== -->
+
+  <section class="ws panel">
+    <h2>Fix it in the tools, then check</h2>
+    <ol>
+      <li>Tick “In stock only.” Search for <b>CP</b> and tick it again. Nothing changes.</li>
+      <li>Open the Console and read the red error. Click the file and line at its right.</li>
+      <li>Find the two things that are supposed to match: one in the code, one in the HTML.</li>
+      <li>Make them match, in the tools, on whichever side you'd fix: in Elements for the HTML, or in the Console for the code. (Anything the code keeps in a variable, you can change by typing an assignment into the Console and pressing Enter.)</li>
+      <li>Click <b>Check the page</b>. It re-runs the page's setup with your change, as if you'd saved it and reloaded, then ticks the box and looks at what shows.</li>
+    </ol>
+    <div class="row" style="margin-top:12px"><button type="button" id="check-page">Check the page</button><span class="muted" id="last"></span></div>
+    <div id="page-result"></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Your answers</h2>
+    <p class="muted">Saved in this browser as you type, so reloading won't lose them.</p>
+    <div class="q"><label for="a1">1. What did the Console tell you? Give the message in your own words, and the file and line it pointed to.</label><textarea id="a1"></textarea></div>
+    <div class="q"><label for="a2">2. What two things are supposed to match, where does each one live, and which side changed?</label><textarea id="a2"></textarea></div>
+    <div class="q"><label for="a3">3. What one-line change would you commit, in which file? Why that side and not the other?</label><textarea id="a3"></textarea></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Check my work</h2>
+    <p class="muted">An AI reads your three answers against the list above and tells you which ones hold up. Your score shows here and isn't recorded. Class code is on the Canvas page.</p>
+    <div class="row">
+      <input id="code" type="text" placeholder="Class code" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
+      <button type="button" id="grade">Check my answers</button>
+      <span class="muted" id="status" hidden></span>
+    </div>
+    <div id="feedback" style="margin-top:12px"></div>
+  </section>
+</main>
+
+<script>
+/* ---------- Saved state ---------- */
+const KEY="cwg-s4-checkbox";
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
+function store(patch){ try{ localStorage.setItem(KEY, JSON.stringify(Object.assign(load(),patch))); }catch(e){} }
+
+/* ---------- Check the page ----------
+   Re-runs the controller's setup (bindControls) against the page as it is in this tab, the way a
+   reload with the student's change would, then ticks the box and looks at which parts show. */
+function visible(){ return [...document.querySelectorAll(".catalog-part")].filter(c=>!c.hidden).map(c=>c.dataset.part).sort().join(","); }
+const IN_STOCK=["CP-0450","HX-2201","IG-3300","TH-7710"].join(","), ALL=["CP-0450","CP-0450-L","FL-1620","HX-2201","IG-3300","TH-7710"].join(",");
+function route(){
+  const htmlSide=!!(document.getElementById("in-stock-only") && document.getElementById("in-stock-only").matches(".filters input"));
+  let codeName=""; try{ codeName=CONTROLS.inStockOnly; }catch(e){}
+  if(htmlSide && codeName==="in-stock-only") return "changed the checkbox's id in the HTML to in-stock-only";
+  if(!htmlSide && codeName && codeName!=="in-stock-only") return "changed CONTROLS.inStockOnly in the code to "+codeName;
+  return "something else (code name: "+(codeName||"?")+")";
+}
+function checkPage(){
+  const box=document.querySelector(".filters input"), q=document.getElementById("part-number");
+  const savedQ=q.value, savedChecked=box.checked;
+  let setupError="";
+  try{ if(typeof bindControls==="function") bindControls(); }catch(e){ setupError=String(e.message||e); }
+  q.value=""; box.checked=false; box.dispatchEvent(new Event("change"));
+  if(typeof showParts==="function") showParts();          // start from everything shown
+  box.click();                                              // tick: a real change event, like Trent's tap
+  const ticked=visible();
+  box.click();                                              // untick
+  const unticked=visible();
+  q.value=savedQ; box.checked=savedChecked; if(typeof showParts==="function"){ try{ showParts(); }catch(e){} }
+  const c1=!setupError, c2=ticked===IN_STOCK, c3=unticked===ALL;
+  return {checks:[
+    [c1, "The page's setup runs without an error."],
+    [c2, "Ticking “In stock only” shows only the in-stock parts."],
+    [c3, "Unticking it shows every part again."],
+  ], passed:c1&&c2&&c3, route:route(), error:setupError};
+}
+function showResult(r){
+  const host=document.getElementById("page-result"); host.innerHTML="";
+  const list=document.createElement("div"); list.className="checks";
+  r.checks.forEach(([ok,txt])=>{ const d=document.createElement("div"); d.className="chk";
+    d.innerHTML=`<b class="${ok?"ok":"no"}">${ok?"YES":"NOT YET"}</b><span></span>`; d.querySelector("span").textContent=txt; list.append(d); });
+  host.append(list);
+  const v=document.createElement("div"); v.className="verdict"+(r.passed?"":" no");
+  v.textContent = r.passed
+    ? "Fixed, in this tab. If you changed the HTML, notice that ticking the box yourself may still do nothing until the setup runs again: the code looked for the checkbox once, when the page loaded. That's why the fix has to be committed, and why a reload is part of testing it."
+    : (r.error ? "The setup still stops with an error: “"+r.error+"”. Read it in the Console and follow the file and line."
+               : "The setup runs, but the box doesn't filter the way the story says. Tick it yourself and watch which parts stay.");
+  host.append(v);
+}
+document.getElementById("check-page").onclick=()=>{
+  const r=checkPage(); showResult(r);
+  const s=load(); const tries=(s.tries||[]).concat([{passed:r.passed, route:r.route}]).slice(-8);
+  store({tries, passed:!!(s.passed||r.passed), route:r.passed?r.route:(s.route||"")});
+  showLast();
+};
+function showLast(){ const s=load(); document.getElementById("last").textContent = s.passed ? "You've passed this check before ("+s.route+")." : ""; }
+showLast();
+
+/* ---------- Answers ---------- */
+const fields=["a1","a2","a3"];
+const saved=load(); fields.forEach(id=>{ const el=document.getElementById(id); if(saved[id]) el.value=saved[id]; el.addEventListener("input",()=>store({[id]:el.value})); });
+
+/* ---------- Check my work ---------- */
+const GRADER_URL="https://shrill-wood-3253.acowan.workers.dev/grade";
+const PUZZLE_ID="s4-checkbox";
+const LABELS=["The error","The agreement","The commit"];
+const codeEl=document.getElementById("code"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
+try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
+function collect(){
+  const s=load(), v=id=>document.getElementById(id).value.trim();
+  return { page_check:{ passed:!!s.passed, fixed_by:s.route||"never passed", attempts:(s.tries||[]).length },
+           items:[ {label:LABELS[0], answer:v("a1")}, {label:LABELS[1], answer:v("a2")}, {label:LABELS[2], answer:v("a3")} ] };
+}
+document.getElementById("grade").onclick=async()=>{
+  const code=codeEl.value.trim(); if(!code){ codeEl.focus(); return; }
+  try{ localStorage.setItem("cwg-code",code); }catch(e){}
+  statusEl.hidden=false; statusEl.textContent="Reading your answers…"; fb.innerHTML="";
+  try{
+    const r=await fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:PUZZLE_ID,code,answers:collect()})});
+    const d=await r.json();
+    if(!r.ok){ statusEl.textContent=d.error||("Error "+r.status); return; }
+    statusEl.hidden=true;
+    const res=d.results||[], ok=res.filter(x=>x.verdict==="ok").length, pc=load().passed?1:0;
+    const sc=document.createElement("div"); sc.className="score"; sc.textContent=`${ok+pc} of ${res.length+1}`;
+    const sub=document.createElement("div"); sub.className="muted"; sub.textContent=`Page check: ${pc?"passed":"not passed yet"} · answers: ${ok} of ${res.length} hold up`;
+    fb.append(sc,sub);
+    const list=document.createElement("div"); list.style.marginTop="8px";
+    res.forEach(x=>{ const el=document.createElement("div"); el.className="fbrow";
+      el.innerHTML=`<div class="fbhead"><b class="${x.verdict==="ok"?"ok":"thin"}">${x.verdict==="ok"?"OK":"THIN"}</b><span class="fblabel"></span></div><div></div>`;
+      el.querySelector(".fblabel").textContent=x.label; el.lastElementChild.textContent=x.note||""; list.append(el); });
+    fb.append(list);
+    if(d.summary){ const s=document.createElement("p"); s.className="muted"; s.style.marginTop="8px"; s.textContent=d.summary; fb.append(s); }
+  }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
+};
+</script>
+</body></html>
