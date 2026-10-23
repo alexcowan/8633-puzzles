@@ -94,9 +94,34 @@ export default {
       ...rubric.guidance.map((g, i) => `${i + 1}. ${g}`),
       "Give one verdict per item, in this order: " + labels.join(", ") + ". 'ok' means the answer and any note engage with the story and the guidance above; 'thin' means something is missing. The note is one sentence, under 20 words, that says what is missing or what was done well. Be plain and specific; do not restate the student's text.",
       "Then one sentence of summary, under 30 words.",
-      "Respond with JSON only, no prose around it, in this shape:",
-      `{"results":[{"label":"Scenario 1","verdict":"ok","note":"one sentence"}, ...],"summary":"one sentence"}`,
+      "Report through the report_review tool.",
     ].join("\n");
+
+    // The verdicts come back as tool input, so the API hands us parsed JSON.
+    // (Asking for JSON as text broke when a note quoted code with braces or quotes in it.)
+    const tool = {
+      name: "report_review",
+      description: "Report one verdict per item, in order, and a one-sentence summary.",
+      input_schema: {
+        type: "object",
+        properties: {
+          results: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                label: { type: "string" },
+                verdict: { type: "string", enum: ["ok", "thin"] },
+                note: { type: "string" },
+              },
+              required: ["label", "verdict", "note"],
+            },
+          },
+          summary: { type: "string" },
+        },
+        required: ["results", "summary"],
+      },
+    };
 
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -110,6 +135,8 @@ export default {
         max_tokens: MAX_TOKENS,
         thinking: { type: "disabled" },
         system,
+        tools: [tool],
+        tool_choice: { type: "tool", name: "report_review" },
         messages: [{ role: "user", content: "Student answers (JSON):\n" + answers }],
       }),
     });
@@ -119,10 +146,14 @@ export default {
       return json({ error: "Grader unavailable (" + res.status + ")", detail: detail.slice(0, 300) }, 502, cors);
     }
     const data = await res.json();
-    const text = (data.content || []).map(c => c.text || "").join("");
-    let parsed;
-    try { parsed = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)); }
-    catch { return json({ error: "Grader returned something unreadable.", raw: text.slice(0, 300) }, 502, cors); }
+    const use = (data.content || []).find(c => c.type === "tool_use" && c.name === "report_review");
+    let parsed = use && use.input;
+    if (!parsed) {
+      // Fallback: the model answered in text after all.
+      const text = (data.content || []).map(c => c.text || "").join("");
+      try { parsed = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)); }
+      catch { return json({ error: "Grader returned something unreadable.", raw: text.slice(0, 300) }, 502, cors); }
+    }
 
     // One verdict per item, in order; fill any the model skipped.
     const got = Array.isArray(parsed.results) ? parsed.results : [];
