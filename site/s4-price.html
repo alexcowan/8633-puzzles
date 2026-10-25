@@ -1,0 +1,374 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Under a Hundred Dollars</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!-- The app's own styles. -->
+<link rel="stylesheet" href="s4-price/parts.css">
+<style>
+/* Worksheet styles (COWAN+). Everything here is scoped to .ws so it never touches the HinH app. */
+:root{
+  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
+  --accent:#DA5138; --accent-fg:#FFFFFF; --second:#63ADB1; --ok:#357B68; --bad:#DA5138; --note:#FFFFFF; --mark:#FFF3C4;
+  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; --mark:#4A4320; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; --mark:#4A4320; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;margin:0;
+  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:900px;margin:0 auto;display:grid;gap:28px}
+.page>*{min-width:0}
+.ws h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
+.ws h2{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--head);margin:0 0 10px}
+.ws h3{font-family:var(--serif);font-size:18px;font-weight:400;color:var(--head);margin:14px 0 6px}
+.ws p{margin:0 0 10px;max-width:70ch}
+.ws .eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ws .muted{color:var(--muted)}
+.ws.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:18px}
+.ws.rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
+.ws ol{margin:6px 0 0;padding-left:22px}
+.ws li{margin:5px 0}
+.ws kbd,.ws code{font-family:var(--mono);font-size:.82em;background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:0 5px}
+.ws input[type=text],.ws textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:7px 9px;min-width:0}
+.ws textarea{width:100%;resize:vertical;min-height:60px;box-sizing:border-box}
+.ws textarea.src{font-family:var(--mono);font-size:12.5px;line-height:1.55;white-space:pre;overflow-x:auto;min-height:0}
+.ws button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
+.ws button.ghost{background:transparent;color:var(--head);border:1px solid var(--line)}
+.ws button[disabled]{opacity:.5;cursor:default}
+.ws button:focus-visible,.ws input:focus-visible,.ws textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ws .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ws details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
+.ws .q{display:grid;gap:6px;padding-block:14px;border-top:1px solid var(--line-soft)}
+.ws .q:first-of-type{border-top:0;padding-top:4px}
+.ws .q label{font-family:var(--serif);color:var(--head)}
+.ws .checks{display:grid;gap:6px;margin-top:12px}
+.ws .chk{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:baseline}
+.ws .chk b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.ws .chk b.ok{color:var(--ok)} .ws .chk b.no{color:var(--bad)}
+.ws .verdict{margin-top:10px;padding:10px 12px;border-radius:4px;background:var(--bg);border-left:3px solid var(--second)}
+.ws .verdict.no{border-left-color:var(--bad)}
+.ws .fbrow{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line-soft)}
+.ws .fbrow:first-child{border-top:0}
+.ws .fbhead{display:flex;gap:10px;align-items:baseline}
+.ws .fbhead b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.ws .fbhead b.ok{color:var(--ok)} .ws .fbhead b.thin{color:var(--bad)}
+.ws .fblabel{font-family:var(--serif);color:var(--head)}
+.ws .score{font-family:var(--serif);font-size:20px;color:var(--head)}
+
+/* Code view with an editable window */
+.ws .codewin{font-family:var(--mono);font-size:12.5px;line-height:1.55;background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;overflow-x:auto}
+.ws .codewin pre{margin:0;padding:8px 0}
+.ws .codewin .ln{display:block;white-space:pre;padding-right:12px}
+.ws .codewin .ln::before{content:attr(data-n);display:inline-block;width:2.2em;margin-right:12px;text-align:right;color:var(--muted);user-select:none}
+.ws .codewin .ln.changed{background:var(--mark)}
+.ws .codewin .ln.obs{background:color-mix(in srgb,var(--second) 22%,transparent)}
+.ws .editwin{display:grid;grid-template-columns:auto minmax(0,1fr);border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);background:var(--panel)}
+.ws .editwin .gutter{padding:8px 12px 8px 0;color:var(--muted);text-align:right;white-space:pre;user-select:none;width:2.2em;box-sizing:content-box}
+.ws .editwin textarea{min-width:0;width:100%;border:0;border-radius:0;background:transparent;padding:8px 12px 8px 0;resize:none;height:calc(7 * 1.55em + 16px)}
+.ws .editwin.one textarea{height:calc(1 * 1.55em + 16px)}
+.ws .console{font-family:var(--mono);font-size:12.5px;line-height:1.5;background:#1E1E1E;color:#D4D4D4;border-radius:4px;padding:10px 12px;margin-top:10px;white-space:pre-wrap;min-height:44px;max-height:220px;overflow:auto}
+.ws .console .err{color:#F48771}
+.ws .console .str{color:#CE9178}
+.ws .counts{font-family:var(--mono);font-size:12.5px;margin-top:8px}
+.ws .counts b{color:var(--head);font-weight:500}
+.ws .report{background:var(--bg);border-left:3px solid var(--line);padding:10px 14px;border-radius:4px;font-style:italic;max-width:70ch}
+</style></head><body>
+
+<main class="page">
+  <nav aria-label="Puzzles" style="font-size:14px;letter-spacing:.02em"><a href="index.html" style="color:var(--head);text-underline-offset:3px">← All puzzles</a></nav>
+  <header class="ws">
+    <div class="eyebrow">Coding with GPT · Session 4 · In class, in pairs</div>
+    <h1>Under a hundred dollars</h1>
+    <p>The story: <em>As Trent the Technician, I want to see only the parts at or under the price the customer gave me, so I can offer a repair they'll say yes to.</em></p>
+    <p class="report">Trent, from a job: “Customer said a hundred bucks, tops. I put 100 in the max-price box and got nothing: ‘No parts match.’ So I tried 50 to see if the box worked at all, and it showed me the $184 blower motor.”</p>
+    <p>The Console is clean: no red. The code runs to the end every time and does the wrong thing. This is the other kind of bug, the kind you find by being analytical: know what should happen, know why you expect the code to do it, and instrument an observation that tells you which assumption is false.</p>
+  </header>
+
+  <section class="ws rubric">
+    <div class="eyebrow">Be ready to explain</div>
+    <ol>
+      <li>For a max price of 100, what Trent should see (the Then) and what he saw.</li>
+      <li>Which assumption in the code is false, and the one line of observation that showed you.</li>
+      <li>The change you'd commit: which line or lines, and why there rather than somewhere else.</li>
+    </ol>
+  </section>
+
+  <details class="ws">
+    <summary>Opening the developer tools</summary>
+    <div style="margin-top:10px">
+      <p>Use Chrome or another Chromium browser (Edge, Brave, Arc). Press <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>J</kbd> on a Mac (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd> on Windows) to open the tools straight to the <b>Console</b>. The <b>Sources</b> panel has this page's files; <code>s4-price/parts-controller.js</code> is the one you're debugging.</p>
+      <p>A useful habit: <code>console.log({price, maxPrice})</code>, with the braces, prints each name next to its value, and the Console shows you what kind of thing each value is. Text prints in quotes; numbers don't.</p>
+      <p class="muted">Safari works too, after you turn on Settings → Advanced → “Show features for web developers.” Ad blockers and password managers sometimes add their own messages to the Console. That's normal; look for the lines that come from this page.</p>
+    </div>
+  </details>
+
+  <!-- ===================== The app ===================== -->
+  <div class="hinh" id="app">
+    <div class="hinh-bar">HinH Parts Lookup</div>
+    <div class="hinh-body">
+      <div class="search">
+        <input id="part-number" type="text" placeholder="Part number" autocomplete="off" aria-label="Part number">
+        <input id="max-price" class="narrow" type="text" inputmode="decimal" placeholder="Max price" autocomplete="off" aria-label="Max price">
+        <button id="search-button" type="button">Search</button>
+      </div>
+      <div class="parts-grid" id="results">
+        <div class="catalog-part" data-part="HX-2201" data-price="184.00">
+          <span class="num">HX-2201</span><span class="name">Blower motor, 1/2 HP</span><span class="price">$184.00</span><span class="stock">In stock</span>
+        </div>
+        <div class="catalog-part" data-part="CP-0450" data-price="22.50">
+          <span class="num">CP-0450</span><span class="name">Run capacitor, 45 µF</span><span class="price">$22.50</span><span class="stock">In stock</span>
+        </div>
+        <div class="catalog-part backordered" data-part="CP-0450-L" data-price="31.00">
+          <span class="num">CP-0450-L</span><span class="name">Run capacitor, 45 µF, low-temp</span><span class="price">$31.00</span><span class="stock">Backordered</span>
+        </div>
+        <div class="catalog-part" data-part="TH-7710" data-price="96.00">
+          <span class="num">TH-7710</span><span class="name">Thermostat, programmable</span><span class="price">$96.00</span><span class="stock">In stock</span>
+        </div>
+        <div class="catalog-part backordered" data-part="FL-1620" data-price="14.25">
+          <span class="num">FL-1620</span><span class="name">Filter, 16×20 pleated</span><span class="price">$14.25</span><span class="stock">Backordered</span>
+        </div>
+        <div class="catalog-part" data-part="IG-3300" data-price="61.00">
+          <span class="num">IG-3300</span><span class="name">Hot surface igniter</span><span class="price">$61.00</span><span class="stock">In stock</span>
+        </div>
+      </div>
+      <div class="no-results" id="no-results" hidden></div>
+    </div>
+  </div>
+  <script src="s4-price/parts-controller.js"></script>
+  <!-- =================================================== -->
+
+  <section class="ws panel">
+    <h2>1. Know what you want to have happen</h2>
+    <p>Before you touch anything: leave the part number blank, type <b>100</b> in the max-price box, and write the Then below. Then look at what Trent got, and try <b>50</b>.</p>
+    <div class="q"><label for="then">Given the six parts above, when Trent enters a max price of 100, then he sees…</label><textarea id="then" placeholder="Which parts, and which not?"></textarea></div>
+    <div class="q"><label for="got">What he actually got, at 100 and at 50:</label><textarea id="got"></textarea></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>2. Know why you expect it to work</h2>
+    <p class="muted">This is <code>s4-price/parts-controller.js</code>, the code the app above is running. Read <code>showParts</code> and say, in your head, what each line assumes about the values it's handling.</p>
+    <div class="codewin" id="codewin">Loading…</div>
+  </section>
+
+  <section class="ws panel">
+    <h2>3. Instrument the observation</h2>
+    <p>Line 20 is a comment that says <code>// Observation goes here.</code> Put one <code>console.log</code> there, in the box below, and run. The line goes into the real function, the function runs with whatever's in the boxes above (set the max price to 100 first), and what it logs shows in your browser's Console and here.</p>
+    <div class="codewin">
+      <div class="editwin one"><div class="gutter">20</div><textarea id="observe" class="src" spellcheck="false" placeholder="console.log( … );"></textarea></div>
+    </div>
+    <div class="row" style="margin-top:10px"><button type="button" id="run-observe">Run with this observation</button><span class="muted" id="obs-note"></span></div>
+    <div class="console" id="console" aria-live="polite"><span class="muted">Console output from the last run shows here.</span></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Fix it, then check</h2>
+    <p>Lines 13–19 are editable below. Change as little as you need. <b>Check the page</b> puts your lines into the function and runs four scenarios as Trent would, then counts the lines you changed.</p>
+    <div class="codewin" id="fixwin">
+      <div class="editwin"><div class="gutter" id="fix-gutter">13
+14
+15
+16
+17
+18
+19</div><textarea id="fix" class="src" spellcheck="false"></textarea></div>
+    </div>
+    <div class="row" style="margin-top:10px"><button type="button" id="check-page">Check the page</button><button type="button" class="ghost" id="reset-fix">Put the original lines back</button><span class="muted" id="last"></span></div>
+    <div id="page-result"></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Your answers</h2>
+    <p class="muted">Saved in this browser as you type, so reloading won't lose them. Your Then and what he got, above, are part of your answers.</p>
+    <div class="q"><label for="a2">2. Which assumption in the code is false? What did your observation print that showed you?</label><textarea id="a2"></textarea></div>
+    <div class="q"><label for="a3">3. What change would you commit, on which line or lines? Why there rather than somewhere else in the function?</label><textarea id="a3"></textarea></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Check my work</h2>
+    <p class="muted">An AI reads your answers against the list above and tells you which ones hold up. Your score shows here and isn't recorded. Class code is on the Canvas page.</p>
+    <div class="row">
+      <input id="code-input" type="text" placeholder="Class code" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
+      <button type="button" id="grade">Check my answers</button>
+      <span class="muted" id="status" hidden></span>
+    </div>
+    <div id="feedback" style="margin-top:12px"></div>
+  </section>
+</main>
+
+<script>
+/* ---------- Saved state ---------- */
+const KEY="cwg-s4-price";
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
+function store(patch){ try{ localStorage.setItem(KEY, JSON.stringify(Object.assign(load(),patch))); }catch(e){} }
+
+/* ---------- The controller's source, so the page can show it and re-define it with the student's lines ----------
+   The file was loaded above with a normal <script> tag, so the Console and the Sources panel see it as a file.
+   Here it's fetched again as text. To run a changed version, the page swaps in the student's lines and evaluates
+   the result; because showParts is a plain function declaration and the buttons look it up by name each time,
+   the new definition takes over without a reload. */
+const SRC_URL="s4-price/parts-controller.js";
+const OBS_LINE=20, EDIT_FROM=13, EDIT_TO=19;       // 1-based line numbers in the file
+let ORIGINAL_LINES=null;
+
+function origBlock(){ return ORIGINAL_LINES.slice(EDIT_FROM-1, EDIT_TO).join("\n"); }
+function buildLines(observe, block){
+  const lines=ORIGINAL_LINES.slice();
+  if(observe && observe.trim()) lines[OBS_LINE-1]="    "+observe.trim();
+  const b=(block==null?origBlock():block).split("\n");
+  lines.splice(EDIT_FROM-1, EDIT_TO-EDIT_FROM+1, ...b);
+  return lines;
+}
+function changedLines(block){
+  const o=origBlock().split("\n"), b=(block||"").split("\n"); const out=[];
+  for(let i=0;i<Math.max(o.length,b.length);i++){ const a=(o[i]||"").trim(), c=(b[i]||"").trim(); if(a!==c) out.push({n:EDIT_FROM+i, was:o[i]||"", now:b[i]||""}); }
+  return out;
+}
+function renderCode(){
+  const win=document.getElementById("codewin"); win.innerHTML="";
+  const pre=document.createElement("pre");
+  ORIGINAL_LINES.forEach((l,i)=>{ const s=document.createElement("span"); s.className="ln"+(i+1===OBS_LINE?" obs":""); s.dataset.n=i+1; s.textContent=l||" "; pre.append(s); });
+  win.append(pre);
+}
+/* Evaluate a version of the file. The last line, bindControls(), is dropped so listeners aren't added twice. */
+function define(lines){
+  const src=lines.filter(l=>l.trim()!=="bindControls();").join("\n");
+  (0,eval)(src);   // indirect eval: function declarations land on window, replacing the ones from the <script> tag
+}
+function restoreOriginal(){ define(ORIGINAL_LINES); }
+
+/* ---------- Observation ---------- */
+const con=document.getElementById("console");
+function fmt(v){
+  if(typeof v==="string") return {t:v, q:true};
+  if(v && typeof v==="object"){ try{ return {t:JSON.stringify(v, (k,x)=>x, 0).replace(/"([^"]+)":/g,"$1: ").replace(/,/g,", ").replace(/"/g,"'"), q:false}; }catch(e){ return {t:String(v), q:false}; } }
+  return {t:String(v), q:false};
+}
+function runObservation(){
+  const line=document.getElementById("observe").value;
+  const note=document.getElementById("obs-note");
+  con.innerHTML="";
+  const block=document.getElementById("fix").value;
+  const captured=[]; const orig=console.log;
+  console.log=function(...args){ captured.push(args); orig.apply(console,args); };
+  try{
+    define(buildLines(line, block));
+    showParts();
+    note.textContent=`Ran with max price “${document.getElementById("max-price").value||"(blank)"}”.`;
+  }catch(e){
+    const d=document.createElement("div"); d.className="err"; d.textContent="✖ "+e.message; con.append(d);
+    note.textContent="The function stopped. Fix the line and run again.";
+  }finally{ console.log=orig; }
+  if(!captured.length && !con.children.length){ con.innerHTML='<span class="muted">Nothing was logged. Is there a console.log on line 20?</span>'; }
+  captured.forEach(args=>{ const d=document.createElement("div");
+    args.forEach((a,i)=>{ const f=fmt(a); const s=document.createElement("span"); if(f.q && args.length===1) s.textContent=f.t; else if(f.q){ s.className="str"; s.textContent=`'${f.t}'`; } else s.textContent=f.t; d.append(s); if(i<args.length-1) d.append(" "); });
+    con.append(d); });
+  const s=load(); store({observations:(s.observations||[]).concat([line.trim()]).filter(Boolean).slice(-6)});
+}
+document.getElementById("run-observe").onclick=runObservation;
+
+/* ---------- Check the page ---------- */
+function visible(){ return [...document.querySelectorAll(".catalog-part")].filter(c=>!c.hidden).map(c=>c.dataset.part).sort().join(","); }
+const SCENARIOS=[
+  {q:"",   max:"100", want:["CP-0450","CP-0450-L","FL-1620","IG-3300","TH-7710"], label:"Max price 100: the five parts at or under $100, and not the $184 blower motor."},
+  {q:"",   max:"50",  want:["CP-0450","CP-0450-L","FL-1620"],                      label:"Max price 50: the three parts at or under $50."},
+  {q:"",   max:"",    want:["CP-0450","CP-0450-L","FL-1620","HX-2201","IG-3300","TH-7710"], label:"No max price: every part."},
+  {q:"CP", max:"30",  want:["CP-0450"],                                             label:"Search “CP” with a max of 30: just the $22.50 capacitor."},
+];
+function checkPage(){
+  const q=document.getElementById("part-number"), m=document.getElementById("max-price");
+  const savedQ=q.value, savedM=m.value;
+  const block=document.getElementById("fix").value;
+  let err="";
+  try{ define(buildLines("", block)); }catch(e){ err=e.message; }
+  const checks=[];
+  if(err){ checks.push([false, "The function loads without an error. (It stopped: "+err+")"]); }
+  else{
+    checks.push([true, "The function loads without an error."]);
+    for(const s of SCENARIOS){
+      let ok=false, got="";
+      try{ q.value=s.q; m.value=s.max; showParts(); got=visible(); ok=got===s.want.join(","); }catch(e){ got="stopped: "+e.message; }
+      checks.push([ok, s.label+(ok?"":" (Got: "+(got||"nothing")+".)")]);
+    }
+  }
+  q.value=savedQ; m.value=savedM; try{ showParts(); }catch(e){}
+  const ch=changedLines(block);
+  const passed=checks.every(c=>c[0]);
+  return {checks, passed, changed:ch, error:err};
+}
+function showResult(r){
+  const host=document.getElementById("page-result"); host.innerHTML="";
+  const list=document.createElement("div"); list.className="checks";
+  r.checks.forEach(([ok,txt])=>{ const d=document.createElement("div"); d.className="chk";
+    d.innerHTML=`<b class="${ok?"ok":"no"}">${ok?"YES":"NOT YET"}</b><span></span>`; d.querySelector("span").textContent=txt; list.append(d); });
+  host.append(list);
+  const c=document.createElement("div"); c.className="counts"; c.innerHTML=`Lines changed: <b>${r.changed.length}</b>`+(r.changed.length?` (${r.changed.map(x=>x.n).join(", ")})`:""); host.append(c);
+  const v=document.createElement("div"); v.className="verdict"+(r.passed?"":" no");
+  v.textContent = r.passed
+    ? (r.changed.length===0 ? "All four pass with no change? Reload the page and check again; something else is defining showParts." :
+       "Fixed, in this tab. Now the question for your commit: did you fix it where the values come in, or where they're compared? Either passes. One of them keeps the next comparison in this function honest too.")
+    : (r.error ? "The function doesn't load. Read the error above; it's usually a missing quote, bracket, or semicolon." :
+       r.changed.length===0 ? "Nothing's changed yet. This is what Trent sees." :
+       "Closer or not, some scenario still fails. Run your observation again with that scenario's max price and read what prints.");
+  host.append(v);
+}
+document.getElementById("check-page").onclick=()=>{
+  const r=checkPage(); showResult(r);
+  const s=load(); const tries=(s.tries||[]).concat([{passed:r.passed, changed:r.changed.map(x=>`L${x.n}: ${x.now.trim()}`)}]).slice(-8);
+  store({tries, passed:!!(s.passed||r.passed), fix:r.passed?r.changed.map(x=>`L${x.n}: ${x.now.trim()}`).join(" | "):(s.fix||"")});
+  showLast();
+};
+document.getElementById("reset-fix").onclick=()=>{ document.getElementById("fix").value=origBlock(); store({block:null}); restoreOriginal(); document.getElementById("page-result").innerHTML=""; };
+document.getElementById("fix").addEventListener("input",e=>store({block:e.target.value}));
+function showLast(){ const s=load(); document.getElementById("last").textContent = s.passed ? "You've passed this check before." : ""; }
+
+/* ---------- Answers ---------- */
+const fields=["then","got","a2","a3","observe"];
+const saved=load(); fields.forEach(id=>{ const el=document.getElementById(id); if(saved[id]) el.value=saved[id]; el.addEventListener("input",()=>store({[id]:el.value})); });
+
+/* ---------- Check my work ---------- */
+const GRADER_URL="https://shrill-wood-3253.acowan.workers.dev/grade";
+const PUZZLE_ID="s4-price";
+const LABELS=["Then vs. what he got","The assumption","The commit"];
+const codeEl=document.getElementById("code-input"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
+try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
+function collect(){
+  const s=load(), v=id=>document.getElementById(id).value.trim();
+  return { page_check:{ passed:!!s.passed, fix_that_passed:s.fix||"never passed", observations_tried:s.observations||[],
+                        attempts:(s.tries||[]).map(t=>(t.passed?"pass: ":"fail: ")+(t.changed.length?t.changed.join(" | "):"no change")) },
+           items:[ {label:LABELS[0], then:v("then"), got:v("got")}, {label:LABELS[1], answer:v("a2")}, {label:LABELS[2], answer:v("a3")} ] };
+}
+document.getElementById("grade").onclick=async()=>{
+  const code=codeEl.value.trim(); if(!code){ codeEl.focus(); return; }
+  try{ localStorage.setItem("cwg-code",code); }catch(e){}
+  statusEl.hidden=false; statusEl.textContent="Reading your answers…"; fb.innerHTML="";
+  try{
+    const r=await fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:PUZZLE_ID,code,answers:collect()})});
+    const d=await r.json();
+    if(!r.ok){ statusEl.textContent=d.error||("Error "+r.status); return; }
+    statusEl.hidden=true;
+    const res=d.results||[], ok=res.filter(x=>x.verdict==="ok").length, pc=load().passed?1:0;
+    const sc=document.createElement("div"); sc.className="score"; sc.textContent=`${ok+pc} of ${res.length+1}`;
+    const sub=document.createElement("div"); sub.className="muted"; sub.textContent=`Page check: ${pc?"passed":"not passed yet"} · answers: ${ok} of ${res.length} hold up`;
+    fb.append(sc,sub);
+    const list=document.createElement("div"); list.style.marginTop="8px";
+    res.forEach(x=>{ const el=document.createElement("div"); el.className="fbrow";
+      el.innerHTML=`<div class="fbhead"><b class="${x.verdict==="ok"?"ok":"thin"}">${x.verdict==="ok"?"OK":"THIN"}</b><span class="fblabel"></span></div><div></div>`;
+      el.querySelector(".fblabel").textContent=x.label; el.lastElementChild.textContent=x.note||""; list.append(el); });
+    fb.append(list);
+    if(d.summary){ const s=document.createElement("p"); s.className="muted"; s.style.marginTop="8px"; s.textContent=d.summary; fb.append(s); }
+  }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
+};
+
+/* ---------- Boot ---------- */
+fetch(SRC_URL).then(r=>r.text()).then(t=>{
+  ORIGINAL_LINES=t.replace(/\n$/,"").split("\n");
+  renderCode();
+  const fix=document.getElementById("fix"); const s=load();
+  fix.value=(s.block!=null && s.block!=="")?s.block:origBlock();
+  if(s.block && s.block!==origBlock()){ try{ define(buildLines("", s.block)); }catch(e){} }
+  showLast();
+}).catch(()=>{ document.getElementById("codewin").textContent="Couldn't load parts-controller.js. Open this page from the course site, not as a file."; });
+</script>
+</body></html>
