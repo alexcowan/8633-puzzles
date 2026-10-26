@@ -55,6 +55,9 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
 .ws .gwt{display:grid;grid-template-columns:62px 1fr;gap:4px 10px}
 .ws .gwt b{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:4px}
 .ws .gwt .qv{font-family:var(--mono);font-size:.85em}
+/* Not part of HinH's design system: lets whatever doesn't fit poke out of the app box, the way an
+   unclipped phone page would, instead of being cut off silently. */
+#app{overflow:visible;min-width:0}
 </style></head><body>
 
 <main class="page">
