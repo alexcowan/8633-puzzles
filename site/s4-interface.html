@@ -88,7 +88,12 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <div class="eyebrow">Coding with GPT · Session 4 · In class, in pairs</div>
     <h1>Where the fix goes</h1>
     <p>The story: <em>As Trent the Technician, I want to see a part's price and whether I can get it today, so I can agree on next steps with the customer.</em></p>
-    <p>The story's implementation is ten lines of <code>showParts</code>, and in this puzzle you never touch it. Everything you change is below a dashed line in the code: the interface between the story's implementation and wherever price and availability come from. First you pick where price and availability come from, by changing one line. Then the distributor changes its API, and you decide where the fix goes.</p>
+    <p>The puzzle has two parts:</p>
+    <ol>
+      <li><b>Choose.</b> Price and availability can come from three places: HinH's own copy of the catalog, the distributor's live system, or a language model. You try each one, change one line to pick, and decide which you'd ship.</li>
+      <li><b>Fix.</b> Then the distributor updates its system, and the page breaks. You decide where the fix goes.</li>
+    </ol>
+    <p>The story's implementation is ten lines of <code>showParts</code>, and you never touch it. Everything you change is below a dashed line in the code: the interface between the story's implementation and wherever price and availability come from.</p>
     <p class="muted">There's no library on the menu. A library is someone else's code running in your app; nobody publishes a package that knows what's on the distributor's shelf this morning.</p>
   </header>
 
@@ -127,7 +132,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
 
   <!-- ===================== The app ===================== -->
   <section class="ws panel">
-    <h2>Run it as Trent</h2>
+    <h2>Step 1: choose a source and run it as Trent</h2>
     <ol>
       <li>With each source, search <b>HX-2201</b>, then <b>CP-0450-L</b>. (For the record: CP-0450-L sold out at the distributor this morning.)</li>
       <li>With the model, search the same part twice. A language model doesn't look the answer up; it writes a plausible one each time, so the same question can get a different answer.</li>
