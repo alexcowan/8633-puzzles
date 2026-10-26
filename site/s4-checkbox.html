@@ -77,7 +77,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <div style="margin-top:10px">
       <p>Use Chrome or another Chromium browser (Edge, Brave, Arc). Press <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>J</kbd> on a Mac (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd> on Windows) to open the tools straight to the <b>Console</b>, or right-click the page, choose <b>Inspect</b>, and click the Console tab.</p>
       <p>Errors in the Console are red. The link at the right of an error (a file name and a line number) opens that file at that line in the <b>Sources</b> panel. The <b>Elements</b> panel shows the page's HTML; right-click an element on the page and choose Inspect to jump to it.</p>
-      <p>You can change the HTML in Elements, and you can type JavaScript into the Console and press Enter to run it. Both change this tab only. Nothing is saved.</p>
+      <p>You can change the HTML in Elements, and you can edit a file in Sources and press <kbd>Cmd</kbd>+<kbd>S</kbd> (<kbd>Ctrl</kbd>+<kbd>S</kbd> on Windows) to apply the edit. Both change this tab only. Nothing is saved to the site.</p>
       <p class="muted">Safari works too, after you turn on Settings → Advanced → “Show features for web developers.” Ad blockers and password managers sometimes add their own errors to the Console. That's normal; look for the errors that name a file from this page.</p>
     </div>
   </details>
@@ -123,7 +123,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
       <li>Tick “In stock only.” Search for <b>CP</b> and tick it again. Nothing changes.</li>
       <li>Open the Console and read the red error. Click the file and line at its right.</li>
       <li>Find the two things that are supposed to match: one in the code, one in the HTML.</li>
-      <li>Make them match, in the tools, on whichever side you'd fix: in Elements for the HTML, or in the Console for the code. (Anything the code keeps in a variable, you can change by typing an assignment into the Console and pressing Enter.)</li>
+      <li>Make them match, in the tools, on whichever side you'd fix: in Elements for the HTML, or in Sources for the code (edit the line, then press <kbd>Cmd</kbd>+<kbd>S</kbd>, or <kbd>Ctrl</kbd>+<kbd>S</kbd> on Windows, to apply it to this tab).</li>
       <li>Click <b>Check the page</b>. It re-runs the page's setup with your change, as if you'd saved it and reloaded, then ticks the box and looks at what shows.</li>
     </ol>
     <div class="row" style="margin-top:12px"><button type="button" id="check-page">Check the page</button><span class="muted" id="last"></span></div>
@@ -163,10 +163,11 @@ function visible(){ return [...document.querySelectorAll(".catalog-part")].filte
 const IN_STOCK=["CP-0450","HX-2201","IG-3300","TH-7710"].join(","), ALL=["CP-0450","CP-0450-L","FL-1620","HX-2201","IG-3300","TH-7710"].join(",");
 function route(){
   const htmlSide=!!(document.getElementById("in-stock-only") && document.getElementById("in-stock-only").matches(".filters input"));
-  let codeName=""; try{ codeName=CONTROLS.inStockOnly; }catch(e){}
+  let src=""; try{ src=String(bindControls); }catch(e){}
+  const m=src.match(/getElementById\((['"])([^'"]*stock[^'"]*)\1\)/i), codeName=m?m[2]:"";
   if(htmlSide && codeName==="in-stock-only") return "changed the checkbox's id in the HTML to in-stock-only";
-  if(!htmlSide && codeName && codeName!=="in-stock-only") return "changed CONTROLS.inStockOnly in the code to "+codeName;
-  return "something else (code name: "+(codeName||"?")+")";
+  if(!htmlSide && codeName && codeName!=="in-stock-only") return "changed the id the code looks for (in bindControls) to "+codeName;
+  return "something else (code looks for: "+(codeName||"?")+")";
 }
 function checkPage(){
   const box=document.querySelector(".filters input"), q=document.getElementById("part-number");
