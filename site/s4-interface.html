@@ -90,7 +90,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <p>The story: <em>As Trent the Technician, I want to see a part's price and whether I can get it today, so I can agree on next steps with the customer.</em></p>
     <p>The puzzle has two parts:</p>
     <ol>
-      <li><b>Choose.</b> Price and availability can come from three places: HinH's own copy of the catalog, the distributor's live system, or a language model. You try each one, change one line to pick, and decide which you'd ship.</li>
+      <li><b>Choose.</b> Price and availability can come from three places: HinH's own copy of the catalog, the distributor's live system, or an AI. You try each one, change one line to pick, and decide which you'd ship.</li>
       <li><b>Fix.</b> Then the distributor updates its system, and the page breaks. You decide where the fix goes.</li>
     </ol>
     <p>The story's implementation is ten lines of <code>showParts</code>, and you never touch it. Everything you change is below a dashed line in the code: the interface between the story's implementation and wherever price and availability come from.</p>
@@ -101,7 +101,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <div class="eyebrow">Be ready to explain</div>
     <ol>
       <li>Which version you'd ship for Trent's story and why, in terms of HinH's business, and what it depends on that changes on its own schedule that HinH doesn't control.</li>
-      <li>What happened when you asked the model for the same part twice, and what that does to a Given-When-Then for this story.</li>
+      <li>What happened when you asked the AI for the same part twice, and what that does to a Given-When-Then for this story.</li>
       <li>The fix you'd commit when the distributor ships v2, and why the number of lines changed in <code>showParts</code> is the test.</li>
     </ol>
   </section>
@@ -123,10 +123,10 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
         <div class="tag">The distributor's API</div>
         <div class="what">The distributor's own system, asked on every search. Current to the minute, $0.02 a call, and the format is theirs.</div>
         <code>const getPriceAndAvailability = fromDistributor;</code></label>
-      <label class="card"><h4><input type="radio" name="src" value="fromModel"> Ask a language model (like ChatGPT)</h4>
+      <label class="card"><h4><input type="radio" name="src" value="fromAI"> Ask an AI (like ChatGPT)</h4>
         <div class="tag">Generated, not looked up</div>
-        <div class="what">A model, asked in plain English for the price and availability. Always answers, and sounds right.</div>
-        <code>const getPriceAndAvailability = fromModel;</code></label>
+        <div class="what">An AI, asked in plain English for the price and availability. Always answers, and sounds right.</div>
+        <code>const getPriceAndAvailability = fromAI;</code></label>
     </div>
   </section>
 
@@ -135,10 +135,10 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <h2>Run it as Trent</h2>
     <ol>
       <li>With each source, search <b>HX-2201</b>, then <b>CP-0450-L</b>. (For the record: CP-0450-L sold out at the distributor this morning.)</li>
-      <li>With the model, search the same part twice. A language model doesn't look the answer up; it writes a plausible one each time, so the same question can get a different answer.</li>
+      <li>With the AI, search the same part twice. An AI doesn't look the answer up; it writes a plausible one each time, so the same question can get a different answer.</li>
       <li>Watch the meters.</li>
     </ol>
-    <div class="meters"><span id="m-src"></span><span id="m-dist"></span><span id="m-model"></span><span id="m-api"></span></div>
+    <div class="meters"><span id="m-src"></span><span id="m-dist"></span><span id="m-ai"></span><span id="m-api"></span></div>
     <div class="hinh" id="app" style="margin-top:12px">
       <div class="hinh-bar">HinH Parts Lookup</div>
       <div class="hinh-body">
@@ -183,7 +183,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <h2>Your answers</h2>
     <p class="muted">Saved in this browser as you type, so reloading won't lose them.</p>
     <div class="q"><label for="a1">1. Which version would you ship for Trent's story, and why, for HinH? What does it depend on that changes on its own schedule, outside HinH's control?</label><textarea id="a1"></textarea></div>
-    <div class="q"><label for="a2">2. What happened when you asked the model for the same part twice? What does that do to a Given-When-Then for this story?</label><textarea id="a2"></textarea></div>
+    <div class="q"><label for="a2">2. What happened when you asked the AI for the same part twice? What does that do to a Given-When-Then for this story?</label><textarea id="a2"></textarea></div>
     <div class="q"><label for="a3">3. Which fix would you commit when v2 ships, and why? Why is “lines changed in showParts” the thing to count?</label><textarea id="a3"></textarea></div>
   </section>
 
@@ -199,7 +199,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   </section>
 </main>
 
-<!-- The other side of the interface: simulated catalog copy, distributor API, and model. -->
+<!-- The other side of the interface: simulated catalog copy, distributor API, and AI. -->
 <script src="s4-interface/backends.js"></script>
 <script>
 /* ---------- Saved state ---------- */
@@ -255,12 +255,12 @@ function install(){
   catch(e){ live=null; const er=document.getElementById("run-error"); er.hidden=false; er.textContent="The code doesn't load: "+e.message; }
   meters();
 }
-const SRC_NAMES={fromCatalogCopy:"HinH's catalog copy (last night's price sheet)", fromDistributor:"the distributor's API", fromModel:"a language model"};
+const SRC_NAMES={fromCatalogCopy:"HinH's catalog copy (last night's price sheet)", fromDistributor:"the distributor's API", fromAI:"an AI"};
 function meters(){
   const f=FIXES[state.fix]||{}; const pick=f.pick||state.source;
   document.getElementById("m-src").textContent="Source: "+SRC_NAMES[pick];
   document.getElementById("m-dist").textContent=`Distributor calls: ${distributorApi.calls} ($${(distributorApi.calls*distributorApi.feePerCall).toFixed(2)})`;
-  document.getElementById("m-model").textContent=`Model calls: ${model.calls}`;
+  document.getElementById("m-ai").textContent=`AI calls: ${ai.calls}`;
   document.getElementById("m-api").innerHTML=`Distributor API: <span class="pill ${distributorApi.version===2?"v2":""}">v${distributorApi.version}</span>`;
 }
 window.onMeter=meters;
@@ -338,7 +338,7 @@ const saved=load(); fields.forEach(id=>{ const el=document.getElementById(id); i
 /* ---------- Check my work ---------- */
 const GRADER_URL="https://shrill-wood-3253.acowan.workers.dev/grade";
 const PUZZLE_ID="s4-interface";
-const LABELS=["The source","The model, twice","The fix"];
+const LABELS=["The source","The AI, twice","The fix"];
 const codeEl=document.getElementById("code-input"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
 try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
 function collect(){

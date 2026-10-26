@@ -53,8 +53,8 @@ var distributorApi = {
   },
 };
 
-// Ask a model. It always answers, and it's plausible.
-var model = {
+// Ask an AI. It always answers, and it's plausible.
+var ai = {
   calls: 0,
   async ask(prompt) {
     this.calls++; meter();

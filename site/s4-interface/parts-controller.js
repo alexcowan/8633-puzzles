@@ -32,8 +32,8 @@ async function fromDistributor(partNumber) {
   return { price: data.list_price_usd, inStock: data.qty_on_hand > 0 };
 }
 
-// Ask a model.
-async function fromModel(partNumber) {
-  const answer = await model.ask(`Price and availability of HVAC part ${partNumber}? Reply as JSON: {"price": number, "inStock": true or false}`);
+// Ask an AI.
+async function fromAI(partNumber) {
+  const answer = await ai.ask(`Price and availability of HVAC part ${partNumber}? Reply as JSON: {"price": number, "inStock": true or false}`);
   return JSON.parse(answer);
 }
