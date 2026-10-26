@@ -60,7 +60,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <div class="eyebrow">Coding with GPT · Session 4 · Warm-up</div>
     <h1>The checkbox that does nothing</h1>
     <p>The story: <em>As Trent the Technician, I want to see only the parts that are in stock, so I don't quote a customer a part I can't get today.</em></p>
-    <p>A designer cleaned up the parts page last week and added an “In stock only” checkbox. Search still works. Tick the box and nothing happens. Your job is to find out why using your browser's developer tools on this page.</p>
+    <p>A designer cleaned up the parts page last week and added an “In stock only” checkbox. It's supposed to work on its own: tick it and the backordered parts disappear right away, whether or not you've searched; untick it and they come back. Search still works. The box does nothing. Your job is to find out why using your browser's developer tools on this page.</p>
   </header>
 
   <section class="ws rubric">
@@ -120,7 +120,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <section class="ws panel">
     <h2>Fix it in the tools, then check</h2>
     <ol>
-      <li>Tick “In stock only.” Search for <b>CP</b> and tick it again. Nothing changes.</li>
+      <li>Tick “In stock only.” The two backordered parts (orange edge) should disappear. Nothing changes.</li>
       <li>Open the Console and read the red error. Click the file and line at its right.</li>
       <li>Find the two things that are supposed to match: one in the code, one in the HTML.</li>
       <li>Make them match, in the tools, on whichever side you'd fix: in Elements for the HTML, or in Sources for the code (edit the line, then press <kbd>Cmd</kbd>+<kbd>S</kbd>, or <kbd>Ctrl</kbd>+<kbd>S</kbd> on Windows, to apply it to this tab).</li>
