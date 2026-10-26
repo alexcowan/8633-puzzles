@@ -15,7 +15,7 @@ async function showParts() {
   if (matches.length === 0) results.textContent = `No parts match "${query}".`;
 }
 
-// ---------- The seam ----------
+// ---------- The interface ----------
 // Above this line, the code asks for a price and availability by name and takes what it's given.
 // Below it is the only code that knows where they come from.
 const getPriceAndAvailability = fromCatalogCopy;   // <- the one line that picks a source

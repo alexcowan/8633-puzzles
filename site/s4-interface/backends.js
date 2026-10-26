@@ -1,4 +1,4 @@
-// The other side of the seam. HinH owns none of this, so it's simulated here.
+// The other side of the interface. HinH owns none of this, so it's simulated here.
 // (Open this file if you're curious. Nothing in the puzzle asks you to change it.)
 
 // What's on the distributor's shelf right now. The page's checks use this as the truth.
