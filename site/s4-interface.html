@@ -118,8 +118,8 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
         <div class="tag">The distributor's API</div>
         <div class="what">The distributor's own system, asked on every search. Current to the minute, $0.02 a call, and the format is theirs.</div>
         <code>const getPriceAndAvailability = fromDistributor;</code></label>
-      <label class="card"><h4><input type="radio" name="src" value="fromModel"> Ask a model</h4>
-        <div class="tag">A language model</div>
+      <label class="card"><h4><input type="radio" name="src" value="fromModel"> Ask a language model (like ChatGPT)</h4>
+        <div class="tag">Generated, not looked up</div>
         <div class="what">A model, asked in plain English for the price and availability. Always answers, and sounds right.</div>
         <code>const getPriceAndAvailability = fromModel;</code></label>
     </div>
@@ -130,7 +130,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <h2>Run it as Trent</h2>
     <ol>
       <li>With each source, search <b>HX-2201</b>, then <b>CP-0450-L</b>. (For the record: CP-0450-L sold out at the distributor this morning.)</li>
-      <li>With the model, search the same part twice.</li>
+      <li>With the model, search the same part twice. A language model doesn't look the answer up; it writes a plausible one each time, so the same question can get a different answer.</li>
       <li>Watch the meters.</li>
     </ol>
     <div class="meters"><span id="m-src"></span><span id="m-dist"></span><span id="m-model"></span><span id="m-api"></span></div>
