@@ -89,7 +89,12 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
 
   <section class="ws panel">
     <h2>Warm-up: one observation</h2>
-    <p>Before the real bug, a practice one. This little function should count the parts at or under a max price, so <code>partsUnder(100)</code> should return 5. It returns 1. Put a <code>console.log</code> on line 8, for example <code>console.log(price, count);</code>, and run it. Once you see what's wrong, fix line 7 and run it again.</p>
+    <p>Before the real bug, a practice one. This little function should count the parts at or under a max price, so <code>partsUnder(100)</code> should return 5. It returns 1. Put a <code>console.log</code> on line 8, for example <code>console.log(price, count);</code>, and run it. Then:</p>
+    <ol style="list-style-type:lower-alpha">
+      <li>What should it be doing?</li>
+      <li>What is it doing?</li>
+      <li>How would you fix it? Change line 7 and run it again. Hint: if you're not sure of the syntax, specific questions like that are OK to ask an AI. Just make sure you can explain the answer.</li>
+    </ol>
     <div class="codewin">
       <pre><span class="ln" data-n="1">const PRICES = [184.00, 22.50, 31.00, 96.00, 14.25, 61.00];</span><span class="ln" data-n="2"> </span><span class="ln" data-n="3">// How many parts cost no more than max?</span><span class="ln" data-n="4">function partsUnder(max) {</span><span class="ln" data-n="5">  let count = 0;</span><span class="ln" data-n="6">  for (const price of PRICES) {</span></pre>
       <div class="editwin one"><div class="gutter">7</div><textarea id="wu-rule" class="src" spellcheck="false">    if (price &lt;= max) count = 1;</textarea></div>
