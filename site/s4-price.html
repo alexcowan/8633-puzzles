@@ -85,6 +85,24 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <header class="ws">
     <div class="eyebrow">Coding with GPT · Session 4 · In class, in pairs</div>
     <h1>Under a hundred dollars</h1>
+  </header>
+
+  <section class="ws panel">
+    <h2>Warm-up: one observation</h2>
+    <p>Before the real bug, a practice one. This little function should count the parts at or under a max price, so <code>partsUnder(100)</code> should return 5. It returns 1. Put a <code>console.log</code> on line 8, for example <code>console.log(price, count);</code>, and run it. Once you see what's wrong, fix line 7 and run it again.</p>
+    <div class="codewin">
+      <pre><span class="ln" data-n="1">const PRICES = [184.00, 22.50, 31.00, 96.00, 14.25, 61.00];</span><span class="ln" data-n="2"> </span><span class="ln" data-n="3">// How many parts cost no more than max?</span><span class="ln" data-n="4">function partsUnder(max) {</span><span class="ln" data-n="5">  let count = 0;</span><span class="ln" data-n="6">  for (const price of PRICES) {</span></pre>
+      <div class="editwin one"><div class="gutter">7</div><textarea id="wu-rule" class="src" spellcheck="false">    if (price &lt;= max) count = 1;</textarea></div>
+      <div class="editwin one"><div class="gutter">8</div><textarea id="wu-observe" class="src" spellcheck="false" placeholder="    console.log( … );"></textarea></div>
+      <pre><span class="ln" data-n="9">  }</span><span class="ln" data-n="10">  return count;</span><span class="ln" data-n="11">}</span></pre>
+    </div>
+    <div class="row" style="margin-top:10px"><button type="button" id="wu-run">Run partsUnder(100)</button><span class="muted" id="wu-note"></span></div>
+    <div class="verdict big" id="wu-verdict" hidden></div>
+    <div class="console" id="wu-console" aria-live="polite"><span class="muted">Console output shows here.</span></div>
+  </section>
+
+  <header class="ws">
+    <h2>The real bug</h2>
     <p>The story: <em>As Trent the Technician, I want to see only the parts at or under the price the customer gave me, so I can offer a repair they'll say yes to.</em></p>
     <p class="report">Trent, from a job: “Customer said a hundred bucks, tops. I put 100 in the max-price box and got nothing: ‘No parts match.’ So I tried 50 to see if the box worked at all, and it showed me the $184 blower motor.”</p>
     <p>The Console is clean: no red. The code runs to the end every time and does the wrong thing. This is the other kind of bug, the kind you find by being analytical: know what should happen, know why you expect the code to do it, and instrument an observation that tells you which assumption is false.</p>
@@ -154,20 +172,6 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <h2>2. Know why you expect it to work</h2>
     <p class="muted">This is <code>s4-price/parts-controller.js</code>, the code the app above is running. Read <code>showParts</code> and say, in your head, what each line assumes about the values it's handling.</p>
     <div class="codewin" id="codewin">Loading…</div>
-  </section>
-
-  <section class="ws panel">
-    <h2>Warm-up: one observation</h2>
-    <p>Before the real bug, a practice one. This little function should count the parts at or under a max price, so <code>partsUnder(100)</code> should return 5. It returns 1. Put a <code>console.log</code> on line 8, for example <code>console.log(price, count);</code>, and run it. Once you see what's wrong, fix line 7 and run it again.</p>
-    <div class="codewin">
-      <pre><span class="ln" data-n="1">const PRICES = [184.00, 22.50, 31.00, 96.00, 14.25, 61.00];</span><span class="ln" data-n="2"> </span><span class="ln" data-n="3">// How many parts cost no more than max?</span><span class="ln" data-n="4">function partsUnder(max) {</span><span class="ln" data-n="5">  let count = 0;</span><span class="ln" data-n="6">  for (const price of PRICES) {</span></pre>
-      <div class="editwin one"><div class="gutter">7</div><textarea id="wu-rule" class="src" spellcheck="false">    if (price &lt;= max) count = 1;</textarea></div>
-      <div class="editwin one"><div class="gutter">8</div><textarea id="wu-observe" class="src" spellcheck="false" placeholder="    console.log( … );"></textarea></div>
-      <pre><span class="ln" data-n="9">  }</span><span class="ln" data-n="10">  return count;</span><span class="ln" data-n="11">}</span></pre>
-    </div>
-    <div class="row" style="margin-top:10px"><button type="button" id="wu-run">Run partsUnder(100)</button><span class="muted" id="wu-note"></span></div>
-    <div class="verdict big" id="wu-verdict" hidden></div>
-    <div class="console" id="wu-console" aria-live="polite"><span class="muted">Console output shows here.</span></div>
   </section>
 
   <section class="ws panel">
