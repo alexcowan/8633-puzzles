@@ -21,7 +21,7 @@ var CATALOG = [
   { number: 'IG-3300',   name: 'Hot surface igniter' },
 ];
 
-// Write it: HinH's own copy, loaded from last night's price sheet. It doesn't know about this morning.
+// Write it: HinH's own copy, loaded from the distributor's API last night. It doesn't know about this morning.
 var HINH_CATALOG_COPY = {
   'HX-2201':   { price: 184.00, onHand: 6 },
   'CP-0450':   { price: 22.50,  onHand: 14 },

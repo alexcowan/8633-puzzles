@@ -20,7 +20,7 @@ async function showParts() {
 // Below it is the only code that knows where they come from.
 const getPriceAndAvailability = fromCatalogCopy;   // <- the one line that picks a source
 
-// Write it: HinH's own copy of the catalog, loaded from the distributor's price sheet every night.
+// Write it: HinH's own copy of the catalog, loaded from the distributor's API once a night.
 async function fromCatalogCopy(partNumber) {
   const row = HINH_CATALOG_COPY[partNumber];
   return { price: row.price, inStock: row.onHand > 0 };

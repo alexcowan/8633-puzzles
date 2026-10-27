@@ -75,6 +75,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
 .ws .card h4{font-family:var(--serif);font-weight:400;font-size:17px;color:var(--head);margin:0;display:flex;gap:8px;align-items:center}
 .ws .card .what{font-size:14.5px}
 .ws .card > code{display:block;white-space:pre-wrap;word-break:break-word;font-size:11.5px;padding:4px 6px;margin-top:2px}
+.ws .impact .card{cursor:default}
 .ws .card .tag{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .ws .meters{display:flex;gap:14px;flex-wrap:wrap;font-size:14px;margin-top:8px}
 .ws .meters span{font-family:var(--mono);font-size:12.5px}
@@ -113,7 +114,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <div class="cards" id="sources">
       <label class="card"><h4><input type="radio" name="src" value="fromCatalogCopy" checked> Write it</h4>
         <div class="tag">HinH's catalog copy</div>
-        <div class="what">HinH's own copy of the catalog, loaded from the distributor's price sheet every night. Free, instant, and as current as last night.</div>
+        <div class="what">HinH's own copy of the catalog, loaded from the distributor's API once a night. Free, instant, and as current as last night.</div>
         <code>const getPriceAndAvailability = fromCatalogCopy;</code></label>
       <label class="card"><h4><input type="radio" name="src" value="fromDistributor"> Call a service</h4>
         <div class="tag">The distributor's API</div>
@@ -163,6 +164,13 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <h2>Turbulence! The distributor changes its API</h2>
     <p>An email from the distributor: <em>“Effective today, <code>qty_on_hand</code> is retired from <code>/parts</code>. Use <code>availability</code>, which is <code>"IN_STOCK"</code> or <code>"BACKORDERED"</code>.”</em> Select the distributor as the source, ship v2, and search again.</p>
     <div class="row"><button type="button" id="ship-v2">Ship distributor API v2</button><span class="muted" id="v2-note"></span></div>
+
+    <h3>What v2 does to each source</h3>
+    <div class="cards impact">
+      <div class="card"><h4>Write it</h4><div class="what">Breaks tonight, when the nightly load calls the API. The fix goes in the loader, not in <code>showParts</code>.</div></div>
+      <div class="card"><h4>Call a service</h4><div class="what">Breaks now: every part shows backordered. The fix goes in the adapter, not in <code>showParts</code>.</div></div>
+      <div class="card"><h4>Ask an AI</h4><div class="what">Doesn't call the API. It may or may not pick up the change, and for something this specific its answers were unpredictable in the first place.</div></div>
+    </div>
 
     <h3>Pick the fix. Each is one line.</h3>
     <div class="cards" id="fixes">
@@ -260,7 +268,7 @@ function install(){
   catch(e){ live=null; const er=document.getElementById("run-error"); er.hidden=false; er.textContent="The code doesn't load: "+e.message; }
   meters();
 }
-const SRC_NAMES={fromCatalogCopy:"HinH's catalog copy (last night's price sheet)", fromDistributor:"the distributor's API", fromAI:"an AI"};
+const SRC_NAMES={fromCatalogCopy:"HinH's catalog copy (loaded last night)", fromDistributor:"the distributor's API", fromAI:"an AI"};
 function meters(){
   const f=FIXES[state.fix]||{}; const pick=f.pick||state.source;
   document.getElementById("m-src").textContent="Source: "+SRC_NAMES[pick];
@@ -322,7 +330,7 @@ function showResult(r){
   else if(r.passed && r.fix==="inAdapter") msg="Trent gets the truth and the story's implementation didn't move. The distributor's change stayed in the one function that knows about the distributor.";
   else if(r.passed) msg="Trent gets the truth and showParts didn't change. Look at the source line: is that where you want this to live?";
   else if(r.fix==="inStory") msg="Trent gets the truth, but the story's implementation now knows the distributor's field names. The next time the distributor changes something, showParts changes again, and the source line above does nothing.";
-  else if(r.fix==="switchBack") msg="The code didn't change where the story lives, but Trent is reading last night's price sheet, and CP-0450-L sold out this morning. The story says “whether I can get it today.”";
+  else if(r.fix==="switchBack") msg="The code didn't change where the story lives, but Trent is reading last night's copy, and CP-0450-L sold out this morning. The story says “whether I can get it today.” And tonight's load calls the same API, so v2 breaks it too.";
   else if(r.source==="fromDistributor") msg="Every part shows as backordered: the adapter reads qty_on_hand, which the distributor no longer sends, and “undefined > 0” is false. Pick a fix.";
   else msg="The check ran against a source the v2 change doesn't touch. Select the distributor to see the break, then pick a fix.";
   v.textContent=msg; host.append(v);
