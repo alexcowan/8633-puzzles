@@ -333,7 +333,7 @@ function visible(){ return [...document.querySelectorAll(".catalog-part")].filte
 const SCENARIOS=[
   {q:"",   max:"100", want:["CP-0450","CP-0450-L","FL-1620","IG-3300","TH-7710"], label:"Max price 100: the five parts at or under $100, and not the $184 blower motor."},
   {q:"",   max:"50",  want:["CP-0450","CP-0450-L","FL-1620"],                      label:"Max price 50: the three parts at or under $50."},
-  {q:"",   max:"",    want:["CP-0450","CP-0450-L","FL-1620","HX-2201","IG-3300","TH-7710"], label:"No max price: every part."},
+  {q:"",   max:"",    want:["CP-0450","CP-0450-L","FL-1620","HX-2201","IG-3300","TH-7710"], label:"Max price blank: every part."},
   {q:"CP", max:"30",  want:["CP-0450"],                                             label:"Search “CP” with a max of 30: just the $22.50 capacitor."},
 ];
 function checkPage(){
