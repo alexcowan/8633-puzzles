@@ -71,6 +71,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
 .ws .console{font-family:var(--mono);font-size:12.5px;line-height:1.5;background:#1E1E1E;color:#D4D4D4;border-radius:4px;padding:10px 12px;margin-top:10px;white-space:pre-wrap;min-height:44px;max-height:220px;overflow:auto}
 .ws .console .err{color:#F48771}
 .ws .console .str{color:#CE9178}
+.ws .console .kind{color:#8A8A8A;font-size:11.5px}
 .ws .counts{font-family:var(--mono);font-size:12.5px;margin-top:8px}
 .ws .counts b{color:var(--head);font-weight:500}
 .ws .report{background:var(--bg);border-left:3px solid var(--line);padding:10px 14px;border-radius:4px;font-style:italic;max-width:70ch}
@@ -155,6 +156,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <section class="ws panel">
     <h2>3. Instrument the observation</h2>
     <p>Line 20 is a comment that says <code>// Observation goes here.</code> Put one <code>console.log</code> there, in the box below, and run. The line goes into the real function, the function runs with whatever's in the boxes above (set the max price to 100 first), and what it logs shows in your browser's Console and here.</p>
+    <p>What to log: the values that go into the decision on line 19, and the decision itself, for example <code>console.log(price, maxPrice, price &lt;= maxPrice);</code>. If a result is one you can't believe, you've found the false assumption. If you can't tell why it's false, ask an AI to explain that one line.</p>
     <div class="codewin">
       <div class="editwin one"><div class="gutter">20</div><textarea id="observe" class="src" spellcheck="false" placeholder="console.log( … );"></textarea></div>
     </div>
@@ -240,10 +242,20 @@ function restoreOriginal(){ define(ORIGINAL_LINES); }
 
 /* ---------- Observation ---------- */
 const con=document.getElementById("console");
-function fmt(v){
-  if(typeof v==="string") return {t:v, q:true};
-  if(v && typeof v==="object"){ try{ return {t:JSON.stringify(v, (k,x)=>x, 0).replace(/"([^"]+)":/g,"$1: ").replace(/,/g,", ").replace(/"/g,"'"), q:false}; }catch(e){ return {t:String(v), q:false}; } }
-  return {t:String(v), q:false};
+function kind(v){ return typeof v==="string"?"text":typeof v==="number"?"number":typeof v==="boolean"?"true/false":v===null?"null":v===undefined?"undefined":""; }
+function piece(v){ // one value -> DOM span with its kind
+  const s=document.createElement("span");
+  if(v && typeof v==="object" && !Array.isArray(v)){
+    s.append("{");
+    Object.keys(v).forEach((k,i)=>{ if(i) s.append(", "); s.append(k+": "); s.append(piece(v[k])); });
+    s.append("}"); return s;
+  }
+  if(Array.isArray(v)){ s.append("["); v.forEach((x,i)=>{ if(i) s.append(", "); s.append(piece(x)); }); s.append("]"); return s; }
+  const val=document.createElement("span");
+  if(typeof v==="string"){ val.className="str"; val.textContent=`'${v}'`; } else val.textContent=String(v);
+  s.append(val);
+  const k=kind(v); if(k){ const t=document.createElement("span"); t.className="kind"; t.textContent=` (${k})`; s.append(t); }
+  return s;
 }
 function runObservation(){
   const line=document.getElementById("observe").value;
@@ -262,7 +274,7 @@ function runObservation(){
   }finally{ console.log=orig; }
   if(!captured.length && !con.children.length){ con.innerHTML='<span class="muted">Nothing was logged. Is there a console.log on line 20?</span>'; }
   captured.forEach(args=>{ const d=document.createElement("div");
-    args.forEach((a,i)=>{ const f=fmt(a); const s=document.createElement("span"); if(f.q && args.length===1) s.textContent=f.t; else if(f.q){ s.className="str"; s.textContent=`'${f.t}'`; } else s.textContent=f.t; d.append(s); if(i<args.length-1) d.append(" "); });
+    args.forEach((a,i)=>{ d.append(piece(a)); if(i<args.length-1) d.append("  "); });
     con.append(d); });
   const s=load(); store({observations:(s.observations||[]).concat([line.trim()]).filter(Boolean).slice(-6)});
 }
