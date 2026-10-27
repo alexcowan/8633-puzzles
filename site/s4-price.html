@@ -154,6 +154,19 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   </section>
 
   <section class="ws panel">
+    <h2>Warm-up: one observation</h2>
+    <p>Before the real bug, a practice one. This little function should count the parts at or under a max price, so <code>partsUnder(100)</code> should return 5. It returns 1. Put a <code>console.log</code> on line 8, for example <code>console.log(price, count);</code>, and run it. Once you see what's wrong, fix line 7 and run it again.</p>
+    <div class="codewin">
+      <pre><span class="ln" data-n="1">const PRICES = [184.00, 22.50, 31.00, 96.00, 14.25, 61.00];</span><span class="ln" data-n="2"> </span><span class="ln" data-n="3">// How many parts cost no more than max?</span><span class="ln" data-n="4">function partsUnder(max) {</span><span class="ln" data-n="5">  let count = 0;</span><span class="ln" data-n="6">  for (const price of PRICES) {</span></pre>
+      <div class="editwin one"><div class="gutter">7</div><textarea id="wu-rule" class="src" spellcheck="false">    if (price &lt;= max) count = 1;</textarea></div>
+      <div class="editwin one"><div class="gutter">8</div><textarea id="wu-observe" class="src" spellcheck="false" placeholder="    console.log( … );"></textarea></div>
+      <pre><span class="ln" data-n="9">  }</span><span class="ln" data-n="10">  return count;</span><span class="ln" data-n="11">}</span></pre>
+    </div>
+    <div class="row" style="margin-top:10px"><button type="button" id="wu-run">Run partsUnder(100)</button><span class="muted" id="wu-note"></span></div>
+    <div class="console" id="wu-console" aria-live="polite"><span class="muted">Console output shows here.</span></div>
+  </section>
+
+  <section class="ws panel">
     <h2>3. Instrument the observation</h2>
     <p>Line 20 is a comment that says <code>// Observation goes here.</code> Put one <code>console.log</code> there, in the box below, and run. The line goes into the real function, the function runs with whatever's in the boxes above (set the max price to 100 first), and what it logs shows in your browser's Console and here.</p>
     <p>What to log: the values that go into the decision on line 19, and the decision itself, for example <code>console.log(price, maxPrice, price &lt;= maxPrice);</code>. If a result is one you can't believe, you've found the false assumption. If you can't tell why it's false, ask an AI to explain that one line.</p>
@@ -279,6 +292,21 @@ function runObservation(){
   const s=load(); store({observations:(s.observations||[]).concat([line.trim()]).filter(Boolean).slice(-6)});
 }
 document.getElementById("run-observe").onclick=runObservation;
+/* ---------- Warm-up ---------- */
+document.getElementById("wu-run").onclick=function(){
+  const con=document.getElementById("wu-console"), note=document.getElementById("wu-note");
+  const rule=document.getElementById("wu-rule").value, obs=document.getElementById("wu-observe").value;
+  const src="const PRICES = [184.00, 22.50, 31.00, 96.00, 14.25, 61.00];\nfunction partsUnder(max) {\n  let count = 0;\n  for (const price of PRICES) {\n"+rule+"\n"+obs+"\n  }\n  return count;\n}\nreturn partsUnder(100);";
+  con.innerHTML=""; const logs=[]; const orig=console.log;
+  console.log=function(...a){ logs.push(a); orig.apply(console,a); };
+  let result, err="";
+  try{ result=(new Function(src))(); }catch(e){ err=e.message; }finally{ console.log=orig; }
+  logs.forEach(args=>{ const d=document.createElement("div"); args.forEach((a,i)=>{ d.append(piece(a)); if(i<args.length-1) d.append("  "); }); con.append(d); });
+  if(err){ const d=document.createElement("div"); d.className="err"; d.textContent="✖ "+err; con.append(d); note.textContent="It stopped. Fix the line and run again."; return; }
+  if(!logs.length){ const d=document.createElement("div"); d.className="muted"; d.textContent="Nothing was logged. Is there a console.log on line 8?"; con.append(d); }
+  note.textContent = result===5 ? "partsUnder(100) returned 5. Fixed. That's the whole move: log what goes into the decision, find the value you can't believe, fix that line." : `partsUnder(100) returned ${result}. It should be 5.`;
+};
+
 
 /* ---------- Check the page ---------- */
 function visible(){ return [...document.querySelectorAll(".catalog-part")].filter(c=>!c.hidden).map(c=>c.dataset.part).sort().join(","); }
