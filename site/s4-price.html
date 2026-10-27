@@ -181,7 +181,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <section class="ws panel">
     <h2>3. Instrument the observation</h2>
     <p>Line 20 is a comment that says <code>// Observation goes here.</code> The box below will allow you to insert a <code>console.log</code> statement there and see it run. The line goes into the real function, the function runs with whatever's in the boxes above (set the max price to 100 first), and what it logs shows in your browser's Console and here.</p>
-    <p>What to log: the values that go into the decision on line 19, and the decision itself, for example <code>console.log(price, maxPrice, price &lt;= maxPrice);</code>. If a result is one you can't believe, you've found the false assumption. If you can't tell why it's false, ask an AI to explain that one line. One more clue the Console gives you: numbers and true/false print in color and text doesn't, and inside braces, as in <code>console.log({price, maxPrice})</code>, text prints in quotes.</p>
+    <p>What to log: the values that go into the decision on line 19, and the decision itself, for example <code>console.log({price, maxPrice, affordable});</code>. The braces make the Console label each value and put quotes around anything that's text; numbers and true/false get no quotes. If a result is one you can't believe, you've found the false assumption. If you can't tell why it's false, ask an AI to explain that one line.</p>
     <div class="codewin">
       <div class="editwin one"><div class="gutter">20</div><textarea id="observe" class="src" spellcheck="false" placeholder="console.log( … );"></textarea></div>
     </div>
