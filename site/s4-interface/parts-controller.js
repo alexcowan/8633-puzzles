@@ -18,7 +18,7 @@ async function showParts() {
 // ---------- The interface ----------
 // Above this line, the code asks for a price and availability by name and takes what it's given.
 // Below it is the only code that knows where they come from.
-const getPriceAndAvailability = fromCatalogCopy;   // <- the one line that picks a source
+const getPriceAndAvailability = fromCatalogCopy;   // <- this line changes based on the source above
 
 // Write it: HinH's own copy of the catalog, loaded from the distributor's API once a night.
 async function fromCatalogCopy(partNumber) {
