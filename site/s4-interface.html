@@ -106,14 +106,10 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     </ol>
   </section>
 
-  <!-- ===================== The code ===================== -->
+  <!-- ===================== Step 1 ===================== -->
   <section class="ws panel">
-    <h2>The code</h2>
-    <p class="muted">This is <code>s4-interface/parts-controller.js</code>, the code the app below runs. The highlighted line is the one you change in step 1. Lines you've changed turn yellow.</p>
-    <pre class="code" id="code" aria-label="parts-controller.js">Loading…</pre>
-    <div class="counts" id="counts"></div>
-
-    <h3>Step 1: pick a source, one line</h3>
+    <h2>Step 1: pick a source</h2>
+    <p>Three places Trent's price and availability could come from. Picking one changes one line in the code below.</p>
     <div class="cards" id="sources">
       <label class="card"><h4><input type="radio" name="src" value="fromCatalogCopy" checked> Write it</h4>
         <div class="tag">HinH's catalog copy</div>
@@ -128,6 +124,15 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
         <div class="what">An AI, asked in plain English for the price and availability. Always answers, and sounds right.</div>
         <code>const getPriceAndAvailability = fromAI;</code></label>
     </div>
+  </section>
+
+  <!-- ===================== The code ===================== -->
+  <section class="ws panel">
+    <h2>The code</h2>
+    <p class="muted">This is <code>s4-interface/parts-controller.js</code>, the code the app below runs. The highlighted line is the one your pick in step 1 changes. Lines you've changed turn yellow.</p>
+    <pre class="code" id="code" aria-label="parts-controller.js">Loading…</pre>
+    <div class="counts" id="counts"></div>
+
   </section>
 
   <!-- ===================== The app ===================== -->
