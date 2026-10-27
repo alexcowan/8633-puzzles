@@ -371,7 +371,7 @@ function showResult(r){
     d.innerHTML=`<b class="${ok?"ok":"no"}">${ok?"YES":"NOT YET"}</b><span></span>`; d.querySelector("span").textContent=txt; list.append(d);
     if(logs){ const w=document.createElement("div"); w.className="chk";
       const lab=document.createElement("span"); const body=document.createElement("div");
-      const cap=document.createElement("div"); cap.className="muted"; cap.style.fontSize="14px"; cap.textContent=`What your line 20 observation printed in this scenario (max price ${max===""?"blank":max}):`;
+      const cap=document.createElement("div"); cap.className="muted"; cap.style.fontSize="14px"; cap.textContent=`What your line 20 observation printed in this scenario (max price ${max===""?"blank, so every part should be affordable: true":max+", so parts at or under $"+max+" should be affordable: true and the rest false"}):`;
       const con=document.createElement("div"); con.className="console"; con.style.marginTop="4px";
       if(!logs.length) con.innerHTML='<span class="muted">Nothing printed.</span>';
       logs.slice(0,6).forEach(args=>{ const l=document.createElement("div"); args.forEach((x,i)=>{ l.append(piece(x)); if(i<args.length-1) l.append(" "); }); con.append(l); });
