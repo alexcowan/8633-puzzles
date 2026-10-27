@@ -116,7 +116,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <section class="ws rubric">
     <div class="eyebrow">Be ready to explain</div>
     <ol>
-      <li>For a max price of 100, what Trent should see (the Then) and what he saw.</li>
+      <li>For a max price of 100, what Trent should see (the Then).</li>
       <li>Which assumption in the code is false, and the one line of observation that showed you.</li>
       <li>The change you'd commit: which line or lines, and why there rather than somewhere else.</li>
     </ol>
@@ -168,9 +168,8 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
 
   <section class="ws panel">
     <h2>1. Know what you want to have happen</h2>
-    <p>Before you touch anything: leave the part number blank, type <b>100</b> in the max-price box, and write the Then below. Then look at what Trent got, and try <b>50</b>.</p>
+    <p>Before you touch anything, write the Then below. Then reproduce Trent's report: leave the part number blank, type <b>100</b> in the max-price box, and then try <b>50</b>.</p>
     <div class="q"><label for="then">Given the six parts above, when Trent enters a max price of 100, then he sees…</label><textarea id="then" placeholder="Which parts, and which not?"></textarea></div>
-    <div class="q"><label for="got">What he actually got, at 100 and at 50:</label><textarea id="got"></textarea></div>
   </section>
 
   <section class="ws panel">
@@ -379,20 +378,20 @@ document.getElementById("fix").addEventListener("input",e=>store({block:e.target
 function showLast(){ const s=load(); document.getElementById("last").textContent = s.passed ? "You've passed this check before." : ""; }
 
 /* ---------- Answers ---------- */
-const fields=["then","got","a2","a3","observe"];
+const fields=["then","a2","a3","observe"];
 const saved=load(); fields.forEach(id=>{ const el=document.getElementById(id); if(saved[id]) el.value=saved[id]; el.addEventListener("input",()=>store({[id]:el.value})); });
 
 /* ---------- Check my work ---------- */
 const GRADER_URL="https://shrill-wood-3253.acowan.workers.dev/grade";
 const PUZZLE_ID="s4-price";
-const LABELS=["Then vs. what he got","The assumption","The commit"];
+const LABELS=["The Then","The assumption","The commit"];
 const codeEl=document.getElementById("code-input"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
 try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
 function collect(){
   const s=load(), v=id=>document.getElementById(id).value.trim();
   return { page_check:{ passed:!!s.passed, fix_that_passed:s.fix||"never passed", observations_tried:s.observations||[],
                         attempts:(s.tries||[]).map(t=>(t.passed?"pass: ":"fail: ")+(t.changed.length?t.changed.join(" | "):"no change")) },
-           items:[ {label:LABELS[0], then:v("then"), got:v("got")}, {label:LABELS[1], answer:v("a2")}, {label:LABELS[2], answer:v("a3")} ] };
+           items:[ {label:LABELS[0], answer:v("then")}, {label:LABELS[1], answer:v("a2")}, {label:LABELS[2], answer:v("a3")} ] };
 }
 document.getElementById("grade").onclick=async()=>{
   const code=codeEl.value.trim(); if(!code){ codeEl.focus(); return; }
