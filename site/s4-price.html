@@ -74,7 +74,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
 .ws .console{font-family:var(--mono);font-size:12.5px;line-height:1.5;background:#1E1E1E;color:#D4D4D4;border-radius:4px;padding:10px 12px;margin-top:10px;white-space:pre-wrap;min-height:44px;max-height:220px;overflow:auto}
 .ws .console .err{color:#F48771}
 .ws .console .str{color:#CE9178}
-.ws .console .kind{color:#8A8A8A;font-size:11.5px}
+.ws .console .num{color:#9980FF}
 .ws .counts{font-family:var(--mono);font-size:12.5px;margin-top:8px}
 .ws .counts b{color:var(--head);font-weight:500}
 .ws .report{background:var(--bg);border-left:3px solid var(--line);padding:10px 14px;border-radius:4px;font-style:italic;max-width:70ch}
@@ -177,7 +177,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <section class="ws panel">
     <h2>3. Instrument the observation</h2>
     <p>Line 20 is a comment that says <code>// Observation goes here.</code> Put one <code>console.log</code> there, in the box below, and run. The line goes into the real function, the function runs with whatever's in the boxes above (set the max price to 100 first), and what it logs shows in your browser's Console and here.</p>
-    <p>What to log: the values that go into the decision on line 19, and the decision itself, for example <code>console.log(price, maxPrice, price &lt;= maxPrice);</code>. If a result is one you can't believe, you've found the false assumption. If you can't tell why it's false, ask an AI to explain that one line.</p>
+    <p>What to log: the values that go into the decision on line 19, and the decision itself, for example <code>console.log(price, maxPrice, price &lt;= maxPrice);</code>. If a result is one you can't believe, you've found the false assumption. If you can't tell why it's false, ask an AI to explain that one line. One more clue the Console gives you: numbers and true/false print in color and text doesn't, and inside braces, as in <code>console.log({price, maxPrice})</code>, text prints in quotes.</p>
     <div class="codewin">
       <div class="editwin one"><div class="gutter">20</div><textarea id="observe" class="src" spellcheck="false" placeholder="console.log( … );"></textarea></div>
     </div>
@@ -263,20 +263,19 @@ function restoreOriginal(){ define(ORIGINAL_LINES); }
 
 /* ---------- Observation ---------- */
 const con=document.getElementById("console");
-function kind(v){ return typeof v==="string"?"text":typeof v==="number"?"number":typeof v==="boolean"?"true/false":v===null?"null":v===undefined?"undefined":""; }
-function piece(v){ // one value -> DOM span with its kind
+// Renders a logged value the way Chrome's Console does: top-level text plain, text inside {} or [] in quotes,
+// numbers and true/false in color.
+function piece(v, nested){
   const s=document.createElement("span");
   if(v && typeof v==="object" && !Array.isArray(v)){
     s.append("{");
-    Object.keys(v).forEach((k,i)=>{ if(i) s.append(", "); s.append(k+": "); s.append(piece(v[k])); });
+    Object.keys(v).forEach((k,i)=>{ if(i) s.append(", "); s.append(k+": "); s.append(piece(v[k], true)); });
     s.append("}"); return s;
   }
-  if(Array.isArray(v)){ s.append("["); v.forEach((x,i)=>{ if(i) s.append(", "); s.append(piece(x)); }); s.append("]"); return s; }
-  const val=document.createElement("span");
-  if(typeof v==="string"){ val.className="str"; val.textContent=`'${v}'`; } else val.textContent=String(v);
-  s.append(val);
-  const k=kind(v); if(k){ const t=document.createElement("span"); t.className="kind"; t.textContent=` (${k})`; s.append(t); }
-  return s;
+  if(Array.isArray(v)){ s.append("["); v.forEach((x,i)=>{ if(i) s.append(", "); s.append(piece(x, true)); }); s.append("]"); return s; }
+  if(typeof v==="string"){ if(nested){ s.className="str"; s.textContent=`'${v}'`; } else s.textContent=v; return s; }
+  if(typeof v==="number"||typeof v==="boolean"){ s.className="num"; s.textContent=String(v); return s; }
+  s.className="muted"; s.textContent=String(v); return s;
 }
 function runObservation(){
   const line=document.getElementById("observe").value;
@@ -295,7 +294,7 @@ function runObservation(){
   }finally{ console.log=orig; }
   if(!captured.length && !con.children.length){ con.innerHTML='<span class="muted">Nothing was logged. Is there a console.log on line 20?</span>'; }
   captured.forEach(args=>{ const d=document.createElement("div");
-    args.forEach((a,i)=>{ d.append(piece(a)); if(i<args.length-1) d.append("  "); });
+    args.forEach((a,i)=>{ d.append(piece(a)); if(i<args.length-1) d.append(" "); });
     con.append(d); });
   const s=load(); store({observations:(s.observations||[]).concat([line.trim()]).filter(Boolean).slice(-6)});
 }
@@ -309,7 +308,7 @@ document.getElementById("wu-run").onclick=function(){
   console.log=function(...a){ logs.push(a); orig.apply(console,a); };
   let result, err="";
   try{ result=(new Function(src))(); }catch(e){ err=e.message; }finally{ console.log=orig; }
-  logs.forEach(args=>{ const d=document.createElement("div"); args.forEach((a,i)=>{ d.append(piece(a)); if(i<args.length-1) d.append("  "); }); con.append(d); });
+  logs.forEach(args=>{ const d=document.createElement("div"); args.forEach((a,i)=>{ d.append(piece(a)); if(i<args.length-1) d.append(" "); }); con.append(d); });
   const v=document.getElementById("wu-verdict"); v.hidden=true; note.textContent="";
   if(err){ const d=document.createElement("div"); d.className="err"; d.textContent="✖ "+err; con.append(d); note.textContent="It stopped. Fix the line and run again."; return; }
   if(!logs.length){ const d=document.createElement("div"); d.className="muted"; d.textContent="Nothing was logged. Is there a console.log on line 8?"; con.append(d); }
