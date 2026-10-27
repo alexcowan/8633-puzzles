@@ -49,6 +49,9 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
 .ws .chk b.ok{color:var(--ok)} .ws .chk b.no{color:var(--bad)}
 .ws .verdict{margin-top:10px;padding:10px 12px;border-radius:4px;background:var(--bg);border-left:3px solid var(--second)}
 .ws .verdict.no{border-left-color:var(--bad)}
+.ws .verdict.big{font-size:17px;color:var(--head);border-left-width:5px}
+.ws .verdict.big.yes{border-left-color:var(--ok)}
+.ws .verdict.big b{font-family:var(--mono);font-size:16px}
 .ws .fbrow{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line-soft)}
 .ws .fbrow:first-child{border-top:0}
 .ws .fbhead{display:flex;gap:10px;align-items:baseline}
@@ -163,6 +166,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
       <pre><span class="ln" data-n="9">  }</span><span class="ln" data-n="10">  return count;</span><span class="ln" data-n="11">}</span></pre>
     </div>
     <div class="row" style="margin-top:10px"><button type="button" id="wu-run">Run partsUnder(100)</button><span class="muted" id="wu-note"></span></div>
+    <div class="verdict big" id="wu-verdict" hidden></div>
     <div class="console" id="wu-console" aria-live="polite"><span class="muted">Console output shows here.</span></div>
   </section>
 
@@ -302,9 +306,12 @@ document.getElementById("wu-run").onclick=function(){
   let result, err="";
   try{ result=(new Function(src))(); }catch(e){ err=e.message; }finally{ console.log=orig; }
   logs.forEach(args=>{ const d=document.createElement("div"); args.forEach((a,i)=>{ d.append(piece(a)); if(i<args.length-1) d.append("  "); }); con.append(d); });
+  const v=document.getElementById("wu-verdict"); v.hidden=true; note.textContent="";
   if(err){ const d=document.createElement("div"); d.className="err"; d.textContent="✖ "+err; con.append(d); note.textContent="It stopped. Fix the line and run again."; return; }
   if(!logs.length){ const d=document.createElement("div"); d.className="muted"; d.textContent="Nothing was logged. Is there a console.log on line 8?"; con.append(d); }
-  note.textContent = result===5 ? "partsUnder(100) returned 5. Fixed. That's the whole move: log what goes into the decision, find the value you can't believe, fix that line." : `partsUnder(100) returned ${result}. It should be 5.`;
+  v.hidden=false;
+  if(result===5){ v.className="verdict big yes"; v.innerHTML="✓ <b>partsUnder(100)</b> returned <b>5</b>. Fixed. That's the whole move: log what goes into the decision, find the value you can't believe, fix that line."; }
+  else { v.className="verdict big no"; v.innerHTML="✗ <b>partsUnder(100)</b> returned <b>"+String(result)+"</b>. It should be <b>5</b>."; }
 };
 
 
