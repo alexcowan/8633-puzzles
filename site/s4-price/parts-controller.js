@@ -17,7 +17,7 @@ function showParts() {
     const price = card.dataset.price;
     const matches = card.dataset.part.startsWith(query);
     const affordable = maxPrice === '' || price <= maxPrice;
-    // Observation goes here.
+    // Observation goes here (add in the space below)
     card.hidden = !(matches && affordable);
     if (!card.hidden) shown++;
   });
