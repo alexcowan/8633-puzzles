@@ -101,7 +101,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <section class="ws rubric">
     <div class="eyebrow">Be ready to explain</div>
     <ol>
-      <li>Which of the three approaches you'd choose in Step 1 for Trent's story, and why.</li>
+      <li>Which of the three approaches you'd choose for your 1.0 of Trent's story, and why.</li>
       <li>Which dependencies that choice creates: what can change on its own schedule, outside HinH's control, and force HinH to change its code.</li>
       <li>The fix you'd commit when the distributor ships v2, and why the number of lines changed in <code>showParts</code> is the test.</li>
     </ol>
@@ -109,7 +109,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
 
   <!-- ===================== Step 1 ===================== -->
   <section class="ws panel">
-    <h2>Step 1: pick a source</h2>
+    <h2>For your 1.0: pick a source</h2>
     <p>Three places Trent's price and availability could come from. Picking one changes one line in the code below.</p>
     <div class="cards" id="sources">
       <label class="card"><h4><input type="radio" name="src" value="fromCatalogCopy" checked> Write it</h4>
@@ -130,7 +130,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <!-- ===================== The code ===================== -->
   <section class="ws panel">
     <h2>The code</h2>
-    <p class="muted">This is <code>s4-interface/parts-controller.js</code>, the code the app below runs. The highlighted line is the one your pick in step 1 changes. Lines you've changed turn yellow.</p>
+    <p class="muted">This is <code>s4-interface/parts-controller.js</code>, the code the app below runs. The highlighted line is the one your pick above changes. Lines you've changed turn yellow.</p>
     <pre class="code" id="code" aria-label="parts-controller.js">Loading…</pre>
     <div class="counts" id="counts"></div>
 
@@ -167,8 +167,8 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
 
     <h3>What v2 does to each source</h3>
     <div class="cards impact">
-      <div class="card"><h4>Write it</h4><div class="what">Breaks tonight, when the nightly load calls the API. The fix goes in the loader, not in <code>showParts</code>.</div></div>
-      <div class="card"><h4>Call a service</h4><div class="what">Breaks now: every part shows backordered. The fix goes in the adapter, not in <code>showParts</code>.</div></div>
+      <div class="card"><h4>Write it</h4><div class="what">Breaks tonight, when the nightly load calls the API.</div></div>
+      <div class="card"><h4>Call a service</h4><div class="what">Breaks now: every part shows backordered.</div></div>
       <div class="card"><h4>Ask an AI</h4><div class="what">Doesn't call the API. It may or may not pick up the change, and for something this specific its answers were unpredictable in the first place.</div></div>
     </div>
 
@@ -195,7 +195,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <section class="ws panel">
     <h2>Your answers</h2>
     <p class="muted">Saved in this browser as you type, so reloading won't lose them.</p>
-    <div class="q"><label for="a1">1. Which of the three approaches would you choose in Step 1 for Trent's story, and why?</label><textarea id="a1"></textarea></div>
+    <div class="q"><label for="a1">1. Which of the three approaches would you choose for your 1.0 of Trent's story, and why?</label><textarea id="a1"></textarea></div>
     <div class="q"><label for="a2">2. What dependencies does that choice create? What can change on its own schedule, outside HinH's control, and make HinH change its code?</label><textarea id="a2"></textarea></div>
     <div class="q"><label for="a3">3. Which fix would you commit when v2 ships, and why? Why is “lines changed in showParts” the thing to count?</label><textarea id="a3"></textarea></div>
   </section>
