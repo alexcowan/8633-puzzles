@@ -333,9 +333,9 @@ function visible(){ return [...document.querySelectorAll(".catalog-part")].filte
 const SCENARIOS=[
   {q:"",   max:"100", want:["CP-0450","CP-0450-L","FL-1620","IG-3300","TH-7710"], label:"Max price 100: the five parts at or under $100, and not the $184 blower motor."},
   {q:"",   max:"50",  want:["CP-0450","CP-0450-L","FL-1620"],                      label:"Max price 50: the three parts at or under $50."},
-  {q:"",   max:"",    want:["CP-0450","CP-0450-L","FL-1620","HX-2201","IG-3300","TH-7710"], label:"Max price blank: every part.",
-   hint:"Why: with the box blank, Trent hasn't set a limit, so every part should show. Your change made a blank box count as a limit. The usual cause: converting blank text to a number gives 0 (Number('') is 0), so a blank box now means “max price $0,” and a number never equals '' (text), so the blank check on line 19 stops matching.\n\nNext: in plain language, what should the code do when the box is blank? Once you can say it, ask an AI a specific question, for example: “In JavaScript, how do I treat a blank text box as ‘no limit’ before comparing its value as a number?” Just make sure you can explain the answer."},
   {q:"CP", max:"30",  want:["CP-0450"],                                             label:"Search “CP” with a max of 30: just the $22.50 capacitor."},
+  {q:"",   max:"",    want:["CP-0450","CP-0450-L","FL-1620","HX-2201","IG-3300","TH-7710"], label:"Max price blank: every part.",
+   hint:"Why: with the box blank, Trent hasn't set a limit, so every part should show. Your change made a blank box count as a limit. The usual cause: converting blank text to a number doesn't give “blank.” Number('') gives 0, which means “max price $0,” and parseFloat('') gives NaN (“not a number”), which makes every comparison false. And a number never equals '' (text), so the blank check on line 19 stops matching.\n\nNext: in plain language, what should the code do when the box is blank? Once you can say it, ask an AI a specific question, for example: “In JavaScript, how do I treat a blank text box as ‘no limit’ before comparing its value as a number?” Just make sure you can explain the answer."}
 ];
 function checkPage(){
   const q=document.getElementById("part-number"), m=document.getElementById("max-price");
