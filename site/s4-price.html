@@ -339,7 +339,7 @@ const SCENARIOS=[
 function checkPage(){
   const q=document.getElementById("part-number"), m=document.getElementById("max-price");
   const savedQ=q.value, savedM=m.value;
-  const block=document.getElementById("fix").value;
+  const block=document.getElementById("fix").value, obs=document.getElementById("observe").value;
   let err="";
   try{ define(buildLines("", block)); }catch(e){ err=e.message; }
   const checks=[];
@@ -349,7 +349,13 @@ function checkPage(){
     for(const s of SCENARIOS){
       let ok=false, got="";
       try{ q.value=s.q; m.value=s.max; showParts(); got=visible(); ok=got===s.want.join(","); }catch(e){ got="stopped: "+e.message; }
-      checks.push([ok, s.label+(ok?"":" (Got: "+(got||"nothing")+".)")]);
+      let logs=null;
+      if(!ok && obs.trim()){ // run the failing scenario again with the student's line 20 observation, and keep what it prints
+        logs=[]; const orig=console.log; console.log=(...a)=>logs.push(a);
+        try{ define(buildLines(obs, block)); showParts(); }catch(e){ logs.push(["✖ "+e.message]); }finally{ console.log=orig; }
+        try{ define(buildLines("", block)); }catch(e){}
+      }
+      checks.push([ok, s.label+(ok?"":" (Got: "+(got||"nothing")+".)"), logs, s.max]);
     }
   }
   q.value=savedQ; m.value=savedM; try{ showParts(); }catch(e){}
@@ -360,8 +366,16 @@ function checkPage(){
 function showResult(r){
   const host=document.getElementById("page-result"); host.innerHTML="";
   const list=document.createElement("div"); list.className="checks";
-  r.checks.forEach(([ok,txt])=>{ const d=document.createElement("div"); d.className="chk";
-    d.innerHTML=`<b class="${ok?"ok":"no"}">${ok?"YES":"NOT YET"}</b><span></span>`; d.querySelector("span").textContent=txt; list.append(d); });
+  r.checks.forEach(([ok,txt,logs,max])=>{ const d=document.createElement("div"); d.className="chk";
+    d.innerHTML=`<b class="${ok?"ok":"no"}">${ok?"YES":"NOT YET"}</b><span></span>`; d.querySelector("span").textContent=txt; list.append(d);
+    if(logs){ const w=document.createElement("div"); w.className="chk";
+      const lab=document.createElement("span"); const body=document.createElement("div");
+      const cap=document.createElement("div"); cap.className="muted"; cap.style.fontSize="14px"; cap.textContent=`What your line 20 observation printed in this scenario (max price ${max===""?"blank":max}):`;
+      const con=document.createElement("div"); con.className="console"; con.style.marginTop="4px";
+      if(!logs.length) con.innerHTML='<span class="muted">Nothing printed.</span>';
+      logs.slice(0,6).forEach(args=>{ const l=document.createElement("div"); args.forEach((x,i)=>{ l.append(piece(x)); if(i<args.length-1) l.append(" "); }); con.append(l); });
+      body.append(cap,con); w.append(lab,body); list.append(w); }
+  });
   host.append(list);
   const c=document.createElement("div"); c.className="counts"; c.innerHTML=`Lines changed: <b>${r.changed.length}</b>`+(r.changed.length?` (${r.changed.map(x=>x.n).join(", ")})`:""); host.append(c);
   const v=document.createElement("div"); v.className="verdict"+(r.passed?"":" no");
@@ -370,7 +384,7 @@ function showResult(r){
        "Fixed, in this tab. Now the question for your commit: did you fix it where the values come in, or where they're compared? Either passes. One of them keeps the next comparison in this function honest too.")
     : (r.error ? "The function doesn't load. Read the error above; it's usually a missing quote, bracket, or semicolon." :
        r.changed.length===0 ? "Nothing's changed yet. This is what Trent sees." :
-       "Closer or not, some scenario still fails. Run your observation again with that scenario's max price and read what prints.");
+       (r.checks.some(c=>c[2]) ? "A scenario still fails. Under it is what your line 20 observation printed in that scenario. Read it against what you expected." : "A scenario still fails. Put a console.log on line 20 in step 3 and check again; the page will show what it prints in the scenario that fails."));
   host.append(v);
 }
 document.getElementById("check-page").onclick=()=>{
