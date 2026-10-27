@@ -369,7 +369,6 @@ function showResult(r){
   const list=document.createElement("div"); list.className="checks";
   r.checks.forEach(([ok,txt,logs,max,hint])=>{ const d=document.createElement("div"); d.className="chk";
     d.innerHTML=`<b class="${ok?"ok":"no"}">${ok?"YES":"NOT YET"}</b><span></span>`; d.querySelector("span").textContent=txt; list.append(d);
-    if(hint){ const w=document.createElement("div"); w.className="chk"; const h=document.createElement("div"); h.className="verdict no"; h.style.marginTop="0"; h.style.fontSize="15px"; h.style.whiteSpace="pre-line"; h.textContent=hint; w.append(document.createElement("span"), h); list.append(w); }
     if(logs){ const w=document.createElement("div"); w.className="chk";
       const lab=document.createElement("span"); const body=document.createElement("div");
       const cap=document.createElement("div"); cap.className="muted"; cap.style.fontSize="14px"; cap.textContent=`What your line 20 observation printed in this scenario (max price ${max===""?"blank":max}):`;
@@ -388,6 +387,7 @@ function showResult(r){
        r.changed.length===0 ? "Nothing's changed yet. This is what Trent sees." :
        (r.checks.some(c=>c[2]) ? "A scenario still fails. Under it is what your line 20 observation printed in that scenario. Read it against what you expected." : "A scenario still fails. Put a console.log on line 20 in step 3 and check again; the page will show what it prints in the scenario that fails."));
   host.append(v);
+  r.checks.forEach(c=>{ if(c[4]){ const h=document.createElement("div"); h.className="verdict no"; h.style.fontSize="15px"; h.style.whiteSpace="pre-line"; h.textContent=c[4]; host.append(h); } });
 }
 document.getElementById("check-page").onclick=()=>{
   const r=checkPage(); showResult(r);
