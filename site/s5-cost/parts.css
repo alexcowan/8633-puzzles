@@ -1,0 +1,149 @@
+/* HinH design system: every page uses it. It changes a few times a year; pages change every week. */
+
+:root {
+  --hinh-navy: #002D45;
+  --hinh-ink: #3A3B3D;
+  --hinh-muted: #808285;
+  --hinh-paper: #FFFFFF;
+  --hinh-ground: #F7F7F4;
+  --hinh-rule: #D1D3D4;
+  --edge-in-stock: #63ADB1;
+  --edge-backordered: #F99B1C;
+}
+
+.hinh {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  color: var(--hinh-ink);
+  background: var(--hinh-ground);
+  border: 1px solid var(--hinh-navy);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.hinh-bar {
+  background: var(--hinh-navy);
+  color: #FFFFFF;
+  padding: 8px 14px;
+  font-weight: 600;
+}
+
+.hinh-body {
+  padding: 16px;
+}
+
+.hinh-body > * + * {
+  margin-top: 12px;
+}
+
+.search {
+  display: flex;
+  gap: 8px;
+}
+
+.search input {
+  flex: 1;
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid var(--hinh-rule);
+  border-radius: 4px;
+}
+
+.search button {
+  font: inherit;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--hinh-navy);
+  color: #FFFFFF;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.filters input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.parts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.catalog-part {
+  background: var(--hinh-paper);
+  border: 1px solid var(--hinh-rule);
+  border-left: 6px solid var(--edge-in-stock);
+  border-radius: 4px;
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+}
+
+.catalog-part .num {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 13px;
+  color: var(--hinh-muted);
+}
+
+.catalog-part .name {
+  grid-column: 1;
+}
+
+.catalog-part .price {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-weight: 600;
+}
+
+.catalog-part .stock {
+  grid-column: 1 / span 2;
+  font-size: 13px;
+  color: var(--hinh-muted);
+}
+
+.catalog-part.backordered {
+  border-left-color: var(--edge-backordered);
+}
+
+.catalog-part.backordered .stock {
+  color: #B5651D;
+}
+
+.catalog-part[hidden] {
+  display: none;
+}
+
+.no-results {
+  padding: 10px 12px;
+  border: 1px dashed var(--hinh-rule);
+  border-radius: 4px;
+}
+
+.search input.narrow {
+  flex: 0 0 130px;
+}
+
+.signed-in {
+  font-size: 13px;
+  color: var(--hinh-muted);
+}
+
+.catalog-part .cost {
+  grid-column: 1 / span 2;
+  font-size: 13px;
+}
+
+/* Technicians don't see what we pay for a part. */
+.role-technician .cost {
+  display: none;
+}

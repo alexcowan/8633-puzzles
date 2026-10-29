@@ -1,0 +1,273 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><script>/* Instructor reset: add ?reset to any puzzle URL to clear saved work on every puzzle (keeps the class code). */(function(){try{if(!/[?&]reset\b/.test(location.search))return;Object.keys(localStorage).forEach(function(k){if(k!=="cwg-code"&&(/^cwg-s\d/.test(k)||/^(ptr|pick|stf)-draft$/.test(k)||k==="gh-setup"))localStorage.removeItem(k);});location.replace(location.pathname);}catch(e){}})();</script><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Who Can See the Cost?</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!-- The app's own styles. -->
+<link rel="stylesheet" href="s5-cost/parts.css">
+<style>
+/* Worksheet styles (COWAN+). Everything here is scoped to .ws so it never touches the HinH app. */
+:root{
+  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
+  --accent:#DA5138; --accent-fg:#FFFFFF; --second:#63ADB1; --ok:#357B68; --bad:#DA5138; --note:#FFFFFF; --mark:#FFF3C4;
+  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; --mark:#4A4320; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; --mark:#4A4320; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;margin:0;
+  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:900px;margin:0 auto;display:grid;gap:28px}
+.page>*{min-width:0}
+.ws h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
+.ws h2{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--head);margin:0 0 10px}
+.ws h3{font-family:var(--serif);font-size:18px;font-weight:400;color:var(--head);margin:14px 0 6px}
+.ws p{margin:0 0 10px;max-width:70ch}
+.ws .eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ws .muted{color:var(--muted)}
+.ws.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:18px}
+.ws.rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
+.ws ol{margin:6px 0 0;padding-left:22px}
+.ws li{margin:5px 0}
+.ws kbd,.ws code{font-family:var(--mono);font-size:.82em;background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:0 5px}
+.ws input[type=text],.ws textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:7px 9px;min-width:0}
+.ws textarea{width:100%;resize:vertical;min-height:60px;box-sizing:border-box}
+.ws textarea.src{font-family:var(--mono);font-size:12.5px;line-height:1.55;white-space:pre;overflow-x:auto;min-height:0}
+.ws button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
+.ws button.ghost{background:transparent;color:var(--head);border:1px solid var(--line)}
+.ws button[disabled]{opacity:.5;cursor:default}
+.ws button:focus-visible,.ws input:focus-visible,.ws textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ws .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ws details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
+.ws .q{display:grid;gap:6px;padding-block:14px;border-top:1px solid var(--line-soft)}
+.ws .q:first-of-type{border-top:0;padding-top:4px}
+.ws .q label{font-family:var(--serif);color:var(--head)}
+.ws .checks{display:grid;gap:6px;margin-top:12px}
+.ws .chk{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:baseline}
+.ws .chk b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.ws .chk b.ok{color:var(--ok)} .ws .chk b.no{color:var(--bad)}
+.ws .verdict{margin-top:10px;padding:10px 12px;border-radius:4px;background:var(--bg);border-left:3px solid var(--second)}
+.ws .verdict.no{border-left-color:var(--bad)}
+.ws .verdict.big{font-size:17px;color:var(--head);border-left-width:5px}
+.ws .verdict.big.yes{border-left-color:var(--ok)}
+.ws .verdict.big b{font-family:var(--mono);font-size:16px}
+.ws .fbrow{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line-soft)}
+.ws .fbrow:first-child{border-top:0}
+.ws .fbhead{display:flex;gap:10px;align-items:baseline}
+.ws .fbhead b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.ws .fbhead b.ok{color:var(--ok)} .ws .fbhead b.thin{color:var(--bad)}
+.ws .fblabel{font-family:var(--serif);color:var(--head)}
+.ws .score{font-family:var(--serif);font-size:20px;color:var(--head)}
+.ws .console{font-family:var(--mono);font-size:12.5px;line-height:1.5;background:#1E1E1E;color:#D4D4D4;border-radius:4px;padding:10px 12px;margin-top:10px;white-space:pre-wrap;min-height:44px;max-height:220px;overflow:auto}
+.ws .console .err{color:#F48771}
+.ws .console .str{color:#CE9178}
+.ws .console .num{color:#9980FF}
+.ws table.data{border-collapse:collapse;font-family:var(--mono);font-size:12.5px;width:100%}
+.ws .tablewrap{overflow-x:auto;border:1px solid var(--line-soft);border-radius:4px;background:var(--bg)}
+.ws table.data th,.ws table.data td{text-align:left;padding:5px 10px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+.ws table.data th{color:var(--head);font-weight:500;background:var(--panel)}
+.ws table.data tr:last-child td{border-bottom:0}
+.ws table.data tr.hit td{background:var(--mark)}
+.ws table.data tr.new td{background:color-mix(in srgb,var(--second) 18%,transparent)}
+.ws table.data td.num{text-align:right}
+.ws .scenario{font-family:var(--mono);font-size:13.5px;line-height:1.6;background:var(--bg);border-left:3px solid var(--second);border-radius:4px;padding:10px 14px}
+.ws .scenario b{color:var(--head);font-weight:500}
+.ws .locked{opacity:.45;pointer-events:none}
+.ws .grid-roles{border-collapse:collapse;font-size:15px}
+.ws .grid-roles th,.ws .grid-roles td{padding:6px 8px;border-bottom:1px solid var(--line-soft);text-align:center}
+.ws .grid-roles th{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--head)}
+.ws .grid-roles td:first-child,.ws .grid-roles th:first-child{text-align:left;font-family:var(--sans);font-size:15px}
+.ws .grid-roles input{width:18px;height:18px;accent-color:var(--accent)}
+.ws .codewin{font-family:var(--mono);font-size:12.5px;line-height:1.55;background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;overflow-x:auto}
+.ws .codewin pre{margin:0;padding:8px 0}
+.ws .codewin .ln{display:block;white-space:pre;padding-right:12px}
+.ws .codewin .ln::before{content:attr(data-n);display:inline-block;width:2.2em;margin-right:12px;text-align:right;color:var(--muted);user-select:none}
+.ws .codewin .ln.changed{background:var(--mark)}
+.ws .report{background:var(--bg);border-left:3px solid var(--line);padding:10px 14px;border-radius:4px;font-style:italic;max-width:70ch}
+.ws label input[type=checkbox]{accent-color:var(--accent);vertical-align:-2px}
+</style></head><body>
+
+<main class="page">
+  <nav aria-label="Puzzles" style="font-size:14px;letter-spacing:.02em"><a href="index.html" style="color:var(--head);text-underline-offset:3px">← All puzzles</a></nav>
+  <header class="ws">
+    <div class="eyebrow">Coding with GPT · Session 5 · In class, in pairs</div>
+    <h1>Who can see the cost?</h1>
+  </header>
+
+  <header class="ws">
+    <p>HinH's parts data now lives in a Parts table:</p>
+    <p><code>part_number</code> <code>name</code> <code>price</code> <code>cost</code> <code>supplier</code> <code>in_stock</code></p>
+    <p><code>price</code> is what the customer pays. <code>cost</code> is what HinH pays the distributor, and the gap is HinH's margin. The owner doesn't want technicians quoting margins to customers, or taking the price list with them when they leave.</p>
+  </header>
+
+  <section class="ws panel">
+    <h2>1. Who needs what?</h2>
+    <p>Tick the columns each role needs to do its job. Not “would like”; needs.</p>
+    <div style="overflow-x:auto"><table class="grid-roles" id="roles"></table></div>
+    <p class="muted" style="margin-top:8px">The ordering agent is an AI that drafts parts orders to distributors for the parts manager to approve.</p>
+  </section>
+
+  <section class="ws panel">
+    <h2>2. What the developer did</h2>
+    <p>To keep cost away from technicians, a developer added this to <code>s5-cost/parts.css</code>:</p>
+    <div class="codewin"><pre><span class="ln" data-n="146">/* Technicians don't see what we pay for a part. */</span><span class="ln" data-n="147">.role-technician .cost {</span><span class="ln" data-n="148">  display: none;</span><span class="ln" data-n="149">}</span></pre></div>
+    <div class="scenario" style="margin-top:12px"><b>Given</b> Trent is signed in as a technician<br><b>When</b> he opens the developer tools on the parts page<br><b>Then</b> he can't find what HinH pays for HX-2201</div>
+    <p style="margin-top:12px">Below is the parts page as Trent sees it. Open the developer tools (<kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>I</kbd> on a Mac, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> on Windows) and try to break the Then.</p>
+  </section>
+
+  <!-- ===================== The app ===================== -->
+  <div class="hinh role-technician" id="app">
+    <div class="hinh-bar">HinH Parts Lookup</div>
+    <div class="hinh-body">
+      <div class="signed-in">Signed in as Trent · Technician</div>
+      <div class="search">
+        <input id="part-number" type="text" placeholder="Part number" autocomplete="off" aria-label="Part number">
+        <button id="search-button" type="button">Search</button>
+      </div>
+      <div class="parts-grid" id="results"></div>
+      <div class="no-results" id="no-results" hidden></div>
+    </div>
+  </div>
+  <script src="s5-cost/parts-controller.js"></script>
+  <!-- =================================================== -->
+
+  <details class="ws">
+    <summary>Stuck? Where to look</summary>
+    <div style="margin-top:10px">
+      <p>Two places. <b>Elements</b> shows the page as it actually is, including what CSS hides; right-click a card and choose Inspect. <b>Network</b> shows what the server sent; reload with it open and click the request for <code>parts.json</code>, then its Preview or Response tab.</p>
+      <p class="muted">If the Elements panel shows words like “heading” and “StaticText” instead of tags, you're in the accessibility tree. Click the small tree icon at the top of the panel to switch back.</p>
+    </div>
+  </details>
+
+  <section class="ws panel">
+    <h2>Check the scenario</h2>
+    <p>If you found it, the Then is broken. Prove it:</p>
+    <div class="row">
+      <label for="found">HinH pays $</label>
+      <input id="found" type="text" inputmode="decimal" style="max-width:110px;font-family:var(--mono)" autocomplete="off">
+      <span>for HX-2201, and I found it in</span>
+    </div>
+    <div class="row" style="margin-top:8px" id="where">
+      <label><input type="checkbox" value="Elements"> Elements</label>
+      <label><input type="checkbox" value="Network"> Network</label>
+      <label><input type="checkbox" value="Console"> Console</label>
+      <label><input type="checkbox" value="Sources"> Sources</label>
+    </div>
+    <div class="row" style="margin-top:10px"><button type="button" id="check-found">Check</button></div>
+    <div id="found-result"></div>
+  </section>
+
+  <section class="ws rubric">
+    <div class="eyebrow">Be ready to explain</div>
+    <ol>
+      <li>Which role needs which columns.</li>
+      <li>Where you found the cost, and why hiding it didn't work.</li>
+      <li>Where the rule should live instead.</li>
+      <li>What HinH's dispatch system gets when it calls the parts API directly.</li>
+    </ol>
+  </section>
+
+  <section class="ws panel">
+    <h2>Your answers</h2>
+    <p class="muted">Saved in this browser as you type. Your table in step 1 is part of your answers.</p>
+    <div class="q"><label for="a2">2. Where did you find it? Why didn't hiding it work?</label><textarea id="a2"></textarea></div>
+    <div class="q"><label for="a3">3. Where should the rule live instead? If you know whether HinH is on Firebase or Postgres, say what that looks like there.</label><textarea id="a3" style="min-height:90px"></textarea></div>
+    <div class="q"><label for="a4">4. HinH's dispatch system calls the parts API directly, the same address this page uses. Under the current design, what does it get back?</label><textarea id="a4"></textarea></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Check my work</h2>
+    <p class="muted">An AI reads your answers against the list above and tells you which ones hold up. Your score shows here and isn't recorded. Class code is on the Canvas page.</p>
+    <div class="row">
+      <input id="code-input" type="text" placeholder="Class code" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
+      <button type="button" id="grade">Check my answers</button>
+      <span class="muted" id="status" hidden></span>
+    </div>
+    <div id="feedback" style="margin-top:12px"></div>
+  </section>
+</main>
+
+<script>
+/* ---------- Check my work ---------- */
+const GRADER_URL="https://shrill-wood-3253.acowan.workers.dev/grade";
+function wireGrader(PUZZLE_ID, collect, pageCheck){
+  const codeEl=document.getElementById("code-input"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
+  try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
+  document.getElementById("grade").onclick=async()=>{
+    const code=codeEl.value.trim(); if(!code){ codeEl.focus(); return; }
+    try{ localStorage.setItem("cwg-code",code); }catch(e){}
+    statusEl.hidden=false; statusEl.textContent="Reading your answers…"; fb.innerHTML="";
+    try{
+      const r=await fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:PUZZLE_ID,code,answers:collect()})});
+      const d=await r.json();
+      if(!r.ok){ statusEl.textContent=d.error||("Error "+r.status); return; }
+      statusEl.hidden=true;
+      const res=d.results||[], ok=res.filter(x=>x.verdict==="ok").length;
+      const pc=pageCheck?(pageCheck()?1:0):0, extra=pageCheck?1:0;
+      const sc=document.createElement("div"); sc.className="score"; sc.textContent=`${ok+pc} of ${res.length+extra}`;
+      fb.append(sc);
+      if(pageCheck){ const sub=document.createElement("div"); sub.className="muted"; sub.textContent=`Page check: ${pc?"passed":"not passed yet"} · answers: ${ok} of ${res.length} hold up`; fb.append(sub); }
+      const list=document.createElement("div"); list.style.marginTop="8px";
+      res.forEach(x=>{ const el=document.createElement("div"); el.className="fbrow";
+        el.innerHTML=`<div class="fbhead"><b class="${x.verdict==="ok"?"ok":"thin"}">${x.verdict==="ok"?"OK":"THIN"}</b><span class="fblabel"></span></div><div></div>`;
+        el.querySelector(".fblabel").textContent=x.label; el.lastElementChild.textContent=x.note||""; list.append(el); });
+      fb.append(list);
+      if(d.summary){ const s=document.createElement("p"); s.className="muted"; s.style.marginTop="8px"; s.textContent=d.summary; fb.append(s); }
+    }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
+  };
+}
+/* ---------- Saved answers ---------- */
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
+function store(patch){ try{ localStorage.setItem(KEY, JSON.stringify(Object.assign(load(),patch))); }catch(e){} }
+function keepFields(ids){ const s=load(); ids.forEach(id=>{ const el=document.getElementById(id); if(!el) return; if(s[id]) el.value=s[id]; el.addEventListener("input",()=>store({[id]:el.value})); }); }
+const val=id=>document.getElementById(id).value.trim();
+/* ---------- The jobs sheet ---------- */
+function renderTable(host, cols, rows, opts){
+  opts=opts||{}; const t=document.createElement("table"); t.className="data";
+  t.innerHTML="<thead><tr>"+cols.map(c=>`<th>${c}</th>`).join("")+"</tr></thead>";
+  const tb=document.createElement("tbody");
+  rows.forEach(r=>{ const tr=document.createElement("tr"); tr.dataset.job=r[0]; if(opts.newRows&&opts.newRows.includes(r[0])) tr.className="new";
+    r.forEach((v,i)=>{ const td=document.createElement("td"); td.textContent=v; if(opts.numCols&&opts.numCols.includes(i)) td.className="num"; tr.append(td); }); tb.append(tr); });
+  t.append(tb); host.innerHTML=""; const w=document.createElement("div"); w.className="tablewrap"; w.append(t); host.append(w); return t;
+}
+
+const KEY="cwg-s5-cost";
+const COLS=["part_number","name","price","cost","supplier","in_stock"];
+const ROLES=["Technician","Dispatcher","Parts manager","Ordering agent (AI)"];
+const tbl=document.getElementById("roles");
+tbl.innerHTML="<thead><tr><th></th>"+COLS.map(c=>`<th>${c}</th>`).join("")+"</tr></thead>";
+const tb=document.createElement("tbody"); const saved=load().roles||{};
+ROLES.forEach(r=>{ const tr=document.createElement("tr"); const th=document.createElement("td"); th.textContent=r; tr.append(th);
+  COLS.forEach(c=>{ const td=document.createElement("td"); const cb=document.createElement("input"); cb.type="checkbox";
+    cb.setAttribute("aria-label", r+" needs "+c); cb.checked=!!(saved[r]&&saved[r].includes(c));
+    cb.onchange=()=>{ const s=load().roles||{}; const set=new Set(s[r]||[]); cb.checked?set.add(c):set.delete(c); s[r]=COLS.filter(x=>set.has(x)); store({roles:s}); };
+    td.append(cb); tr.append(td); }); tb.append(tr); });
+tbl.append(tb);
+function rolesText(){ const s=load().roles||{}; return ROLES.map(r=>`${r}: ${(s[r]&&s[r].length)?s[r].join(", "):"(nothing ticked)"}`).join("\n"); }
+
+/* The scenario check */
+const whereBoxes=[...document.querySelectorAll("#where input")];
+const st=load(); if(st.found) document.getElementById("found").value=st.found;
+whereBoxes.forEach(b=>{ b.checked=(st.where||[]).includes(b.value); });
+document.getElementById("check-found").onclick=()=>{
+  const raw=document.getElementById("found").value.replace(/[$,\s]/g,"");
+  const where=whereBoxes.filter(b=>b.checked).map(b=>b.value);
+  const ok=Math.abs(parseFloat(raw)-121.40)<0.005;
+  const v=document.createElement("div"); v.className="verdict big"+(ok?" yes":" no");
+  v.innerHTML = ok
+    ? "✓ <b>$121.40</b>. The Then fails: Trent can find it too. The CSS only decided what to <i>draw</i>; the cost was already in his browser."
+    : (raw ? "✗ That's not it. Look for a number that isn't on any card." : "✗ Type the number you found.");
+  const host=document.getElementById("found-result"); host.innerHTML=""; host.append(v);
+  const s=load(); store({found:raw, where, passed:!!(s.passed||ok), tries:(s.tries||0)+1});
+};
+
+const IDS=["a2","a3","a4"];
+keepFields(IDS);
+const LABELS=["Who needs what","Where you found it","Where the rule lives","The dispatch system"];
+wireGrader("s5-cost", ()=>{ const s=load(); return {
+  page_check:{ found_cost: !!s.passed, found_in: s.where||[] },
+  items:[ {label:LABELS[0], answer:rolesText()} ].concat(IDS.map((id,i)=>({label:LABELS[i+1], answer:val(id)}))) }; },
+  ()=>!!load().passed);
+</script>
+</body></html>

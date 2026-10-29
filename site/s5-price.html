@@ -1,0 +1,242 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><script>/* Instructor reset: add ?reset to any puzzle URL to clear saved work on every puzzle (keeps the class code). */(function(){try{if(!/[?&]reset\b/.test(location.search))return;Object.keys(localStorage).forEach(function(k){if(k!=="cwg-code"&&(/^cwg-s\d/.test(k)||/^(ptr|pick|stf)-draft$/.test(k)||k==="gh-setup"))localStorage.removeItem(k);});location.replace(location.pathname);}catch(e){}})();</script><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Price That Wouldn't Update</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!-- The app's own styles. -->
+<link rel="stylesheet" href="s5-price/parts.css">
+<style>
+/* Worksheet styles (COWAN+). Everything here is scoped to .ws so it never touches the HinH app. */
+:root{
+  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
+  --accent:#DA5138; --accent-fg:#FFFFFF; --second:#63ADB1; --ok:#357B68; --bad:#DA5138; --note:#FFFFFF; --mark:#FFF3C4;
+  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; --mark:#4A4320; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; --mark:#4A4320; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;margin:0;
+  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:900px;margin:0 auto;display:grid;gap:28px}
+.page>*{min-width:0}
+.ws h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
+.ws h2{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--head);margin:0 0 10px}
+.ws h3{font-family:var(--serif);font-size:18px;font-weight:400;color:var(--head);margin:14px 0 6px}
+.ws p{margin:0 0 10px;max-width:70ch}
+.ws .eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ws .muted{color:var(--muted)}
+.ws.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:18px}
+.ws.rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
+.ws ol{margin:6px 0 0;padding-left:22px}
+.ws li{margin:5px 0}
+.ws kbd,.ws code{font-family:var(--mono);font-size:.82em;background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:0 5px}
+.ws input[type=text],.ws textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:7px 9px;min-width:0}
+.ws textarea{width:100%;resize:vertical;min-height:60px;box-sizing:border-box}
+.ws textarea.src{font-family:var(--mono);font-size:12.5px;line-height:1.55;white-space:pre;overflow-x:auto;min-height:0}
+.ws button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
+.ws button.ghost{background:transparent;color:var(--head);border:1px solid var(--line)}
+.ws button[disabled]{opacity:.5;cursor:default}
+.ws button:focus-visible,.ws input:focus-visible,.ws textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ws .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ws details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
+.ws .q{display:grid;gap:6px;padding-block:14px;border-top:1px solid var(--line-soft)}
+.ws .q:first-of-type{border-top:0;padding-top:4px}
+.ws .q label{font-family:var(--serif);color:var(--head)}
+.ws .checks{display:grid;gap:6px;margin-top:12px}
+.ws .chk{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:baseline}
+.ws .chk b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.ws .chk b.ok{color:var(--ok)} .ws .chk b.no{color:var(--bad)}
+.ws .verdict{margin-top:10px;padding:10px 12px;border-radius:4px;background:var(--bg);border-left:3px solid var(--second)}
+.ws .verdict.no{border-left-color:var(--bad)}
+.ws .verdict.big{font-size:17px;color:var(--head);border-left-width:5px}
+.ws .verdict.big.yes{border-left-color:var(--ok)}
+.ws .verdict.big b{font-family:var(--mono);font-size:16px}
+.ws .fbrow{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line-soft)}
+.ws .fbrow:first-child{border-top:0}
+.ws .fbhead{display:flex;gap:10px;align-items:baseline}
+.ws .fbhead b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.ws .fbhead b.ok{color:var(--ok)} .ws .fbhead b.thin{color:var(--bad)}
+.ws .fblabel{font-family:var(--serif);color:var(--head)}
+.ws .score{font-family:var(--serif);font-size:20px;color:var(--head)}
+.ws .console{font-family:var(--mono);font-size:12.5px;line-height:1.5;background:#1E1E1E;color:#D4D4D4;border-radius:4px;padding:10px 12px;margin-top:10px;white-space:pre-wrap;min-height:44px;max-height:220px;overflow:auto}
+.ws .console .err{color:#F48771}
+.ws .console .str{color:#CE9178}
+.ws .console .num{color:#9980FF}
+.ws table.data{border-collapse:collapse;font-family:var(--mono);font-size:12.5px;width:100%}
+.ws .tablewrap{overflow-x:auto;border:1px solid var(--line-soft);border-radius:4px;background:var(--bg)}
+.ws table.data th,.ws table.data td{text-align:left;padding:5px 10px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+.ws table.data th{color:var(--head);font-weight:500;background:var(--panel)}
+.ws table.data tr:last-child td{border-bottom:0}
+.ws table.data tr.hit td{background:var(--mark)}
+.ws table.data tr.new td{background:color-mix(in srgb,var(--second) 18%,transparent)}
+.ws table.data td.num{text-align:right}
+.ws .scenario{font-family:var(--mono);font-size:13.5px;line-height:1.6;background:var(--bg);border-left:3px solid var(--second);border-radius:4px;padding:10px 14px}
+.ws .scenario b{color:var(--head);font-weight:500}
+.ws .locked{opacity:.45;pointer-events:none}
+.ws .grid-roles{border-collapse:collapse;font-size:15px}
+.ws .grid-roles th,.ws .grid-roles td{padding:6px 8px;border-bottom:1px solid var(--line-soft);text-align:center}
+.ws .grid-roles th{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--head)}
+.ws .grid-roles td:first-child,.ws .grid-roles th:first-child{text-align:left;font-family:var(--sans);font-size:15px}
+.ws .grid-roles input{width:18px;height:18px;accent-color:var(--accent)}
+.ws .codewin{font-family:var(--mono);font-size:12.5px;line-height:1.55;background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;overflow-x:auto}
+.ws .codewin pre{margin:0;padding:8px 0}
+.ws .codewin .ln{display:block;white-space:pre;padding-right:12px}
+.ws .codewin .ln::before{content:attr(data-n);display:inline-block;width:2.2em;margin-right:12px;text-align:right;color:var(--muted);user-select:none}
+.ws .codewin .ln.changed{background:var(--mark)}
+.ws .report{background:var(--bg);border-left:3px solid var(--line);padding:10px 14px;border-radius:4px;font-style:italic;max-width:70ch}
+.ws label input[type=checkbox]{accent-color:var(--accent);vertical-align:-2px}
+</style></head><body>
+
+<main class="page">
+  <nav aria-label="Puzzles" style="font-size:14px;letter-spacing:.02em"><a href="index.html" style="color:var(--head);text-underline-offset:3px">← All puzzles</a></nav>
+  <header class="ws">
+    <div class="eyebrow">Coding with GPT · Session 5 · Warm-up, as a class</div>
+    <h1>The price that wouldn't update</h1>
+  </header>
+
+  <header class="ws">
+    <p>The story: <em>As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair.</em></p>
+    <p>Until now, HinH has kept its service jobs in one spreadsheet. The parts lookup reads it: for a part number, it shows the name and price from the <b>first</b> job row with that part number.</p>
+    <p class="report">From the parts desk: “The distributor raised the HX-2201 blower motor to $199.00 on October 9. Whoever logged the Brooks job that day used the new price.”</p>
+  </header>
+
+  <section class="ws panel">
+    <h2>The sheet</h2>
+    <p><a href="https://docs.google.com/spreadsheets/d/1YjbN0oRWYto7wotezmiEAnPE0zcq1ZPyGWAS9zsh3a4/copy" target="_blank" rel="noopener">Make your own copy of this sheet</a> (opens Google Sheets; you'll need to be signed in). You'll change it in question 2.</p>
+    <div id="jobs"></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Run it</h2>
+    <div class="scenario"><b>Given</b> HX-2201 now costs $199.00<br><b>When</b> Trent searches for HX-2201<br><b>Then</b> he sees $199.00</div>
+    <div class="hinh" style="margin-top:14px">
+      <div class="hinh-bar">HinH Parts Lookup</div>
+      <div class="hinh-body">
+        <div class="search">
+          <input id="part-number" type="text" placeholder="Part number" autocomplete="off" aria-label="Part number" value="HX-2201">
+          <button id="search-button" type="button">Search</button>
+        </div>
+        <div id="result"></div>
+      </div>
+    </div>
+    <p class="muted" id="run-note" style="margin-top:10px"></p>
+  </section>
+
+  <section class="ws rubric">
+    <div class="eyebrow">Be ready to explain</div>
+    <ol>
+      <li>What Trent saw, and why.</li>
+      <li>How you'd split the sheet into tables: each table's columns, its key, and how it links to the others.</li>
+      <li>After your fix, the price goes up again. How many cells change?</li>
+      <li>What the cell in J-1047 is telling you.</li>
+      <li>Alvarez calls about the J-1041 invoice. Should it show $184 or $199? Does your design still handle that?</li>
+    </ol>
+  </section>
+
+  <section class="ws panel">
+    <h2>Your answers</h2>
+    <p class="muted">Saved in this browser as you type, so reloading won't lose them.</p>
+    <div class="q"><label for="a1">1. What did Trent see, and why?</label><textarea id="a1"></textarea></div>
+    <div class="q"><label for="a2">2. Split the sheet into tables. For each: its columns, its key, and how it links to the others.</label>
+      <p class="muted" style="margin:0">Do it in your copy of the sheet, one tab per table. If you want Jobs to show a price again, an <code>XLOOKUP</code> from Jobs into your new table will do it; what it matches on is the key. Then write it out here, for example <code>Table(column, column, …) key: … links to: …</code></p>
+      <textarea id="a2" style="min-height:120px"></textarea></div>
+    <div class="q"><label for="a3">3. After your fix, the price goes up again. How many cells change?</label><textarea id="a3"></textarea></div>
+    <div class="q"><label for="a4">4. Look at J-1047. What is that cell telling you?</label><textarea id="a4"></textarea></div>
+    <div class="q"><label for="a5">5. Alvarez calls about the J-1041 invoice. Should it show $184 or $199? Does your design still handle that?</label><textarea id="a5"></textarea></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Check my work</h2>
+    <p class="muted">An AI reads your answers against the list above and tells you which ones hold up. Your score shows here and isn't recorded. Class code is on the Canvas page.</p>
+    <div class="row">
+      <input id="code-input" type="text" placeholder="Class code" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
+      <button type="button" id="grade">Check my answers</button>
+      <span class="muted" id="status" hidden></span>
+    </div>
+    <div id="feedback" style="margin-top:12px"></div>
+  </section>
+</main>
+
+<script>
+/* ---------- Check my work ---------- */
+const GRADER_URL="https://shrill-wood-3253.acowan.workers.dev/grade";
+function wireGrader(PUZZLE_ID, collect, pageCheck){
+  const codeEl=document.getElementById("code-input"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
+  try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
+  document.getElementById("grade").onclick=async()=>{
+    const code=codeEl.value.trim(); if(!code){ codeEl.focus(); return; }
+    try{ localStorage.setItem("cwg-code",code); }catch(e){}
+    statusEl.hidden=false; statusEl.textContent="Reading your answers…"; fb.innerHTML="";
+    try{
+      const r=await fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:PUZZLE_ID,code,answers:collect()})});
+      const d=await r.json();
+      if(!r.ok){ statusEl.textContent=d.error||("Error "+r.status); return; }
+      statusEl.hidden=true;
+      const res=d.results||[], ok=res.filter(x=>x.verdict==="ok").length;
+      const pc=pageCheck?(pageCheck()?1:0):0, extra=pageCheck?1:0;
+      const sc=document.createElement("div"); sc.className="score"; sc.textContent=`${ok+pc} of ${res.length+extra}`;
+      fb.append(sc);
+      if(pageCheck){ const sub=document.createElement("div"); sub.className="muted"; sub.textContent=`Page check: ${pc?"passed":"not passed yet"} · answers: ${ok} of ${res.length} hold up`; fb.append(sub); }
+      const list=document.createElement("div"); list.style.marginTop="8px";
+      res.forEach(x=>{ const el=document.createElement("div"); el.className="fbrow";
+        el.innerHTML=`<div class="fbhead"><b class="${x.verdict==="ok"?"ok":"thin"}">${x.verdict==="ok"?"OK":"THIN"}</b><span class="fblabel"></span></div><div></div>`;
+        el.querySelector(".fblabel").textContent=x.label; el.lastElementChild.textContent=x.note||""; list.append(el); });
+      fb.append(list);
+      if(d.summary){ const s=document.createElement("p"); s.className="muted"; s.style.marginTop="8px"; s.textContent=d.summary; fb.append(s); }
+    }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
+  };
+}
+/* ---------- Saved answers ---------- */
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
+function store(patch){ try{ localStorage.setItem(KEY, JSON.stringify(Object.assign(load(),patch))); }catch(e){} }
+function keepFields(ids){ const s=load(); ids.forEach(id=>{ const el=document.getElementById(id); if(!el) return; if(s[id]) el.value=s[id]; el.addEventListener("input",()=>store({[id]:el.value})); }); }
+const val=id=>document.getElementById(id).value.trim();
+/* ---------- The jobs sheet ---------- */
+function renderTable(host, cols, rows, opts){
+  opts=opts||{}; const t=document.createElement("table"); t.className="data";
+  t.innerHTML="<thead><tr>"+cols.map(c=>`<th>${c}</th>`).join("")+"</tr></thead>";
+  const tb=document.createElement("tbody");
+  rows.forEach(r=>{ const tr=document.createElement("tr"); tr.dataset.job=r[0]; if(opts.newRows&&opts.newRows.includes(r[0])) tr.className="new";
+    r.forEach((v,i)=>{ const td=document.createElement("td"); td.textContent=v; if(opts.numCols&&opts.numCols.includes(i)) td.className="num"; tr.append(td); }); tb.append(tr); });
+  t.append(tb); host.innerHTML=""; const w=document.createElement("div"); w.className="tablewrap"; w.append(t); host.append(w); return t;
+}
+
+const KEY="cwg-s5-price";
+const COLS=["job","date","customer","address","part_number","part_name","price"];
+const JOBS=[
+  ["J-1041","Oct 2","Alvarez","12 Elm St","HX-2201","Blower motor, 1/2 HP","184.00"],
+  ["J-1042","Oct 3","Brooks","88 Ridge Rd","CP-0450","Run capacitor, 45 µF","22.50"],
+  ["J-1043","Oct 5","Alvarez","12 Elm St","HX-2201","Blower motor, 1/2 HP","184.00"],
+  ["J-1044","Oct 8","Chen","4 Mill Ln","TH-7710","Thermostat, programmable","96.00"],
+  ["J-1045","Oct 9","Brooks","88 Ridge Rd","HX-2201","Blower motor, 1/2 HP","199.00"],
+  ["J-1046","Oct 12","Dao","301 Oak Ave","HX-2201","Blower motor, 1/2 HP","184.00"],
+  ["J-1047","Oct 14","Chen","4 Mill Ln","HX-2201, CP-0450","Blower motor, 1/2 HP; Run capacitor, 45 µF","206.50"],
+];
+const table=renderTable(document.getElementById("jobs"), COLS, JOBS, {numCols:[6]});
+
+let runs=0;
+function lookup(){
+  const q=document.getElementById("part-number").value.trim().toUpperCase();
+  table.querySelectorAll("tr.hit").forEach(tr=>tr.classList.remove("hit"));
+  const row=JOBS.find(r=>r[4]===q);              // the first job row with that part number
+  const out=document.getElementById("result");
+  if(!row){ out.innerHTML='<div class="no-results"></div>'; out.firstChild.textContent=`No parts match “${q}”.`; }
+  else{
+    out.innerHTML=`<div class="catalog-part"><span class="num"></span><span class="name"></span><span class="price"></span><span class="stock"></span></div>`;
+    const c=out.firstChild; c.querySelector(".num").textContent=row[4]; c.querySelector(".name").textContent=row[5];
+    c.querySelector(".price").textContent="$"+row[6]; c.querySelector(".stock").textContent="From job "+row[0];
+    table.querySelector(`tr[data-job="${row[0]}"]`).classList.add("hit");
+  }
+  runs++; document.getElementById("run-note").textContent = runs>1 ? `Run ${runs}. The highlighted row is the one the lookup read.` : "The highlighted row is the one the lookup read.";
+  store({ran:true});
+}
+document.getElementById("search-button").onclick=lookup;
+document.getElementById("part-number").addEventListener("keydown",e=>{ if(e.key==="Enter") lookup(); });
+
+const IDS=["a1","a2","a3","a4","a5"];
+keepFields(IDS);
+const LABELS=["What Trent saw","Your tables","The next price change","J-1047","The old invoice"];
+wireGrader("s5-price", ()=>({ items: IDS.map((id,i)=>({label:LABELS[i], answer:val(id)})) }));
+</script>
+</body></html>

@@ -1,0 +1,8 @@
+[
+  {"part_number": "HX-2201",   "name": "Blower motor, 1/2 HP",           "price": 199.00, "cost": 121.40, "supplier": "Tidewater Supply",        "in_stock": true},
+  {"part_number": "CP-0450",   "name": "Run capacitor, 45 µF",           "price": 22.50,  "cost": 9.80,   "supplier": "Blue Ridge Distributors", "in_stock": true},
+  {"part_number": "CP-0450-L", "name": "Run capacitor, 45 µF, low-temp", "price": 31.00,  "cost": 14.10,  "supplier": "Blue Ridge Distributors", "in_stock": false},
+  {"part_number": "TH-7710",   "name": "Thermostat, programmable",       "price": 96.00,  "cost": 52.00,  "supplier": "Tidewater Supply",        "in_stock": true},
+  {"part_number": "FL-1620",   "name": "Filter, 16×20 pleated",          "price": 14.25,  "cost": 5.60,   "supplier": "Piedmont Filter Co.",     "in_stock": false},
+  {"part_number": "IG-3300",   "name": "Hot surface igniter",            "price": 61.00,  "cost": 27.75,  "supplier": "Tidewater Supply",        "in_stock": true}
+]

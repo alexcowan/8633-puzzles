@@ -1,0 +1,208 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><script>/* Instructor reset: add ?reset to any puzzle URL to clear saved work on every puzzle (keeps the class code). */(function(){try{if(!/[?&]reset\b/.test(location.search))return;Object.keys(localStorage).forEach(function(k){if(k!=="cwg-code"&&(/^cwg-s\d/.test(k)||/^(ptr|pick|stf)-draft$/.test(k)||k==="gh-setup"))localStorage.removeItem(k);});location.replace(location.pathname);}catch(e){}})();</script><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What Does the AI Get to See?</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Worksheet styles (COWAN+). Everything here is scoped to .ws so it never touches the HinH app. */
+:root{
+  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
+  --accent:#DA5138; --accent-fg:#FFFFFF; --second:#63ADB1; --ok:#357B68; --bad:#DA5138; --note:#FFFFFF; --mark:#FFF3C4;
+  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; --mark:#4A4320; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
+  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; --mark:#4A4320; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;margin:0;
+  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.page{max-width:900px;margin:0 auto;display:grid;gap:28px}
+.page>*{min-width:0}
+.ws h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
+.ws h2{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--head);margin:0 0 10px}
+.ws h3{font-family:var(--serif);font-size:18px;font-weight:400;color:var(--head);margin:14px 0 6px}
+.ws p{margin:0 0 10px;max-width:70ch}
+.ws .eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.ws .muted{color:var(--muted)}
+.ws.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:18px}
+.ws.rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
+.ws ol{margin:6px 0 0;padding-left:22px}
+.ws li{margin:5px 0}
+.ws kbd,.ws code{font-family:var(--mono);font-size:.82em;background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:0 5px}
+.ws input[type=text],.ws textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:7px 9px;min-width:0}
+.ws textarea{width:100%;resize:vertical;min-height:60px;box-sizing:border-box}
+.ws textarea.src{font-family:var(--mono);font-size:12.5px;line-height:1.55;white-space:pre;overflow-x:auto;min-height:0}
+.ws button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
+.ws button.ghost{background:transparent;color:var(--head);border:1px solid var(--line)}
+.ws button[disabled]{opacity:.5;cursor:default}
+.ws button:focus-visible,.ws input:focus-visible,.ws textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ws .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ws details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
+.ws .q{display:grid;gap:6px;padding-block:14px;border-top:1px solid var(--line-soft)}
+.ws .q:first-of-type{border-top:0;padding-top:4px}
+.ws .q label{font-family:var(--serif);color:var(--head)}
+.ws .checks{display:grid;gap:6px;margin-top:12px}
+.ws .chk{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:baseline}
+.ws .chk b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.ws .chk b.ok{color:var(--ok)} .ws .chk b.no{color:var(--bad)}
+.ws .verdict{margin-top:10px;padding:10px 12px;border-radius:4px;background:var(--bg);border-left:3px solid var(--second)}
+.ws .verdict.no{border-left-color:var(--bad)}
+.ws .verdict.big{font-size:17px;color:var(--head);border-left-width:5px}
+.ws .verdict.big.yes{border-left-color:var(--ok)}
+.ws .verdict.big b{font-family:var(--mono);font-size:16px}
+.ws .fbrow{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line-soft)}
+.ws .fbrow:first-child{border-top:0}
+.ws .fbhead{display:flex;gap:10px;align-items:baseline}
+.ws .fbhead b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.ws .fbhead b.ok{color:var(--ok)} .ws .fbhead b.thin{color:var(--bad)}
+.ws .fblabel{font-family:var(--serif);color:var(--head)}
+.ws .score{font-family:var(--serif);font-size:20px;color:var(--head)}
+.ws .console{font-family:var(--mono);font-size:12.5px;line-height:1.5;background:#1E1E1E;color:#D4D4D4;border-radius:4px;padding:10px 12px;margin-top:10px;white-space:pre-wrap;min-height:44px;max-height:220px;overflow:auto}
+.ws .console .err{color:#F48771}
+.ws .console .str{color:#CE9178}
+.ws .console .num{color:#9980FF}
+.ws table.data{border-collapse:collapse;font-family:var(--mono);font-size:12.5px;width:100%}
+.ws .tablewrap{overflow-x:auto;border:1px solid var(--line-soft);border-radius:4px;background:var(--bg)}
+.ws table.data th,.ws table.data td{text-align:left;padding:5px 10px;border-bottom:1px solid var(--line-soft);white-space:nowrap}
+.ws table.data th{color:var(--head);font-weight:500;background:var(--panel)}
+.ws table.data tr:last-child td{border-bottom:0}
+.ws table.data tr.hit td{background:var(--mark)}
+.ws table.data tr.new td{background:color-mix(in srgb,var(--second) 18%,transparent)}
+.ws table.data td.num{text-align:right}
+.ws .scenario{font-family:var(--mono);font-size:13.5px;line-height:1.6;background:var(--bg);border-left:3px solid var(--second);border-radius:4px;padding:10px 14px}
+.ws .scenario b{color:var(--head);font-weight:500}
+.ws .locked{opacity:.45;pointer-events:none}
+.ws .grid-roles{border-collapse:collapse;font-size:15px}
+.ws .grid-roles th,.ws .grid-roles td{padding:6px 8px;border-bottom:1px solid var(--line-soft);text-align:center}
+.ws .grid-roles th{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--head)}
+.ws .grid-roles td:first-child,.ws .grid-roles th:first-child{text-align:left;font-family:var(--sans);font-size:15px}
+.ws .grid-roles input{width:18px;height:18px;accent-color:var(--accent)}
+.ws .codewin{font-family:var(--mono);font-size:12.5px;line-height:1.55;background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;overflow-x:auto}
+.ws .codewin pre{margin:0;padding:8px 0}
+.ws .codewin .ln{display:block;white-space:pre;padding-right:12px}
+.ws .codewin .ln::before{content:attr(data-n);display:inline-block;width:2.2em;margin-right:12px;text-align:right;color:var(--muted);user-select:none}
+.ws .codewin .ln.changed{background:var(--mark)}
+.ws .report{background:var(--bg);border-left:3px solid var(--line);padding:10px 14px;border-radius:4px;font-style:italic;max-width:70ch}
+.ws label input[type=checkbox]{accent-color:var(--accent);vertical-align:-2px}
+</style></head><body>
+
+<main class="page">
+  <nav aria-label="Puzzles" style="font-size:14px;letter-spacing:.02em"><a href="index.html" style="color:var(--head);text-underline-offset:3px">← All puzzles</a></nav>
+  <header class="ws">
+    <div class="eyebrow">Coding with GPT · Session 5 · Closer, as a class</div>
+    <h1>What does the AI get to see?</h1>
+  </header>
+
+  <header class="ws">
+    <p>HinH wants an AI agent that drafts parts orders: it looks at upcoming jobs and current stock, and drafts orders to distributors for the parts manager to approve. It runs on a public model, the same one any HVAC company can pay for.</p>
+    <p>An agent only knows what you put in its context. Below is everything HinH has. Pick what goes in.</p>
+  </header>
+
+  <section class="ws panel">
+    <h2>1. Pick its context</h2>
+    <div id="inventory" style="display:grid;gap:12px"></div>
+  </section>
+
+  <section class="ws rubric">
+    <div class="eyebrow">Be ready to explain</div>
+    <ol>
+      <li>What you left out, and why.</li>
+      <li>For each thing you put in: what the agent does worse without it.</li>
+      <li>Which of this data is HinH's advantage: the thing another firm using the same public model doesn't have.</li>
+    </ol>
+  </section>
+
+  <section class="ws panel">
+    <h2>Your answers</h2>
+    <p class="muted">Saved in this browser as you type. What you ticked is part of your answers.</p>
+    <div class="q"><label for="a1">1. What did you leave out, and why?</label><textarea id="a1"></textarea></div>
+    <div class="q"><label for="a2">2. For each thing you put in, what does the agent do worse without it?</label><textarea id="a2" style="min-height:100px"></textarea></div>
+    <div class="q"><label for="a3">3. Which of this data is HinH's advantage, the thing another firm using the same public model doesn't have?</label><textarea id="a3"></textarea></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Check my work</h2>
+    <p class="muted">An AI reads your answers against the list above and tells you which ones hold up. Your score shows here and isn't recorded. Class code is on the Canvas page.</p>
+    <div class="row">
+      <input id="code-input" type="text" placeholder="Class code" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
+      <button type="button" id="grade">Check my answers</button>
+      <span class="muted" id="status" hidden></span>
+    </div>
+    <div id="feedback" style="margin-top:12px"></div>
+  </section>
+</main>
+
+<script>
+/* ---------- Check my work ---------- */
+const GRADER_URL="https://shrill-wood-3253.acowan.workers.dev/grade";
+function wireGrader(PUZZLE_ID, collect, pageCheck){
+  const codeEl=document.getElementById("code-input"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
+  try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
+  document.getElementById("grade").onclick=async()=>{
+    const code=codeEl.value.trim(); if(!code){ codeEl.focus(); return; }
+    try{ localStorage.setItem("cwg-code",code); }catch(e){}
+    statusEl.hidden=false; statusEl.textContent="Reading your answers…"; fb.innerHTML="";
+    try{
+      const r=await fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:PUZZLE_ID,code,answers:collect()})});
+      const d=await r.json();
+      if(!r.ok){ statusEl.textContent=d.error||("Error "+r.status); return; }
+      statusEl.hidden=true;
+      const res=d.results||[], ok=res.filter(x=>x.verdict==="ok").length;
+      const pc=pageCheck?(pageCheck()?1:0):0, extra=pageCheck?1:0;
+      const sc=document.createElement("div"); sc.className="score"; sc.textContent=`${ok+pc} of ${res.length+extra}`;
+      fb.append(sc);
+      if(pageCheck){ const sub=document.createElement("div"); sub.className="muted"; sub.textContent=`Page check: ${pc?"passed":"not passed yet"} · answers: ${ok} of ${res.length} hold up`; fb.append(sub); }
+      const list=document.createElement("div"); list.style.marginTop="8px";
+      res.forEach(x=>{ const el=document.createElement("div"); el.className="fbrow";
+        el.innerHTML=`<div class="fbhead"><b class="${x.verdict==="ok"?"ok":"thin"}">${x.verdict==="ok"?"OK":"THIN"}</b><span class="fblabel"></span></div><div></div>`;
+        el.querySelector(".fblabel").textContent=x.label; el.lastElementChild.textContent=x.note||""; list.append(el); });
+      fb.append(list);
+      if(d.summary){ const s=document.createElement("p"); s.className="muted"; s.style.marginTop="8px"; s.textContent=d.summary; fb.append(s); }
+    }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
+  };
+}
+/* ---------- Saved answers ---------- */
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
+function store(patch){ try{ localStorage.setItem(KEY, JSON.stringify(Object.assign(load(),patch))); }catch(e){} }
+function keepFields(ids){ const s=load(); ids.forEach(id=>{ const el=document.getElementById(id); if(!el) return; if(s[id]) el.value=s[id]; el.addEventListener("input",()=>store({[id]:el.value})); }); }
+const val=id=>document.getElementById(id).value.trim();
+/* ---------- The jobs sheet ---------- */
+function renderTable(host, cols, rows, opts){
+  opts=opts||{}; const t=document.createElement("table"); t.className="data";
+  t.innerHTML="<thead><tr>"+cols.map(c=>`<th>${c}</th>`).join("")+"</tr></thead>";
+  const tb=document.createElement("tbody");
+  rows.forEach(r=>{ const tr=document.createElement("tr"); tr.dataset.job=r[0]; if(opts.newRows&&opts.newRows.includes(r[0])) tr.className="new";
+    r.forEach((v,i)=>{ const td=document.createElement("td"); td.textContent=v; if(opts.numCols&&opts.numCols.includes(i)) td.className="num"; tr.append(td); }); tb.append(tr); });
+  t.append(tb); host.innerHTML=""; const w=document.createElement("div"); w.className="tablewrap"; w.append(t); host.append(w); return t;
+}
+
+const KEY="cwg-s5-context";
+const INVENTORY=[
+  ["Parts",       ["part_number","name","price","cost","supplier","in_stock"]],
+  ["Jobs",        ["job","date","site","technician","status","technician_notes"]],
+  ["Job_Parts",   ["job","part_number","qty","price_charged"]],
+  ["Sites",       ["address","access_notes","equipment_installed"]],
+  ["Customers",   ["name","phone","email","billing_address"]],
+  ["Supplier terms", ["supplier","discount_tier","lead_time_days","minimum_order"]],
+];
+const inv=document.getElementById("inventory"); const picked=new Set(load().picked||[]);
+INVENTORY.forEach(([t,cols])=>{
+  const box=document.createElement("div");
+  const h=document.createElement("div"); h.style.fontFamily="var(--serif)"; h.style.color="var(--head)"; h.textContent=t; box.append(h);
+  const row=document.createElement("div"); row.className="row"; row.style.gap="6px 16px";
+  cols.forEach(c=>{ const id=t+"."+c; const l=document.createElement("label"); l.style.fontFamily="var(--mono)"; l.style.fontSize="13px";
+    const cb=document.createElement("input"); cb.type="checkbox"; cb.checked=picked.has(id);
+    cb.onchange=()=>{ cb.checked?picked.add(id):picked.delete(id); store({picked:[...picked]}); };
+    l.append(cb," "+c); row.append(l); });
+  box.append(row); inv.append(box);
+});
+function pickedText(){
+  return INVENTORY.map(([t,cols])=>{ const inn=cols.filter(c=>picked.has(t+"."+c)), out=cols.filter(c=>!picked.has(t+"."+c));
+    return `${t}: in [${inn.join(", ")||"none"}], out [${out.join(", ")||"none"}]`; }).join("\n");
+}
+const IDS=["a1","a2","a3"];
+keepFields(IDS);
+const LABELS=["What stays out","What goes in","HinH's advantage"];
+wireGrader("s5-context", ()=>({ context_picked: pickedText(), items: IDS.map((id,i)=>({label:LABELS[i], answer:val(id)})) }));
+</script>
+</body></html>
