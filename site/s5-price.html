@@ -128,10 +128,10 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <div class="eyebrow">Be ready to explain</div>
     <ol>
       <li>What Trent saw, and why.</li>
-      <li>How you'd split the sheet into tables: each table's columns, its key, and how it links to the others.</li>
-      <li>After your fix, the price goes up again. How many cells change?</li>
+      <li>How you'd split the sheet into tables: each table's columns, its key, and how it links to the others, and what each price column records.</li>
+      <li>After your fix, the price goes up again. How many cells change, and what happens to the old jobs?</li>
       <li>What the cell in J-1047 is telling you.</li>
-      <li>Alvarez calls about the J-1041 invoice. Should it show $184 or $199? Does your design still handle that?</li>
+      <li>Alvarez calls about the J-1041 invoice: what it should show, and where that number lives in your tables.</li>
     </ol>
   </section>
 
@@ -140,11 +140,11 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <p class="muted">Saved in this browser as you type, so reloading won't lose them.</p>
     <div class="q"><label for="a1">1. What did Trent see, and why?</label><textarea id="a1"></textarea></div>
     <div class="q"><label for="a2">2. Split the sheet into tables. For each: its columns, its key, and how it links to the others.</label>
-      <p class="muted" style="margin:0">Do it in your copy of the sheet, one tab per table. If you want Jobs to show a price again, an <code>XLOOKUP</code> from Jobs into your new table will do it; what it matches on is the key. Then write it out here, for example <code>Table(column, column, …) key: … links to: …</code></p>
+      <p class="muted" style="margin:0">Do it in your copy of the sheet, one tab per table. Before you move or delete a column, ask what fact it records. The price on a job row might be the price list, or it might be what that customer was charged. Those are different facts, and only one of them should change when the distributor raises a price. Then write your tables out here, for example <code>Table(column, column, …) key: … links to: …</code></p>
       <textarea id="a2" style="min-height:120px"></textarea></div>
-    <div class="q"><label for="a3">3. After your fix, the price goes up again. How many cells change?</label><textarea id="a3"></textarea></div>
+    <div class="q"><label for="a3">3. After your fix, the price goes up again. How many cells change, and what happens to the old jobs?</label><textarea id="a3"></textarea></div>
     <div class="q"><label for="a4">4. Look at J-1047. What is that cell telling you?</label><textarea id="a4"></textarea></div>
-    <div class="q"><label for="a5">5. Alvarez calls about the J-1041 invoice. Should it show $184 or $199? Does your design still handle that?</label><textarea id="a5"></textarea></div>
+    <div class="q"><label for="a5">5. Alvarez calls about the J-1041 invoice. What should it show, and where does that number live in your tables?</label><textarea id="a5"></textarea></div>
   </section>
 
   <section class="ws panel">
