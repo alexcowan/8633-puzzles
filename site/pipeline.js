@@ -49,9 +49,7 @@
     const el=document.createElement("div"); el.className="pl"; el.setAttribute("aria-label","Where this puzzle sits in the product pipeline");
     const row=document.createElement("div"); row.className="pl-row";
     STAGES.forEach(([k,n])=>{ const d=document.createElement("div"); d.className="pl-stage"+(p.stages.includes(k)?" on":""); d.textContent=n; row.append(d); });
-    const steps=document.createElement("div"); steps.className="pl-steps";
-    STEPS.forEach(([k,n])=>{ const d=document.createElement("div"); d.className="pl-step"+(p.steps.includes(k)?" on":""); d.textContent=n; steps.append(d); });
-    el.append(row,steps);
+    el.append(row);  /* The four-steps row was taken out of the strip; the index map still groups Development by step. */
     if(p.handoff){ const n=document.createElement("div"); n.className="pl-note"; n.textContent="The commit question is where your change leaves Development and goes to Delivery."; el.append(n); }
     return el;
   }
