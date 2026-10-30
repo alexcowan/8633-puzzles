@@ -102,6 +102,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
   <header>
     <div class="eyebrow">Coding with GPT · Session 2 · Puzzle 2, in pairs</div>
     <h1>Pick a way to get help</h1>
+    <div data-pipeline></div>
     <p>The plan is fixed, except for line 5. "Offer a way to get help identifying the part" is right, but it can't be coded until someone decides <em>which</em> way. That decision is step 3 of the four: effectuating between alternatives. The AI laid out three. It has an opinion; it doesn't know where HinH is headed. You do.</p>
   </header>
 
@@ -249,4 +250,5 @@ document.getElementById("check").onclick=async()=>{
   }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
 };
 </script>
+<script src="pipeline.js"></script>
 </body></html>

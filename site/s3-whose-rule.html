@@ -59,6 +59,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <header class="ws">
     <div class="eyebrow">Coding with GPT · Session 3 · Warm-up (class prep)</div>
     <h1>Whose rule is it?</h1>
+    <div data-pipeline></div>
     <p>Trent called from a job: <em>“The thermostat, TH-7710, shows up as backordered, so I almost drove across town for one. The supply house says it's on the shelf.”</em></p>
     <p>You check: the catalog data is right. TH-7710 is in stock, and the card even says so. BUT the part card has an orange stripe (on the left) which signifies ‘not in stock’. Barf: the view is wrong. Your job is to find out <em>why</em> using your browser's developer tools on this page.</p>
     <p><b>At HinH,</b> <code>parts.css</code> is a component of their design system: any parts-related page uses it, it changes a few times a year, and the pages change nearly every week. So the pages depend on the design system, never the other way around.</p>
@@ -133,7 +134,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <p class="muted">Saved in this browser as you type, so reloading won't lose them.</p>
     <div class="q"><label for="a1">1. Which rule makes TH-7710 look backordered (adds the orange stripe)? Give the selector, the file, and the line.</label><textarea id="a1"></textarea></div>
     <div class="q"><label for="a2">2. Other rules also style that card. Why did this one win?</label><textarea id="a2"></textarea></div>
-    <div class="q"><label for="a3">3. What one-line change would you commit?</label><textarea id="a3"></textarea></div>
+    <div class="q"><label for="a3">3. What one-line change would you commit?<span class="pl-tag">Delivery</span></label><textarea id="a3"></textarea></div>
   </section>
 
   <section class="ws panel">
@@ -253,4 +254,5 @@ document.getElementById("grade").onclick=async()=>{
   }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
 };
 </script>
+<script src="pipeline.js"></script>
 </body></html>

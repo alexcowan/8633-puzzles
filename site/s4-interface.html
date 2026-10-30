@@ -88,6 +88,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <header class="ws">
     <div class="eyebrow">Coding with GPT · Session 4 · In class, in pairs</div>
     <h1>Where the fix goes</h1>
+    <div data-pipeline></div>
     <p>The story: <em>As Trent the Technician, I want to see a part's price and whether I can get it today, so I can agree on next steps with the customer.</em></p>
     <p>The puzzle has two parts:</p>
     <ol>
@@ -386,4 +387,5 @@ document.getElementById("grade").onclick=async()=>{
 fetch(SRC_URL).then(r=>r.text()).then(t=>{ ORIGINAL=t.replace(/\n$/,""); install(); })
   .catch(()=>{ document.getElementById("code").textContent="Couldn't load parts-controller.js. Open this page from the course site, not as a file."; });
 </script>
+<script src="pipeline.js"></script>
 </body></html>

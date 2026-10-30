@@ -83,6 +83,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
   <header>
     <div class="eyebrow">Coding with GPT · Session 2 · Opener, as a class</div>
     <h1>Read the plan before the code</h1>
+    <div data-pipeline></div>
     <p>Last time, the HinH parts lookup failed a scenario the story needs: a part number that isn't in the catalog gets a blank screen. We asked an AI to fix it. It drafted a plan and built the app from it. Run the scenarios first. When one fails, find the line in the plan that caused it.</p>
   </header>
 
@@ -303,4 +304,5 @@ ${l4}
 refresh();
 for(const p of catalog) results.append(rowFor(p));
 </script>
+<script src="pipeline.js"></script>
 </body></html>

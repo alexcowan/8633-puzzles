@@ -91,6 +91,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <header class="ws">
     <div class="eyebrow">Coding with GPT · Session 5 · Closer, as a class</div>
     <h1>What does the AI get to see?</h1>
+    <div data-pipeline></div>
   </header>
 
   <header class="ws">
@@ -205,4 +206,5 @@ keepFields(IDS);
 const LABELS=["What stays out","What goes in","HinH's advantage"];
 wireGrader("s5-context", ()=>({ context_picked: pickedText(), items: IDS.map((id,i)=>({label:LABELS[i], answer:val(id)})) }));
 </script>
+<script src="pipeline.js"></script>
 </body></html>

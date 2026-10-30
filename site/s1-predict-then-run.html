@@ -82,6 +82,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
   <header>
     <div class="eyebrow">Coding with GPT · Session 1 · In-class puzzle</div>
     <h1>Predict, then run</h1>
+    <div data-pipeline></div>
     <p>Below is a working 1.0 of the HVAC in a Hurry part lookup. The story it was built for:</p>
     <p><em>As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair.</em></p>
     <p>Five scenarios are started for you. For each one, write the <b>Then</b> before you touch the app. Then run it and compare. Finish by writing one scenario the story needs that this app fails.</p>
@@ -287,3 +288,4 @@ document.getElementById("check").onclick=async()=>{
 try{ const d=JSON.parse(localStorage.getItem("ptr-draft")||"null"); if(d){ [...document.querySelectorAll("textarea,input[type=text],input[type=radio]")].forEach((e,i)=>{ if(e.type==="radio") e.checked=!!d[i]; else if(d[i]!=null) e.value=d[i]; }); } }catch(e){}
 unlockCheck();
 </script>
+<script src="pipeline.js"></script>

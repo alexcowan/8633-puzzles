@@ -59,6 +59,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <header class="ws">
     <div class="eyebrow">Coding with GPT · Session 4 · Warm-up</div>
     <h1>The checkbox that does nothing</h1>
+    <div data-pipeline></div>
     <p>The story: <em>As Trent the Technician, I want to see only the parts that are in stock, so I don't quote a customer a part I can't get today.</em></p>
     <p>A designer cleaned up the parts page last week and added an “In stock only” checkbox. It's supposed to work on its own: tick it and the backordered parts disappear right away, whether or not you've searched; untick it and they come back. Search still works. The box does nothing. Your job is to find out why using your browser's developer tools on this page.</p>
   </header>
@@ -135,7 +136,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <p class="muted">Saved in this browser as you type, so reloading won't lose them.</p>
     <div class="q"><label for="a1">1. What did the Console tell you? Give the message in your own words, and the file and line it pointed to.</label><textarea id="a1"></textarea></div>
     <div class="q"><label for="a2">2. What two things are supposed to match, where does each one live, and which side changed?</label><textarea id="a2"></textarea></div>
-    <div class="q"><label for="a3">3. What one-line change would you commit, in which file? Why that side and not the other?</label><textarea id="a3"></textarea></div>
+    <div class="q"><label for="a3">3. What one-line change would you commit, in which file? Why that side and not the other?<span class="pl-tag">Delivery</span></label><textarea id="a3"></textarea></div>
   </section>
 
   <section class="ws panel">
@@ -247,4 +248,5 @@ document.getElementById("grade").onclick=async()=>{
   }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
 };
 </script>
+<script src="pipeline.js"></script>
 </body></html>

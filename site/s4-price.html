@@ -85,6 +85,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <header class="ws">
     <div class="eyebrow">Coding with GPT · Session 4 · In class, in pairs</div>
     <h1>Under a hundred dollars</h1>
+    <div data-pipeline></div>
   </header>
 
   <section class="ws panel">
@@ -215,7 +216,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <h2>Your answers</h2>
     <p class="muted">Saved in this browser as you type, so reloading won't lose them. Your Then and what he got, above, are part of your answers.</p>
     <div class="q"><label for="a2">2. Which assumption in the code is false? What did your observation print that showed you?</label><textarea id="a2"></textarea></div>
-    <div class="q"><label for="a3">3. What change would you commit, on which line or lines? Why there rather than somewhere else in the function?</label><textarea id="a3"></textarea></div>
+    <div class="q"><label for="a3">3. What change would you commit, on which line or lines? Why there rather than somewhere else in the function?<span class="pl-tag">Delivery</span></label><textarea id="a3"></textarea></div>
   </section>
 
   <section class="ws panel">
@@ -447,4 +448,5 @@ fetch(SRC_URL).then(r=>r.text()).then(t=>{
   showLast();
 }).catch(()=>{ document.getElementById("codewin").textContent="Couldn't load parts-controller.js. Open this page from the course site, not as a file."; });
 </script>
+<script src="pipeline.js"></script>
 </body></html>

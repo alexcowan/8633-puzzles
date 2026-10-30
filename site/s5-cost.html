@@ -93,6 +93,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <header class="ws">
     <div class="eyebrow">Coding with GPT · Session 5 · In class, in pairs</div>
     <h1>Who can see the cost?</h1>
+    <div data-pipeline></div>
   </header>
 
   <header class="ws">
@@ -270,4 +271,5 @@ wireGrader("s5-cost", ()=>{ const s=load(); return {
   items:[ {label:LABELS[0], answer:rolesText()} ].concat(IDS.map((id,i)=>({label:LABELS[i+1], answer:val(id)}))) }; },
   ()=>!!load().passed);
 </script>
+<script src="pipeline.js"></script>
 </body></html>

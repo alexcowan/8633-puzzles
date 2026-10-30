@@ -98,6 +98,7 @@ details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-
   <header>
     <div class="eyebrow">Coding with GPT · Session 2 · In class, at your table</div>
     <h1>Set up for Class 3</h1>
+    <div data-pipeline></div>
     <p>Next class you'll lay out one page of your product, and that work should go through version control. Today your team makes a new repo for its project code, gets it onto everyone's machine, and practices the loop you'll use from now on: make a change, stage it, commit it, push it.</p>
     <p>When you're done, help someone at your table who isn't. If you get stuck, write down where and why. That note is part of your Class 3 prep.</p>
   </header>
@@ -173,4 +174,5 @@ const boxes=[...document.querySelectorAll(".step > input")];
 try{ const d=JSON.parse(localStorage.getItem("gh-setup")||"[]"); boxes.forEach((b,i)=>b.checked=!!d[i]); }catch(e){}
 boxes.forEach(b=>b.onchange=()=>{ try{ localStorage.setItem("gh-setup", JSON.stringify(boxes.map(x=>x.checked))); }catch(e){} });
 </script>
+<script src="pipeline.js"></script>
 </body></html>

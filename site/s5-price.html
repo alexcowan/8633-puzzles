@@ -93,6 +93,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
   <header class="ws">
     <div class="eyebrow">Coding with GPT · Session 5 · Warm-up, as a class</div>
     <h1>The price that wouldn't update</h1>
+    <div data-pipeline></div>
   </header>
 
   <header class="ws">
@@ -239,4 +240,5 @@ keepFields(IDS);
 const LABELS=["What Trent saw","Your tables","The next price change","J-1047","The old invoice"];
 wireGrader("s5-price", ()=>({ items: IDS.map((id,i)=>({label:LABELS[i], answer:val(id)})) }));
 </script>
+<script src="pipeline.js"></script>
 </body></html>
