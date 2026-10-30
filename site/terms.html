@@ -61,6 +61,10 @@ select,input[type=search]{font:inherit;color:var(--fg);background:var(--bg);bord
 .entry{display:grid;gap:12px}
 /* Comments */
 .cmts{display:grid;gap:8px}
+details.cbox{margin-top:14px;border-top:1px solid var(--line-soft);padding-top:10px}
+details.cbox>summary{cursor:pointer;font-family:var(--serif);color:var(--head);font-size:17px}
+details.cbox>summary .n{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:6px}
+details.cbox>.cmts{margin-top:8px}
 .cmt{border-left:3px solid var(--line-soft);padding:2px 10px;font-size:15.5px}
 .cmt .who{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em}
 .cmt .del{background:transparent;color:var(--bad);border:0;padding:0 0 0 8px;font-size:12px;cursor:pointer}
@@ -125,6 +129,7 @@ select,input[type=search]{font:inherit;color:var(--fg);background:var(--bg);bord
     <div id="sort-grid"></div>
     <div class="row" style="margin-top:10px"><button id="sort-check" disabled>Check</button><button class="ghost" id="sort-next">Skip</button><span class="muted" id="sort-hint">Pick one in each row.</span></div>
     <div id="sort-reveal" hidden style="margin-top:16px"></div>
+    <div id="sort-cbox"></div>
     </div>
   </section>
 
@@ -1301,6 +1306,7 @@ function nextSort() {
   $("sort-term").textContent = cur.t;
   $("sort-sess").textContent = "Session " + cur.s;
   $("sort-reveal").hidden = true; $("sort-check").hidden = false; $("sort-check").disabled = true;
+  commentBox($("sort-cbox"), cur.id, {note: "Heads up: classmates' comments may give away where it lives. Place it first if you can."});
   $("sort-next").textContent = "Skip"; $("sort-hint").hidden = false;
   $("sort-grid").className = "";
   $("sort-grid").innerHTML = rowsOn().map(([k, q, list]) => `<div class="sortrow"><h3>${q}</h3><div class="chips" data-k="${k}">` +
@@ -1338,9 +1344,8 @@ $("sort-check").onclick = () => {
     row.append(d);
   });
   $("sort-reveal").innerHTML = `<div class="entry"><div><h3>What it means</h3><p style="margin:0">${cur.a}</p></div>
-    <div class="blk"><h3>What a manager does with it</h3><ol>${cur.do.map(d => `<li>${d}</li>`).join("")}</ol></div>
-    <div class="blk"><h3>Comments</h3><p class="muted" style="margin:0 0 6px;font-size:15px">Disagree with me? Good. Make the case here, or in class.</p><div class="cmts" data-term="${cur.id}"></div></div></div>`;
-  loadComments($("sort-reveal").querySelector(".cmts"));
+    <div class="blk"><h3>What a manager does with it</h3><ol>${cur.do.map(d => `<li>${d}</li>`).join("")}</ol></div></div>`;
+  commentBox($("sort-cbox"), cur.id, {open: true, note: "Disagree with me? Good. Make the case here, or in class."});
   $("sort-reveal").hidden = false; $("sort-check").hidden = true; $("sort-hint").hidden = true;
   $("sort-next").textContent = "Next term";
   updTally();
@@ -1362,6 +1367,7 @@ function answerUse(saidGood) {
   $("use-good").disabled = $("use-bad").disabled = true;
   $("use-reveal").innerHTML = `<div class="verdict ${uc.ok ? "" : "no"}"><b>${uc.ok ? "GOOD USE" : "MISUSE"}${right ? "" : " (not what you said)"}</b><br>${uc.why}
     <div style="margin-top:6px;font-size:15px"><a href="#" data-open="${uc.t.id}">More on ${esc(uc.t.t)}</a></div></div>`;
+  const cb = document.createElement("div"); $("use-reveal").append(cb); commentBox(cb, uc.t.id, {note: `Comments on ${esc(uc.t.t)}.`});
   $("use-reveal").hidden = false;
   $("use-tally").textContent = `${ut.right} of ${ut.n}`;
 }
@@ -1382,6 +1388,19 @@ function renderList() {
 }
 $("q").oninput = renderList;
 $("list").addEventListener("toggle", e => { const d = e.target; if (d.open) { const c = d.querySelector(".cmts"); if (c && !c.dataset.loaded) loadComments(c); } }, true);
+
+/* A collapsible comment thread for one term, with a count. Used on the sort card and the use-or-misuse verdict. */
+function commentBox(host, term, opts) {
+  opts = opts || {};
+  host.innerHTML = `<details class="cbox"><summary>Comments<span class="n"></span></summary>
+    ${opts.note ? `<p class="muted" style="margin:6px 0 0;font-size:15px">${opts.note}</p>` : ""}<div class="cmts" data-term="${term}"></div></details>`;
+  const d = host.querySelector("details"), box = d.querySelector(".cmts"), n = d.querySelector(".n");
+  d.addEventListener("toggle", () => { if (d.open && !box.dataset.loaded) loadComments(box); });
+  fetch(CAPI + "?term=" + encodeURIComponent(term)).then(r => r.json()).then(x => {
+    if (host.querySelector(".cmts") === box && x.comments) n.textContent = x.comments.length ? `(${x.comments.length})` : "(none yet)"; }).catch(() => {});
+  if (opts.open) d.open = true;
+  return d;
+}
 
 /* ---------- Comments ----------
    Public, initials only. Posting asks for the course number. ?instructor=CODE once in the URL turns on delete
