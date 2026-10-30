@@ -61,6 +61,13 @@ select,input[type=search]{font:inherit;color:var(--fg);background:var(--bg);bord
 .entry{display:grid;gap:12px}
 /* Comments */
 .cmts{display:grid;gap:8px}
+details.key{margin-top:14px;font-size:15.5px}
+details.key>summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px;font-size:15px}
+details.key p{margin:8px 0 0}
+.bp{display:grid;gap:8px;font-size:15.5px}
+.bp p{margin:0}
+.bp .lens{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:6px}
+.bp .pick{font-family:var(--serif);color:var(--head)}
 details.cbox{margin-top:14px;border-top:1px solid var(--line-soft);padding-top:10px}
 details.cbox>summary{cursor:pointer;font-family:var(--serif);color:var(--head);font-size:17px}
 details.cbox>summary .n{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:6px}
@@ -128,6 +135,12 @@ details.cbox>.cmts{margin-top:8px}
     <div class="termhead" style="margin:6px 0 4px"><h2 id="sort-term"></h2><span class="tag" id="sort-sess"></span></div>
     <div id="sort-grid"></div>
     <div class="row" style="margin-top:10px"><button id="sort-check" disabled>Check</button><button class="ghost" id="sort-next">Skip</button><span class="muted" id="sort-hint">Pick one in each row.</span></div>
+    <details class="key" id="key"><summary>What the choices mean</summary>
+    <p><b>The pipeline.</b> Everything a team does to go from an idea to a working user experience and back again, in four areas: continuous design, application development, continuous delivery, and hypothesis testing. Some terms are about this machinery around the app rather than the app itself.</p>
+    <p><b>MVC.</b> The app itself, in three parts. The Model is the data the app keeps. The View is what a user, or another machine, sees and uses. The Controller is the code that makes things happen between them. Some terms span all three.</p>
+    <p><b>The four steps.</b> How any one piece gets built, mostly inside application development. 1. Focusing and communicating design intent. 2. Unpacking what you want to have happen into codable steps. 3. Effectuating between alternatives. 4. Testing and debugging. Some terms don't belong to any one step.</p>
+    <p style="margin:0" id="legend-eng"><b>Engineering concepts.</b> <span id="concept-legend"></span></p>
+    </details>
     <div id="sort-reveal" hidden style="margin-top:16px"></div>
     <div id="sort-cbox"></div>
     </div>
@@ -151,13 +164,6 @@ details.cbox>.cmts{margin-top:8px}
     <div class="list" id="list"></div>
   </section>
 
-  <section class="panel" id="legend" style="font-size:15.5px">
-    <h3>The bigger picture</h3>
-    <p><b>The pipeline.</b> Everything a team does to go from an idea to a working user experience and back again, in four areas: continuous design, application development, continuous delivery, and hypothesis testing. Some terms are about this machinery around the app rather than the app itself.</p>
-    <p><b>MVC.</b> The app itself, in three parts. The Model is the data the app keeps. The View is what a user, or another machine, sees and uses. The Controller is the code that makes things happen between them. Some terms span all three.</p>
-    <p><b>The four steps.</b> How any one piece gets built, mostly inside application development. 1. Focusing and communicating design intent. 2. Unpacking what you want to have happen into codable steps. 3. Effectuating between alternatives. 4. Testing and debugging. Some terms don't belong to any one step.</p>
-    <p style="margin:0" id="legend-eng"><b>Engineering concepts.</b> <span id="concept-legend"></span></p>
-  </section>
 </main>
 
 <script>
@@ -182,7 +188,7 @@ const ENG = [
  ["none","None in particular","",3]];
 const TERMS = [
 // ---------------- Session 1 — Storytelling with Vibe Code ----------------
-{id:"oneoh", t:"1.0", s:1,
+{id:"oneoh", t:"1.0", s:1, pipe:"hyp", pipeWhy:`A 1.0 exists to start hypothesis testing: it's the first release you can observe real users on.`,
  a:`The first working version of a product, built as a starting point: a platform for experimentation and for developing the right user behaviors. It isn't the test of whether anyone wants the product. That comes first, as cheaply as possible, ideally without code. A 1.0 comes once demand looks real, to learn how people actually use it. What makes it a 1.0 and not just an AI artifact is that the team knows what it expects to happen.`,
  mvc:["all"], mvcWhy:`A 1.0 is the whole application, all three layers.`,
  steps:[1], stepWhy:`What makes it a 1.0 is the intent behind it: what you expect users to do.`,
@@ -194,7 +200,7 @@ const TERMS = [
  good:`Interviews and a sign-up page with no app behind it say technicians want to order parts online. Our 1.0 is a platform for finding out how they'll actually do it.`, goodWhy:`Demand tested cheaply first, then a 1.0 with an expectation attached.`,
  bad:`The 1.0 is done; now we can move on to the next product.`, badWhy:`A 1.0 is where the learning starts. Done means you've seen what users actually do with it.`},
 
-{id:"agentic", t:"Agentic vs. assistive", s:1,
+{id:"agentic", t:"Agentic vs. assistive", s:1, pipe:"dev", pipeWhy:`Today AI is agentic mostly in application development and delivery (code, tests, deployment) and assistive in design and in deciding what results mean.`,
  a:`Where AI is agentic, it can take a clear intention and act on it with little supervision: today that's code, tests, deployment, and inferences. Where it's assistive, it can help a great deal but shouldn't be driving: product priorities, ideas, designs, experiment design.`,
  mvc:["pipe"], mvcWhy:`It's about who does which part of the work across the pipeline, not about any one layer.`,
  steps:[1,2,4], stepWhy:`Intent (1) stays with you; AI is agentic at unpacking (2) and at testing (4) once the intent is clear and testable.`,
@@ -206,7 +212,7 @@ const TERMS = [
  good:`AI can be agentic on code and tests here, because the scenarios are clear; on priorities it's assistive.`, goodWhy:`The right split, for the right reason.`,
  bad:`We're agentic now: the team pastes ChatGPT answers into the code.`, badWhy:`Pasting suggestions is assistive. Agentic means the AI acts on a clear intention on its own.`},
 
-{id:"outcomes", t:"Output vs. outcomes", s:1,
+{id:"outcomes", t:"Output vs. outcomes", s:1, pipe:"hyp", pipeWhy:`Outcomes are what hypothesis testing measures. Output is what development ships.`,
  a:`Output is what a team ships. Outcomes are the user behaviors it was shipped to create. Output is not success: a feature that ships on time and that nobody uses is worth less than zero: it still has to be tested, maintained, and worked around.`,
  mvc:["pipe"], mvcWhy:`It's about how the whole pipeline is judged.`,
  steps:[1], stepWhy:`You can only judge outcomes if the intent said what behavior you were after.`,
@@ -218,7 +224,7 @@ const TERMS = [
  good:`We shipped all four stories on time; the outcome we're watching is whether technicians order online.`, goodWhy:`Output reported, outcome named.`,
  bad:`We had a great quarter: we shipped twelve features.`, badWhy:`That's output, and it's how a team talks when it's measured on shipping. Whether it was a great quarter depends on what users did.`},
 
-{id:"pipeline", t:"Product pipeline", s:1,
+{id:"pipeline", t:"Product pipeline", s:1, pipe:"all", pipeWhy:`It is the pipeline: continuous design, application development, continuous delivery, and hypothesis testing, in a loop.`,
  a:`The irreducible parts of going from an idea to a working user experience and back again, in four areas: continuous design (ideas, designs), application development (code), continuous delivery (tests, deployment), and hypothesis testing (experiment design, observations, inferences). Titles and tools vary; the work doesn't.`,
  mvc:["pipe"], mvcWhy:`It's the machinery around the app.`,
  steps:[1,2,3,4], stepWhy:`The four steps apply at every stage, including the infrastructure that tests and deploys the app.`,
@@ -231,7 +237,7 @@ const TERMS = [
  good:`Coding got faster, so the slow part of our pipeline is now observation: we don't know what users do.`, goodWhy:`Thinking about the whole pipeline, not just code.`,
  bad:`We bought a CI tool, so our pipeline's done.`, badWhy:`A tool is one piece. The pipeline runs from priorities to inferences.`},
 
-{id:"contdelivery", t:"Continuous delivery", s:1,
+{id:"contdelivery", t:"Continuous delivery", s:1, pipe:"delivery", pipeWhy:`It's one of the four areas: the one that makes releasing new code a non-event.`,
  a:`The part of the pipeline that gets code in front of users, reliably and repeatedly. Its job is making a release a non-event: a change goes into version control, the tests run, and if they pass, it's released.`,
  mvc:["pipe"], mvcWhy:`It's pipeline, around the app.`,
  steps:[4], stepWhy:`It depends on testing being automated.`,
@@ -243,7 +249,7 @@ const TERMS = [
  good:`A release is a non-event for us: if the tests pass, it goes out.`, goodWhy:`That's the goal of continuous delivery.`,
  bad:`We do continuous delivery: we release every quarter.`, badWhy:`Quarterly releases are the opposite. The point is releasing reliably, often, without drama.`},
 
-{id:"techdebt", t:"Technical debt", s:1,
+{id:"techdebt", t:"Technical debt", s:1, pipe:"dev", pipeWhy:`It builds up in application development and shows up as release friction in delivery: more manual testing, more bugs to fix.`,
  a:`Short-term decisions that make subsequent changes more expensive. Like financial debt, it isn't always bad: some is fine in a 1.0. Code nobody uses is debt too; it still has to be tested and worked around. It gets expensive when nobody knows it was taken on, or nobody pays it down.`,
  mvc:["all"], mvcWhy:`Any layer can carry it.`,
  steps:[3,4], stepWhy:`Most of it is taken on in step 3, when a quick choice beats a sound one. Missing automated tests are the most common kind, and test coverage (how much of the code the tests check) is the most practical way to see it.`,
@@ -256,7 +262,7 @@ const TERMS = [
  good:`We took on some debt in the 1.0 to learn faster; here's the list.`, goodWhy:`Debt taken on deliberately, and on record.`,
  bad:`Technical debt is what we owe our software vendors.`, badWhy:`It's the cost of change built up in your own code, not an invoice.`},
 
-{id:"persona", t:"Persona", s:1,
+{id:"persona", t:"Persona", s:1, pipe:"design", pipeWhy:`Continuous design starts here: who you're designing for, specific enough to test.`,
  a:`A specific hypothesis about who the user is, tested with interviews and screened with a question or two that tells you whether someone fits. It's never finished; it gets revised as you learn. At HinH it's Trent the Technician.`,
  mvc:["pipe"], mvcWhy:`It's an input to design, upstream of the app itself.`,
  steps:[1], stepWhy:`It focuses intent: who is this for?`,
@@ -268,7 +274,7 @@ const TERMS = [
  good:`Trent's screener is "How many HVAC repairs did you do last week?" More than four, he's our persona.`, goodWhy:`Specific and testable.`,
  bad:`Our persona is anyone who might need HVAC parts.`, badWhy:`That's a market, not a persona. It's too broad to test or design for.`},
 
-{id:"jtbd", t:"Job to be done (JTBD)", s:1,
+{id:"jtbd", t:"Job to be done (JTBD)", s:1, pipe:"design", pipeWhy:`It's the root of continuous design: the need, before any idea for meeting it.`,
  a:`An underlying need or desire the user has, where they're choosing among alternatives, including whatever they do today (the current alternative). Trent's job: getting replacement parts to a job site. His current alternative: call the office and wait for a call back.`,
  mvc:["pipe"], mvcWhy:`It's upstream of the app: a reason for it to exist.`,
  steps:[1], stepWhy:`It's the deepest layer of intent.`,
@@ -280,7 +286,7 @@ const TERMS = [
  good:`Trent's current alternative is calling the office, so we have to beat waiting for a call back.`, goodWhy:`A job, a current alternative, and a bar to clear.`,
  bad:`Trent's job to be done is to use our parts app.`, badWhy:`That's a solution. The job is getting parts to the site; the app is one way to do it.`},
 
-{id:"valueprop", t:"Value proposition", s:1,
+{id:"valueprop", t:"Value proposition", s:1, pipe:"design", pipeWhy:`Continuous design produces it, and hypothesis testing checks it.`,
  a:`A testable bet that a new alternative will do a user's job better than what they do today. It comes after the job to be done and the current alternative, and it's stated so you can tell whether it came true. At HinH: if technicians can look up and order parts online, they'll use it instead of calling the office, and repairs will get done faster.`,
  mvc:["pipe"], mvcWhy:`It's upstream of the app: the reason this version of it should exist.`,
  steps:[1], stepWhy:`It's intent: what you expect to be better, and for whom.`,
@@ -292,7 +298,7 @@ const TERMS = [
  good:`Our value proposition: technicians will order parts online instead of calling the office, and we'll see it in the share of orders placed online.`, goodWhy:`A bet against the current alternative, with a way to check it.`,
  bad:`Our value proposition is an AI-powered parts platform.`, badWhy:`That's a description of a product. A value proposition says what gets better for the user, compared with what they do today.`},
 
-{id:"declarative", t:"Declarative design", s:1,
+{id:"declarative", t:"Declarative design", s:1, pipe:"design", pipeWhy:`It's how continuous design hands work to development: what should be true, not how to build it.`,
  a:`A design that states the user behavior you want, and how you'll know it happened, and leaves open how to get there. User stories with their metrics, Given-When-Then, and a customer experience (CX) map are all declarative.`,
  mvc:["all"], mvcWhy:`Each layer has its declarative side: CSS declares how a View looks, a schema declares what the Model holds, scenarios declare what a Controller must produce.`,
  steps:[1], stepWhy:`It's how you focus and communicate intent without prescribing the code.`,
@@ -304,7 +310,7 @@ const TERMS = [
  good:`Our stories say what Trent can do; they don't say how the page decides.`, goodWhy:`The result, not the method.`,
  bad:`We kept it declarative: first query the parts, then loop through them, then color the backordered ones.`, badWhy:`That's a list of steps. Fine as a plan for step 2, but not declarative.`},
 
-{id:"story", t:"User story", s:1,
+{id:"story", t:"User story", s:1, pipe:"design", pipeWhy:`Stories are the hand-off from continuous design to application development, and the test of what comes back.`,
  a:`A testable micronarrative in three clauses: As a [persona], I want to [do something] so that I can [realize a testable reward]. It never prescribes the implementation. It's a hypothesis about what the user wants to do, and the reward is the most important clause and the one most often left out. At HinH: As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair.`,
  mvc:["all"], mvcWhy:`A story gets implemented across all three layers.`,
  steps:[1,4], stepWhy:`It focuses intent, and each story is ready to go as a test prompt.`,
@@ -317,7 +323,7 @@ const TERMS = [
  good:`The story doesn't say where the price comes from; that's a choice we can change later.`, goodWhy:`The story says what Trent needs, not how.`,
  bad:`As Trent, I want a dropdown on my phone that pulls from Postgres.`, badWhy:`That's a design and a stack written as a story. It hands the team the answer and hides the need.`},
 
-{id:"testprompt", t:"Test prompt", s:1,
+{id:"testprompt", t:"Test prompt", s:1, pipe:"design", pipeWhy:`It's how continuous design tests a story with real people, before and after code.`,
  a:`What you'd say to a real person to find out whether they can do what a story describes. For Trent: hand the subject a part with the part number visible, and ask them to find out whether it's available.`,
  mvc:["V"], mvcWhy:`It tests what a person can do on the View.`,
  steps:[1,4], stepWhy:`You write it with the story (intent) and use it to test with real people.`,
@@ -329,7 +335,7 @@ const TERMS = [
  good:`Hand him a part and ask whether he can get one today. Don't tell him where to click.`, goodWhy:`A real task, no hints about the UI.`,
  bad:`Our test prompt: "Do you like the new parts page?"`, badWhy:`That asks for an opinion. A test prompt gives someone a task and watches whether they can do it.`},
 
-{id:"oec", t:"Overall evaluation criterion (OEC)", s:1,
+{id:"oec", t:"Overall evaluation criterion (OEC)", s:1, pipe:"hyp", pipeWhy:`It's set in experiment design and judged in hypothesis testing.`,
  a:`What success means, in observable terms, including what must not get worse. For HinH: the share of parts orders placed online goes up, and customer satisfaction and billable hours don't fall.`,
  mvc:["pipe"], mvcWhy:`It's how the pipeline judges a release, outside the app itself.`,
  steps:[1], stepWhy:`It's intent, stated so it can be checked later.`,
@@ -341,7 +347,7 @@ const TERMS = [
  good:`Online orders should go up, and billable hours must not fall.`, goodWhy:`A target and a guardrail.`,
  bad:`Our OEC is that the feature ships by March.`, badWhy:`That's a deadline for output. An OEC is about what users do.`},
 
-{id:"gwt", t:"Given-When-Then (BDD)", s:1,
+{id:"gwt", t:"Given-When-Then (BDD)", s:1, pipe:"dev", pipeWhy:`Scenarios carry intent from design into development, and each one runs as a test in delivery.`,
  a:`Behavior-driven development (BDD) describes each behavior you expect as a scenario with three parts: Given states the circumstances, When states what the user does, and Then states what should be true afterward. It can name what the user does and sees, but not how the page is built or styled.`,
  mvc:["all"], mvcWhy:`A scenario describes behavior a user sees, which usually crosses all three layers.`,
  steps:[1,4], stepWhy:`You write scenarios as intent (1), and each one can be run as a test (4).`,
@@ -353,7 +359,7 @@ const TERMS = [
  good:`Given Trent has the part number, When he searches for it, Then he sees its price and whether it's available today.`, goodWhy:`A situation, an action, and a Then anyone can check.`,
  bad:`Given we use React, When the sprint ends, Then the feature is done.`, badWhy:`Nothing here is something a user does or sees, so there's nothing to check.`},
 
-{id:"dv", t:"Dependent variable (DV)", s:1,
+{id:"dv", t:"Dependent variable (DV)", s:1, pipe:"hyp", pipeWhy:`It's what hypothesis testing observes.`,
  a:`The measure of the user behavior you're after. A good DV is a rate or ratio, so you can tell from one sprint to the next whether a change moved it: for HinH, the share of parts orders placed online. The things the team might change to move it are the independent variables (IVs).`,
  mvc:["pipe"], mvcWhy:`It's how the pipeline measures outcomes.`,
  steps:[1,4], stepWhy:`You name it as intent and observe it after release.`,
@@ -366,7 +372,7 @@ const TERMS = [
  good:`Our DV is the share of parts orders placed online; onboarding is an IV we can change.`, goodWhy:`A ratio, and a lever.`,
  bad:`Our DV is total orders.`, badWhy:`A raw count rises with any growth. A ratio isolates the behavior you're after.`},
 
-{id:"line", t:"Line in the sand", s:1,
+{id:"line", t:"Line in the sand", s:1, pipe:"hyp", pipeWhy:`It's what turns hypothesis testing's observations into an inference: cleared or not.`,
  a:`The threshold, set before anything ships, that separates good from bad on the DV, along with a cutoff for when to judge it. For HinH engagement: 50% of parts orders online, 30 days after onboarding. Having a line and adjusting it deliberately beats not having one.`,
  mvc:["pipe"], mvcWhy:`It's part of experiment design, in the pipeline.`,
  steps:[1], stepWhy:`It's intent: what counts as success, decided in advance.`,
@@ -378,7 +384,7 @@ const TERMS = [
  good:`If fewer than half of orders are online after 30 days, we revise the onboarding.`, goodWhy:`A line, a cutoff, and a planned response.`,
  bad:`Let's launch and see what number looks good.`, badWhy:`Without a line set in advance, any result can be called a success.`},
 
-{id:"hyptest", t:"Hypothesis testing (and inference)", s:1,
+{id:"hyptest", t:"Hypothesis testing (and inference)", s:1, pipe:"hyp", pipeWhy:`It's one of the four areas: the one that closes the loop back to priorities.`,
  a:`The part of the pipeline that decides which features worked. It sets a focused definition of success through experiment design, observes what real users did, and draws an inference: did the result clear the line in the sand or not? Then kill, revise, or expand.`,
  mvc:["pipe"], mvcWhy:`It's pipeline, around the app.`,
  steps:[4], stepWhy:`It's testing, applied to what users do rather than to what the code does.`,
@@ -403,7 +409,7 @@ const TERMS = [
  good:`The price is wrong in the data, so changing the page's CSS won't fix it. It's a model problem.`, goodWhy:`Right layer, right fix.`,
  bad:`Which model does our MVC use, GPT or Claude?`, badWhy:`In MVC, the model is the app's data. An AI can be something a controller calls, but it isn't the model.`},
 
-{id:"stack", t:"Tech stack", s:2,
+{id:"stack", t:"Tech stack", s:2, pipe:"delivery", pipeWhy:`What's in the stack decides what delivery has to build, test, and run.`,
  a:`The layers your application sits on: your custom code and configuration, the bins and libs it uses, the operating system, and the hardware, plus the outside services it calls. Most apps are several stacks working together. How you stack your code is as important as how you write it, maybe more.`,
  mvc:["pipe"], mvcWhy:`It's what the whole app sits on.`,
  steps:[3], stepWhy:`Choosing what goes in each layer is effectuating between alternatives.`,
@@ -428,7 +434,7 @@ const TERMS = [
  good:`We used an open-source library for dates instead of writing our own.`, goodWhy:`Borrowed the generic part.`,
  bad:`We'll get today's stock from a distributor library.`, badWhy:`A library is code running in your app; it can't know what's on the distributor's shelf this morning. That's a service you call.`},
 
-{id:"config", t:"Configuration (and feature flags)", s:2,
+{id:"config", t:"Configuration (and feature flags)", s:2, pipe:"hyp", pipeWhy:`Feature flags let hypothesis testing show a variant to some users without a new release.`,
  a:`Data inside an application that changes its behavior without changing its underlying code. Feature flags are a kind: switches that turn a feature on or off for a given set of users, which is how A/B tests are often run.`,
  mvc:["M"], mvcWhy:`Configuration is data the app keeps and reads.`,
  steps:[3,4], stepWhy:`Deciding what should be configurable is a choice between alternatives, and flags are also a way to test a release on a slice of users.`,
@@ -440,7 +446,7 @@ const TERMS = [
  good:`The new search is behind a feature flag, so half the technicians see it.`, goodWhy:`A flag doing exactly its job.`,
  bad:`Feature flags are the colored labels on our backlog.`, badWhy:`They're switches in the running app, not labels in a planning tool.`},
 
-{id:"saas", t:"SaaS and PaaS", s:2,
+{id:"saas", t:"SaaS and PaaS", s:2, pipe:"delivery", pipeWhy:`Renting a platform hands much of delivery (servers, scaling, the OS) to the vendor.`,
  a:`Software-as-a-service: you configure an existing application (Salesforce, say) instead of writing one. Platform-as-a-service: a third party runs the underlying stack (Heroku, AWS Amplify) and you bring the app. Codeless and low-code stacks sit at the SaaS end. Some services sit in between, like Firebase: you call them for jobs like logins and data, and supply only configuration.`,
  mvc:["pipe"], mvcWhy:`These are choices about the stack underneath the app.`,
  steps:[3], stepWhy:`Build, rent, or buy is effectuating between alternatives.`,
@@ -465,7 +471,7 @@ const TERMS = [
  good:`Twilio's API is the easiest way to send the texts, but it's the most expensive per message.`, goodWhy:`An API as a building block, with its economics.`,
  bad:`The API calculates the price.`, badWhy:`An API is a view for machines. The calculation belongs to a controller behind it.`},
 
-{id:"buildbuy", t:"Build vs. buy, rent vs. own", s:2,
+{id:"buildbuy", t:"Build vs. buy, rent vs. own", s:2, pipe:"dev", pipeWhy:`It's the biggest economic choice in application development, and it sets what delivery has to run.`,
  a:`For any part of an application, you build, borrow, or buy. Borrowed code (a library, a snippet, what an AI suggests) still has to be maintained. The two classic mistakes: building what you should have bought, and renting what you needed to own. Early on, the first is far more common: the rent is visible and the cost of doing it yourself isn't. Build custom where the business is distinctive (Trent's parts app); buy off-the-shelf where it isn't (the corporate website).`,
  mvc:["all"], mvcWhy:`The choice comes up in every layer: a component library or a hand-built UI, a vendor's workflow or your own logic, a database cluster or a spreadsheet.`,
  steps:[3], stepWhy:`It's the heart of effectuating between alternatives.`,
@@ -477,7 +483,7 @@ const TERMS = [
  good:`We'll rent the login and build the parts lookup, because the lookup is our edge.`, goodWhy:`Rent the generic, own the distinctive.`,
  bad:`AI makes code free, so we should build everything ourselves.`, badWhy:`Writing it is cheap. Owning it, and securing it, isn't.`},
 
-{id:"puppy", t:"The free puppy (custom and borrowed code)", s:2,
+{id:"puppy", t:"The free puppy (custom and borrowed code)", s:2, pipe:"dev", pipeWhy:`Writing it is development's cost; owning it is everyone's, release after release.`,
  a:`Code that's free to get still has to be fed: maintained, secured, and changed. That's true of code an AI writes for you and of open-source code you borrow. An AI has to be told to weigh that.`,
  mvc:["all"], mvcWhy:`It's true of code in every layer.`,
  steps:[3], stepWhy:`It's the hidden cost in every build-or-borrow choice.`,
@@ -500,7 +506,7 @@ const TERMS = [
  good:`The plan has no step for zero results, and the story needs one, so we fixed the plan first.`, goodWhy:`Caught at the cheapest point.`,
  bad:`The pseudocode passed all the tests.`, badWhy:`Pseudocode doesn't run. It's checked by reading.`},
 
-{id:"vcs", t:"Version control (Git and GitHub)", s:2,
+{id:"vcs", t:"Version control (Git and GitHub)", s:2, pipe:"delivery", pipeWhy:`Everything in delivery starts from a commit: tests run on it, and releases are built from it.`,
  a:`A system that keeps a record of every change to a codebase and a way back to any version. The dominant one is Git, and the most common place to keep a Git repo is GitHub. A change that hasn't been committed doesn't exist.`,
  mvc:["pipe"], mvcWhy:`It's pipeline infrastructure around the app.`,
  steps:[4], stepWhy:`It's what makes testing safe: you can always get back to the last version that worked.`,
@@ -512,7 +518,7 @@ const TERMS = [
  good:`The page broke Tuesday, and the history shows one commit Monday night that changed it.`, goodWhy:`Version control answering the first debugging question.`,
  bad:`We use version control: the latest file is parts-final-v3.css in Dropbox.`, badWhy:`File names aren't history. You can't see what changed, who changed it, or why.`},
 
-{id:"repo", t:"Repository (repo)", s:2,
+{id:"repo", t:"Repository (repo)", s:2, pipe:"delivery", pipeWhy:`It's where delivery picks up the code it tests and releases.`,
  a:`A project's codebase under version control, with its full history. There's a remote copy (on GitHub) and a local copy on each person's computer; clone makes your local copy. With a well-organized repo, you can work with just about any programmer or AI coding tool.`,
  mvc:["pipe"], mvcWhy:`It holds all three layers' code, outside the running app.`,
  steps:[4], stepWhy:`Every test and every release runs against what's in it.`,
@@ -524,7 +530,7 @@ const TERMS = [
  good:`Our project code lives in the team repo; the caselet repo is just for reading.`, goodWhy:`Separate repos for separate jobs.`,
  bad:`The repo is the live website.`, badWhy:`The repo holds the code and its history. Getting it to users is deployment.`},
 
-{id:"commit", t:"Commit (and stage)", s:2,
+{id:"commit", t:"Commit (and stage)", s:2, pipe:"delivery", pipeWhy:`A commit is the unit delivery works with: on many teams each one sets off the tests.`,
  a:`A commit is a snapshot of the whole codebase with a short message from its author. Staging is how you choose which changes go into the commit and which wait. Small commits are easy to describe, review, and undo.`,
  mvc:["pipe"], mvcWhy:`It's version control, around the app.`,
  steps:[4], stepWhy:`Small commits make it easy to find which change broke something.`,
@@ -536,7 +542,7 @@ const TERMS = [
  good:`I staged only the CSS fix and committed it with the message "Show TH-7710 as in stock."`, goodWhy:`Small, staged on purpose, clearly described.`,
  bad:`I committed the fix, so customers have it now.`, badWhy:`A commit is a snapshot in the repo. Reaching users takes a push and a deploy.`},
 
-{id:"pushpull", t:"Push and pull", s:2,
+{id:"pushpull", t:"Push and pull", s:2, pipe:"delivery", pipeWhy:`A push to main is often what starts the tests and the release.`,
  a:`Push sends your commits to GitHub; until you push, no one else can see them. Pull brings your teammates' commits down to your copy. Pull before you start work.`,
  mvc:["pipe"], mvcWhy:`It moves work between copies of the repo.`,
  steps:[4], stepWhy:`Pulling first means you test against what everyone else has done.`,
@@ -548,7 +554,7 @@ const TERMS = [
  good:`Pull first, so I'm building on what the team already has.`, goodWhy:`Pull before work.`,
  bad:`I pulled my changes up to GitHub.`, badWhy:`That's a push. Pull brings changes down.`},
 
-{id:"branch", t:"Branch, main, and merge", s:2,
+{id:"branch", t:"Branch, main, and merge", s:2, pipe:"delivery", pipeWhy:`Merging into main is usually the moment delivery takes over: tests run, and if they pass, it ships.`,
  a:`Main (the trunk) is the version of the code the team treats as current. A branch is someone's own line of commits that begins from main. Merging adds those commits to main. If two people change the same line, Git stops and reports a conflict rather than guess.`,
  mvc:["pipe"], mvcWhy:`It's how the team coordinates changes around the app.`,
  steps:[4], stepWhy:`Work is tested on a branch before it's merged into main.`,
@@ -561,7 +567,7 @@ const TERMS = [
  bad:`Git merged our conflicting edits automatically, so we're fine.`, badWhy:`When two people change the same line, Git stops and asks. It doesn't guess.`},
 
 // Session 3 — The Jobs & Economics of UI's (OM-1823 /W)
-{id:"ui", t:"User interface (UI)", s:3,
+{id:"ui", t:"User interface (UI)", s:3, pipe:"design", pipeWhy:`Continuous design decides what the UI must let users do; development builds it.`,
  a:`What a user sees and works with. A UI has two jobs: make the user's job easy, and be amenable to change, because it will change more than any other part of the application.`,
  mvc:["V"], mvcWhy:`The UI is the View for people. (A machine's View is an API; more on that in Session 4.)`,
  steps:[1], stepWhy:`The stories say what the UI is for. The UI is working when a technician can walk through each story on it.`,
@@ -573,7 +579,7 @@ const TERMS = [
  good:`The UI has two jobs: make Trent's job easy, and be cheap to change, because it's going to change.`, goodWhy:`Both jobs. The second one is the one people forget.`,
  bad:`The UI is done once it matches the mockup.`, badWhy:`It's done when users can walk through the stories on it, on every form factor you've committed to, and it's still cheap to change.`},
 
-{id:"wireframe", t:"Wireframe", s:3,
+{id:"wireframe", t:"Wireframe", s:3, pipe:"design", pipeWhy:`It's a continuous design artifact: cheap to make, cheap to throw away.`,
  a:`A rough sketch of a screen: boxes and labels, no colors or polish. With the user stories and a style guide, it's one of the inputs to a view. It's the least crucial of those inputs and the most likely to change: one guess at how the stories might be satisfied.`,
  mvc:["V"], mvcWhy:`It sketches a View.`,
  steps:[1], stepWhy:`It's part of focusing and communicating intent, a cheap one to throw away.`,
@@ -597,7 +603,7 @@ const TERMS = [
  good:`On a phone the part photos fill the screen width and wrap to the next row; it's the same page as on a laptop.`, goodWhy:`One page that adapts. That's responsive.`,
  bad:`We'll make it responsive by building a separate phone version.`, badWhy:`That's two pages to keep in step. Responsive means one view that adapts.`},
 
-{id:"styleguide", t:"Style guide", s:3,
+{id:"styleguide", t:"Style guide", s:3, pipe:"design", pipeWhy:`It's where continuous design's visceral layer (the brand's look and feel) gets written down for development.`,
  a:`Keeps the product's look and feel consistent; at a minimum, which colors and typefaces to use. As the product grows, it becomes the list of components the design system provides and the names they go by.`,
  mvc:["V"], mvcWhy:`It governs how every View looks.`,
  steps:[1], stepWhy:`It's one of the inputs that communicates design intent. Consistency is also the easiest way to make an interface feel right at a glance.`,
@@ -609,7 +615,7 @@ const TERMS = [
  good:`The catalog card is in the style guide, so every parts page uses the same one.`, goodWhy:`That's the style guide doing its job: one name, one look, everywhere.`,
  bad:`Each page team keeps its own style guide.`, badWhy:`Then it isn't a guide. The point is one shared set of names and looks.`},
 
-{id:"designsystem", t:"Design system", s:3,
+{id:"designsystem", t:"Design system", s:3, pipe:"design", pipeWhy:`It's where design decisions become reusable code, owned between design and development.`,
  a:`The team's settled answers to recurring design questions (how should search results look?), kept where developers can find them and serve themselves without a hand-off. It includes the style guide and reusable HTML and CSS components; Tailwind CSS and Bootstrap are common starting points. At HinH, the pages change nearly every week and the design system a few times a year.`,
  mvc:["V"], mvcWhy:`It's the shared building material for Views.`,
  steps:[3], stepWhy:`Build your own CSS or use a design system is a choice between alternatives, and an economic decision more than a technical one.`,
@@ -729,7 +735,7 @@ const TERMS = [
  good:`The parts display is a grid container, and each part is a block inside it.`, goodWhy:`Container, then nested blocks. That's Grid.`,
  bad:`We chose Tailwind instead of CSS Grid.`, badWhy:`They aren't alternatives. Tailwind's grid classes are CSS Grid with shorter names.`},
 
-{id:"devtools", t:"DevTools", s:3,
+{id:"devtools", t:"DevTools", s:3, pipe:"dev", pipeWhy:`It's the everyday debugging tool in application development.`,
  a:`The debugger built into Chrome (and Chromium browsers). Right-click anything and choose Inspect. Elements shows the page's HTML, Styles shows which rules apply (winner on top), Computed shows each element's box model, and Console lets you talk to the page.`,
  mvc:["all"], mvcWhy:`You can see the View in Elements and Styles, and the Controller in the Console and Sources.`,
  steps:[4], stepWhy:`It's the main tool for testing and debugging in a browser.`,
@@ -741,7 +747,7 @@ const TERMS = [
  good:`The Styles pane shows the rule with the orange stripe winning, and the one we expected crossed out.`, goodWhy:`Observation, not guessing.`,
  bad:`I fixed it in DevTools, so it's fixed.`, badWhy:`Changes in DevTools last for that tab only. The fix still has to go into the file and be committed.`},
 
-{id:"analytical", t:"Analytical debugging", s:3,
+{id:"analytical", t:"Analytical debugging", s:3, pipe:"dev", pipeWhy:`It's how development finds out why a test failed, instead of guessing.`,
  a:`A deliberate, scientific approach to debugging: what did you expect, and what happened? Where should you look? Where's the tension between the two? Why does it behave that way, and what should change?`,
  mvc:["all"], mvcWhy:`It works on any layer.`,
  steps:[4], stepWhy:`It's how testing turns into a fix.`,
@@ -790,7 +796,7 @@ const TERMS = [
  good:`New page needs come into the design system first, then the page uses them.`, goodWhy:`The fast-changing thing depends on the slow-changing thing.`,
  bad:`We add CSS for each new page so the design system keeps up with the pages.`, badWhy:`That points the dependency the wrong way: the design system now depends on every page.`},
 
-{id:"readability", t:"Readability", s:3,
+{id:"readability", t:"Readability", s:3, pipe:"dev", pipeWhy:`Readable code is cheaper to change in development and safer to release in delivery.`,
  a:`Code gets read many more times than it gets written, and the reader is now, more often than not, an AI agent. Readable means consistent structure, names that say what a thing is, styles that live where the reader will look for them, and no exceptions hiding in-line.`,
  mvc:["all"], mvcWhy:`It applies to every layer.`,
  steps:[4], stepWhy:`You find out how readable code is when someone has to debug it.`,
@@ -815,7 +821,7 @@ const TERMS = [
  good:`The search algorithm: clean up what Trent typed, find the parts whose number starts with it, and sort them in-stock first.`, goodWhy:`Inputs, steps, output, in plain words.`,
  bad:`The algorithm decides the backordered stripe is orange.`, badWhy:`The algorithm can mark a part as backordered. How that looks is the View's (CSS's) job.`},
 
-{id:"determinism", t:"Determinism", s:4,
+{id:"determinism", t:"Determinism", s:4, pipe:"delivery", pipeWhy:`Automated tests in delivery only mean something if the code gives the same result every time.`,
  a:`Same inputs, same output, every time, with no hidden dependence on the clock, on a global variable, or on what the previous call left behind. The test: can you write the Then? An AI is probabilistic: it doesn't behave the same way twice. One side of an interface can be probabilistic only if the other side isn't.`,
  mvc:["C"], mvcWhy:`It's a property you want in a Controller.`,
  steps:[4], stepWhy:`Deterministic code can be tested once and trusted.`,
@@ -912,7 +918,7 @@ const TERMS = [
  good:`I logged price and maxPrice: price was "100" in quotes, which means it's text.`, goodWhy:`One observation, one false assumption found.`,
  bad:`No red in the Console, so the code's right.`, badWhy:`Code can run clean and do the wrong thing. That kind of bug takes an observation.`},
 
-{id:"dependency", t:"Dependency", s:4,
+{id:"dependency", t:"Dependency", s:4, pipe:"delivery", pipeWhy:`Each one is a way a release can break without anyone on your team changing anything.`,
  a:`Anything your code relies on that changes on its own schedule and fails in its own way. Each source of code (write it, borrow a library, call a service, ask an AI) is one. A controller has two clocks: the story changing, and everything around it changing.`,
  mvc:["all"], mvcWhy:`Any layer can have them.`,
  steps:[3], stepWhy:`Choosing between alternatives is choosing your dependencies.`,
@@ -924,7 +930,7 @@ const TERMS = [
  good:`Choosing the distributor's live API makes their format one of our dependencies.`, goodWhy:`A dependency named at the moment it's chosen.`,
  bad:`The design system depends on the parts page.`, badWhy:`Backwards at HinH. Pages depend on the design system.`},
 
-{id:"interface", t:"Interface (and adapter)", s:4,
+{id:"interface", t:"Interface (and adapter)", s:4, pipe:"delivery", pipeWhy:`A good seam means a vendor's change is one small, testable release instead of a rewrite.`,
  a:`Where you put the seam so one source can be swapped for another without touching the story's implementation. An adapter is the code on your side of it that fetches and reshapes the answer, so the algorithm sees only the shape it expects. For a library, the same job is done by a wrapper function you own.`,
  mvc:["C"], mvcWhy:`It's Controller code.`,
  steps:[3], stepWhy:`Where the interface goes is the real decision in step 3, more than which source.`,
@@ -936,7 +942,7 @@ const TERMS = [
  good:`The distributor renamed a field, and we only changed the adapter; the story's code didn't change.`, goodWhy:`The interface did its job.`,
  bad:`Put the distributor's field names right in showParts; it's simpler.`, badWhy:`Simpler today. Then their next change breaks the story's code instead of stopping at the adapter.`},
 
-{id:"service", t:"Service (vs. library)", s:4,
+{id:"service", t:"Service (vs. library)", s:4, pipe:"delivery", pipeWhy:`A service you call has its own releases, on its own schedule, and they can break yours.`,
  a:`A library is someone else's tested code, running inside your application. A service is someone else's code and data, running on their machine, that you call through an API. The distributor's live stock is a service; a date picker is a library.`,
  mvc:["C"], mvcWhy:`The Controller calls services and uses libraries.`,
  steps:[3], stepWhy:`Borrow a library or call a service: two of the step-3 options.`,
@@ -949,7 +955,7 @@ const TERMS = [
  good:`The distributor's API is current to the minute, but it's a service: their format, their uptime.`, goodWhy:`Clear on what you're depending on.`,
  bad:`We installed the distributor's service, so it's our code now.`, badWhy:`A service runs on the distributor's machine. You call it; you don't own it.`},
 
-{id:"clientserver", t:"Browser vs. server", s:4,
+{id:"clientserver", t:"Browser vs. server", s:4, pipe:"delivery", pipeWhy:`Server-side logic is released once for every client; browser logic ships with each page.`,
  a:`A controller in the browser is available to the technician's browser and nothing else. A controller on a server, behind an address other programs can call, is an interface HinH owns, usable by the parts page, the dispatch system, and AI agents alike. Anything sent to the browser can be seen there. An address other programs can call is also one that bots will find and probe.`,
  mvc:["C"], mvcWhy:`It's about where a Controller runs.`,
  steps:[3], stepWhy:`Where the logic runs is a choice between alternatives.`,
@@ -960,7 +966,7 @@ const TERMS = [
  good:`Dispatch needs the same lookup, so the rule moves to the server where both can call it.`, goodWhy:`One copy, many clients.`,
  bad:`We hid the cost with CSS, so it's secure.`, badWhy:`The cost still went to the browser. It's one click away in DevTools.`},
 
-{id:"machineview", t:"Machine view", s:4,
+{id:"machineview", t:"Machine view", s:4, pipe:"dev", pipeWhy:`Designing it is application development; it's design work for developers, so usability applies.`,
  a:`A view for a machine. Where a person's view has elements with properties like color and position, a machine's has named fields with properties like type and whether they're required. An API is a view because it declares what's available and in what shape, and says nothing about what happens.`,
  mvc:["V"], mvcWhy:`It's a View, for machines.`,
  steps:[3], stepWhy:`Offering one is a design choice; calling someone else's is a step-3 option.`,
@@ -985,7 +991,7 @@ const TERMS = [
  good:`The API returns price as a number, not in quotes, so the controller can compare it.`, goodWhy:`Types visible in the JSON.`,
  bad:`Store the prices in JSON so they're secure.`, badWhy:`JSON is a format, not a lock.`},
 
-{id:"mcp", t:"MCP (Model Context Protocol)", s:4,
+{id:"mcp", t:"MCP (Model Context Protocol)", s:4, pipe:"dev", pipeWhy:`Offering it is application development: a view, designed for an AI agent as the user.`,
  a:`A standard way of telling an AI agent what it can ask for and what it will get back: a machine view designed for agents. (The "model" in the name means an AI model; in this course, "model" otherwise always means the data model.)`,
  mvc:["V"], mvcWhy:`It's a machine view, for AI agents.`,
  steps:[3], stepWhy:`Whether and how to offer one is a choice between alternatives.`,
@@ -996,7 +1002,7 @@ const TERMS = [
  good:`The ordering agent looks up parts through MCP instead of scraping the parts page.`, goodWhy:`A machine view, for an agent.`,
  bad:`MCP is our data model.`, badWhy:`MCP is a way to offer a machine view to AI agents. The model is your data.`},
 
-{id:"localoverride", t:"Fix in the browser, keep in the repo", s:4,
+{id:"localoverride", t:"Fix in the browser, keep in the repo", s:4, pipe:"delivery", pipeWhy:`A fix isn't real until it goes through delivery: committed, tested, and released.`,
  a:`DevTools lets you change code and styles in your tab, and Local Overrides let your copy run from the start, as it would after a deploy. But a fix only counts once it's in the file in your repository, committed, and deployed by the pipeline. The browser is where you find and test a fix; the repository is where it lives.`,
  mvc:["pipe"], mvcWhy:`It's about how a fix gets from your tab to users.`,
  steps:[4], stepWhy:`After any change, reload and walk the Given-When-Then again. If it only works without a reload, it isn't a fix yet.`,
@@ -1009,7 +1015,7 @@ const TERMS = [
  bad:`I fixed it in DevTools, so it's fixed for everyone.`, badWhy:`DevTools changes your tab only. Nobody else has it until it's committed and deployed.`},
 
 // ---------------- Session 5 — The Jobs & Economics of Models ----------------
-{id:"datamodel", t:"Data model", s:5,
+{id:"datamodel", t:"Data model", s:5, pipe:"dev", pipeWhy:`It's application development's most expensive thing to change later.`,
  a:`Where the data lives. It has four jobs: represent what the business knows about the real-world things it cares about and how they relate; answer the questions the user stories ask, correctly and fast enough; hold up over change; and let the right people see and change the right things, and nobody else.`,
  mvc:["M"], mvcWhy:`It's the Model.`,
  steps:[2], stepWhy:`You map it from the stories: what does the app have to look up?`,
@@ -1022,7 +1028,7 @@ const TERMS = [
  good:`Our data model has parts, manufacturers, and reviews, and how they relate.`, goodWhy:`The things the business cares about, and their relationships.`,
  bad:`Our data model is GPT.`, badWhy:`That's an AI. In this course, the model is your data.`},
 
-{id:"migration", t:"Moving the data (migration)", s:5,
+{id:"migration", t:"Moving the data (migration)", s:5, pipe:"delivery", pipeWhy:`Moving the data is part of the release, and the hardest part to undo.`,
  a:`Change a model and you have to move the data: every record, without error, usually while the application keeps running, and often transformed on the way. That's why the model is where the cost of change is highest.`,
  mvc:["M"], mvcWhy:`It's about changing the Model.`,
  steps:[3], stepWhy:`It's the cost to weigh before choosing a model design.`,
@@ -1127,7 +1133,7 @@ const TERMS = [
  good:`The story needs a filter by manufacturer and a join with reviews.`, goodWhy:`The story, unpacked into operations.`,
  bad:`Sorting removes the parts we don't want.`, badWhy:`Sorting orders items. Removing them by criteria is filtering.`},
 
-{id:"normalization", t:"Normalization", s:5,
+{id:"normalization", t:"Normalization", s:5, pipe:"dev", pipeWhy:`It's settled in development; skipping it shows up later as reports that disagree.`,
  a:`DRY for data. Store data in components that are conceptually integral: each table represents a single entity, and columns don't depend on other columns. The test: if a fact changes, how many cells would you have to change? Poor normalization causes errors called anomalies.`,
  mvc:["M"], mvcWhy:`It's how the Model is structured.`,
  steps:[2], stepWhy:`It's how you check the way a model was unpacked.`,
@@ -1151,7 +1157,7 @@ const TERMS = [
  good:`Reviews from the old site were out of 10, so we scale them to 5 on import.`, goodWhy:`A common scale, applied once.`,
  bad:`We scaled the parts table into three smaller tables.`, badWhy:`Splitting tables so facts live in one place is normalization. Scaling converts values.`},
 
-{id:"featureeng", t:"Feature engineering", s:5,
+{id:"featureeng", t:"Feature engineering", s:5, pipe:"hyp", pipeWhy:`Engineered features often become the variables that hypothesis testing and analytics use.`,
  a:`Creating a new attribute from existing data so it can be used directly, like rating each distributor's delivery as reliable, variable, or unpredictable based on how much its delivery times have varied over six months.`,
  mvc:["M","C"], mvcWhy:`A controller computes it; the result is stored in, or alongside, the Model.`,
  steps:[2], stepWhy:`It's unpacking a judgment into something computable.`,
@@ -1162,7 +1168,7 @@ const TERMS = [
  good:`We engineered a delivery-reliability label for each distributor from its delivery history.`, goodWhy:`A new, usable attribute from existing data.`,
  bad:`Feature engineering is building new features into the app.`, badWhy:`Here "feature" means an attribute of the data, not a product feature.`},
 
-{id:"leastpriv", t:"Least privilege", s:5,
+{id:"leastpriv", t:"Least privilege", s:5, pipe:"delivery", pipeWhy:`Roles are enforced in what delivery releases, and they should be tested like anything else.`,
  a:`Every user, and every piece of code, gets the minimum access its job requires and no more. It's stated by role, not by person, because people change jobs and roles don't. Then a breach, or just a bug, can only reach what that role could reach.`,
  mvc:["M"], mvcWhy:`It's enforced where the data lives.`,
  steps:[1,3], stepWhy:`Who needs what is intent; where it's enforced is a choice.`,
@@ -1175,7 +1181,7 @@ const TERMS = [
  good:`Technicians can read parts and write their own reviews; the import utility can only write parts.`, goodWhy:`Minimum access, by role.`,
  bad:`Technicians can't see cost because the CSS hides it.`, badWhy:`The cost still reaches their browser. Least privilege means it's never sent.`},
 
-{id:"roles", t:"Roles and the access grid", s:5,
+{id:"roles", t:"Roles and the access grid", s:5, pipe:"design", pipeWhy:`Who should see what is a design decision first: it comes from the stories.`,
  a:`An access grid has roles down the side, entities across the top, and in each cell whether that role can read, write, or neither. The grid is not documentation; it's the specification. Postgres (row-level security) and Firebase (security rules) can enforce it directly. A machine user, like an AI agent, gets a role like anyone else.`,
  mvc:["M"], mvcWhy:`It's enforced in the Model.`,
  steps:[1], stepWhy:`The grid is intent: who should see and change what.`,
@@ -1187,7 +1193,7 @@ const TERMS = [
  good:`The ordering agent gets the parts-manager role's read access, and can only draft orders.`, goodWhy:`A machine user with a role.`,
  bad:`Each user gets their own permissions, set by hand.`, badWhy:`Roles, not people. People change jobs; roles don't.`},
 
-{id:"publicai", t:"Proprietary data and public AI", s:5,
+{id:"publicai", t:"Proprietary data and public AI", s:5, pipe:"design", pipeWhy:`Which data to bring to the AI is a design and strategy choice before it's code.`,
  a:`A public AI was trained on the public internet and on nothing of yours. Your proprietary data stays in the model, under your roles and your keys. Two firms on the same public AI differ by the data they bring to it.`,
  mvc:["M"], mvcWhy:`It's a question of data architecture.`,
  steps:[3], stepWhy:`How the AI gets your data is a choice between alternatives.`,
@@ -1199,7 +1205,7 @@ const TERMS = [
  good:`Anyone can use the same AI; our parts history and distributor data are what make our answers better.`, goodWhy:`The advantage is in the data.`,
  bad:`The AI knows our prices because it was trained on the internet.`, badWhy:`A public AI was trained on nothing of yours. It knows your prices only if you hand them over.`},
 
-{id:"rag", t:"Retrieval-augmented generation (RAG)", s:5,
+{id:"rag", t:"Retrieval-augmented generation (RAG)", s:5, pipe:"dev", pipeWhy:`It's built in application development: what to retrieve, as which role.`,
  a:`Handing the AI your data at the moment of the question: the controller retrieves the relevant records (the part, its reviews, the distributor's delivery history) and sends them with the question as context. It's cheap and current, and it can respect least privilege, if retrieval runs as the asking user's role.`,
  mvc:["C","M"], mvcWhy:`A controller retrieves from the Model and calls the AI.`,
  steps:[3], stepWhy:`RAG or training is a choice between alternatives.`,
@@ -1210,7 +1216,7 @@ const TERMS = [
  good:`When Trent asks about a part, we send the AI that part's reviews and delivery history with the question.`, goodWhy:`The data, at the moment of the question.`,
  bad:`We used RAG to teach the AI our catalog permanently.`, badWhy:`RAG doesn't change the AI. It hands over data for each question.`},
 
-{id:"finetune", t:"Training and fine-tuning", s:5,
+{id:"finetune", t:"Training and fine-tuning", s:5, pipe:"dev", pipeWhy:`It's a development choice with a delivery cost: every change to the facts means training again.`,
  a:`Changing the AI itself with your data. It's expensive, it goes stale the day after training, and it has no concept of roles. It suits teaching an AI patterns, and rarely facts.`,
  mvc:["M"], mvcWhy:`It's a data architecture choice.`,
  steps:[3], stepWhy:`Training or retrieval is a choice between alternatives.`,
@@ -1267,7 +1273,7 @@ function setThrough(n, push) {
 $("through").innerHTML = Array.from({length: maxS}, (_, i) => `<option value="${i+1}">Session ${i+1}</option>`).join("");
 $("through").onchange = e => setThrough(parseInt(e.target.value, 10), true);
 function legend() {
-  $("legend").hidden = through < 2;
+  $("key").hidden = through < 2;
   $("legend-eng").hidden = through < 3;
   $("concept-legend").innerHTML = engOn().filter(e => e[2]).map(e => `<b>${esc(e[1])}</b>: ${esc(e[2])}`).join(" ");
 }
@@ -1280,14 +1286,31 @@ function setMode(m) {
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => setMode(b.dataset.mode));
 document.addEventListener("click", e => { const a = e.target.closest("[data-mode-link]"); if (a) { e.preventDefault(); setMode(a.dataset.modeLink); } });
 
+/* The bigger picture for one term: where it sits in the pipeline, MVC, the four steps, and the engineering
+   concepts, and why. A lens that isn't pertinent to the term is left out. only: limit to some lenses. */
+const AREAS = {design:"Continuous design", dev:"Application development", delivery:"Continuous delivery", hyp:"Hypothesis testing", all:"All four areas"};
+function bigPicture(t, only, alts) {
+  const want = k => !only || only.includes(k), out = [];
+  const line = (lens, pick, why, rs, list) => `<p><span class="lens">${lens}</span><span class="pick">${pick}</span>. ${why}` +
+    (alts ? Object.entries(rs || {}).filter(([i]) => i !== "none" && i !== "0").map(([i, w]) => ` <span class="muted">Also reasonable: ${esc(label(list, i))}. ${w}</span>`).join("") : "") + `</p>`;
+  if (want("pipe") && t.pipe) out.push(line("Pipeline", AREAS[t.pipe], t.pipeWhy));
+  if (want("mvc") && through >= 2 && !(t.mvc.length === 1 && t.mvc[0] === "pipe"))
+    out.push(line("MVC", t.mvc.map(i => esc(label(MVC, i))).join(" or "), t.mvcWhy, reasonable(t, "mvc"), MVC));
+  if (want("steps") && through >= 2 && !t.steps.every(s => s === 0))
+    out.push(line("Four steps", t.steps.map(i => esc(label(STEPS, i))).join(" or "), t.stepWhy, reasonable(t, "steps"), STEPS));
+  const eng = accepted(t, "eng");
+  if (want("eng") && through >= 3 && !(eng.length === 1 && eng[0] === "none"))
+    out.push(line("Concepts", eng.map(i => esc(label(ENG, i))).join(" and "), t.engWhy, reasonable(t, "eng"), ENG));
+  return out.length ? `<div class="bp">${out.join("")}</div>` : "";
+}
+
 /* The (a)(b)(c) for a term */
 function entryHTML(t) {
   const lv = (name, ids, list, why, rs) => `<dt>${name}</dt><dd><b>${ids.map(i => esc(label(list, i))).join(" or ")}</b>. ${why}` +
     Object.entries(rs || {}).map(([i, w]) => ` <span class="muted">Also reasonable: ${esc(label(list, i))}. ${w}</span>`).join("") + `</dd>`;
   return `<div class="entry">
     <div><h3>What it means</h3><p style="margin:0">${t.a}</p></div>
-    ${through >= 2 ? `<div class="blk"><h3>Where it lives</h3>` : `<div hidden>`}<dl class="lives" style="margin:0">
-      ${through >= 2 ? lv("MVC", t.mvc, MVC, t.mvcWhy, reasonable(t, "mvc")) + lv("Step", t.steps, STEPS, t.stepWhy, reasonable(t, "steps")) : ""}${through >= 3 ? lv("Concept", accepted(t, "eng"), ENG, t.engWhy, reasonable(t, "eng")) : ""}</dl></div>
+    ${(bp => bp ? `<div class="blk"><h3>The bigger picture</h3>${bp}</div>` : "")(bigPicture(t, null, true))}
     <div class="blk"><h3>What a manager does with it</h3><ol>${t.do.map(d => `<li>${d}</li>`).join("")}</ol></div>
     <div class="blk"><h3>Comments</h3><div class="cmts" data-term="${t.id}"></div></div>
   </div>`;
@@ -1305,6 +1328,7 @@ function nextSort() {
   cur = sortQ.pop(); picks = {};
   $("sort-term").textContent = cur.t;
   $("sort-sess").textContent = "Session " + cur.s;
+  $("key").hidden = through < 2;
   $("sort-reveal").hidden = true; $("sort-check").hidden = false; $("sort-check").disabled = true;
   commentBox($("sort-cbox"), cur.id, {note: "Heads up: classmates' comments may give away where it lives. Place it first if you can."});
   $("sort-next").textContent = "Skip"; $("sort-hint").hidden = false;
@@ -1343,7 +1367,10 @@ $("sort-check").onclick = () => {
       : `<b class="no">I'D SAY ${names(acc).toUpperCase()}</b> ${cur[whyKey]}` + (others.length ? ` <span class="muted">${names(others)} would be reasonable too: ${others.map(i => rs[i]).join(" ")}</span>` : "");
     row.append(d);
   });
+  const bpPipe = bigPicture(cur, ["pipe"]);
+  $("key").open = false; $("key").hidden = true;
   $("sort-reveal").innerHTML = `<div class="entry"><div><h3>What it means</h3><p style="margin:0">${cur.a}</p></div>
+    ${bpPipe ? `<div class="blk"><h3>The bigger picture</h3>${bpPipe}</div>` : ""}
     <div class="blk"><h3>What a manager does with it</h3><ol>${cur.do.map(d => `<li>${d}</li>`).join("")}</ol></div></div>`;
   commentBox($("sort-cbox"), cur.id, {open: true, note: "Disagree with me? Good. Make the case here, or in class."});
   $("sort-reveal").hidden = false; $("sort-check").hidden = true; $("sort-hint").hidden = true;
