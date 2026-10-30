@@ -1311,7 +1311,7 @@ function entryHTML(t) {
   return `<div class="entry">
     <div><h3>What it means</h3><p style="margin:0">${t.a}</p></div>
     ${(bp => bp ? `<div class="blk"><h3>The bigger picture</h3>${bp}</div>` : "")(bigPicture(t, null, true))}
-    <div class="blk"><h3>What a manager does with it</h3><ol>${t.do.map(d => `<li>${d}</li>`).join("")}</ol></div>
+    <div class="blk"><h3>What a manager does with it (examples)</h3><ol>${t.do.map(d => `<li>${d}</li>`).join("")}</ol></div>
     <div class="blk"><h3>Comments</h3><div class="cmts" data-term="${t.id}"></div></div>
   </div>`;
 }
@@ -1362,16 +1362,17 @@ $("sort-check").onclick = () => {
     const d = document.createElement("div"); d.className = "why";
     const names = ids => esc(ids.map(i => label(list || ENG, i)).join(" or "));
     const others = Object.keys(rs);
-    d.innerHTML = ok ? `<b class="ok">SAME AS MINE</b> ${cur[whyKey]}` + (others.length ? ` <span class="muted">Also reasonable: ${names(others)}. ${others.map(i => rs[i]).join(" ")}</span>` : "")
-      : also ? `<b class="also">ALSO REASONABLE</b> ${rs[p]} I'd lead with <b style="font-family:inherit;font-size:inherit;letter-spacing:0">${names(acc)}</b>: ${cur[whyKey]}`
-      : `<b class="no">I'D SAY ${names(acc).toUpperCase()}</b> ${cur[whyKey]}` + (others.length ? ` <span class="muted">${names(others)} would be reasonable too: ${others.map(i => rs[i]).join(" ")}</span>` : "");
+    /* Verdict only; the reasons for my pick are in the bigger picture below. */
+    d.innerHTML = ok ? `<b class="ok">SAME AS MINE</b>` + (others.length ? ` <span class="muted">Also reasonable: ${names(others)}. ${others.map(i => rs[i]).join(" ")}</span>` : "")
+      : also ? `<b class="also">ALSO REASONABLE</b> ${rs[p]} I'd lead with <b style="font-family:inherit;font-size:inherit;letter-spacing:0">${names(acc)}</b>.`
+      : `<b class="no">I'D SAY ${names(acc).toUpperCase()}</b>` + (others.length ? ` <span class="muted">${names(others)} would be reasonable too: ${others.map(i => rs[i]).join(" ")}</span>` : "");
     row.append(d);
   });
-  const bpPipe = bigPicture(cur, ["pipe"]);
+  const bpPipe = bigPicture(cur, null, false);
   $("key").open = false; $("key").hidden = true;
   $("sort-reveal").innerHTML = `<div class="entry"><div><h3>What it means</h3><p style="margin:0">${cur.a}</p></div>
     ${bpPipe ? `<div class="blk"><h3>The bigger picture</h3>${bpPipe}</div>` : ""}
-    <div class="blk"><h3>What a manager does with it</h3><ol>${cur.do.map(d => `<li>${d}</li>`).join("")}</ol></div></div>`;
+    <div class="blk"><h3>What a manager does with it (examples)</h3><ol>${cur.do.map(d => `<li>${d}</li>`).join("")}</ol></div></div>`;
   commentBox($("sort-cbox"), cur.id, {open: true, note: "Disagree with me? Good. Make the case here, or in class."});
   $("sort-reveal").hidden = false; $("sort-check").hidden = true; $("sort-hint").hidden = true;
   $("sort-next").textContent = "Next term";
