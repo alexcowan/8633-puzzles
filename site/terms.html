@@ -1312,7 +1312,7 @@ function entryHTML(t) {
     <div><h3>What it means</h3><p style="margin:0">${t.a}</p></div>
     ${(bp => bp ? `<div class="blk"><h3>The bigger picture</h3>${bp}</div>` : "")(bigPicture(t, null, true))}
     <div class="blk"><h3>What a manager does with it (examples)</h3><ol>${t.do.map(d => `<li>${d}</li>`).join("")}</ol></div>
-    <div class="blk"><h3>Comments</h3><div class="cmts" data-term="${t.id}"></div></div>
+    <div class="blk"><h3>Comments on ${esc(t.t)}</h3><div class="cmts" data-term="${t.id}"></div></div>
   </div>`;
 }
 
@@ -1395,7 +1395,7 @@ function answerUse(saidGood) {
   $("use-good").disabled = $("use-bad").disabled = true;
   $("use-reveal").innerHTML = `<div class="verdict ${uc.ok ? "" : "no"}"><b>${uc.ok ? "GOOD USE" : "MISUSE"}${right ? "" : " (not what you said)"}</b><br>${uc.why}
     <div style="margin-top:6px;font-size:15px"><a href="#" data-open="${uc.t.id}">More on ${esc(uc.t.t)}</a></div></div>`;
-  const cb = document.createElement("div"); $("use-reveal").append(cb); commentBox(cb, uc.t.id, {note: `Comments on ${esc(uc.t.t)}.`});
+  const cb = document.createElement("div"); $("use-reveal").append(cb); commentBox(cb, uc.t.id);
   $("use-reveal").hidden = false;
   $("use-tally").textContent = `${ut.right} of ${ut.n}`;
 }
@@ -1420,7 +1420,7 @@ $("list").addEventListener("toggle", e => { const d = e.target; if (d.open) { co
 /* A collapsible comment thread for one term, with a count. Used on the sort card and the use-or-misuse verdict. */
 function commentBox(host, term, opts) {
   opts = opts || {};
-  host.innerHTML = `<details class="cbox"><summary>Comments<span class="n"></span></summary>
+  host.innerHTML = `<details class="cbox"><summary>Comments on ${esc((TERMS.find(x => x.id === term) || {t: term}).t)}<span class="n"></span></summary>
     ${opts.note ? `<p class="muted" style="margin:6px 0 0;font-size:15px">${opts.note}</p>` : ""}<div class="cmts" data-term="${term}"></div></details>`;
   const d = host.querySelector("details"), box = d.querySelector(".cmts"), n = d.querySelector(".n");
   d.addEventListener("toggle", () => { if (d.open && !box.dataset.loaded) loadComments(box); });
