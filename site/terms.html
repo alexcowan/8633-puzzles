@@ -128,7 +128,7 @@ details.cbox>.cmts{margin-top:8px}
 
   <div class="spread">
     <div class="tabs" role="tablist">
-      <button role="tab" id="tab-surprise" aria-selected="true" data-mode="surprise">Surprise me</button>
+      <button role="tab" id="tab-surprise" aria-selected="true" data-mode="surprise">Quiz me</button>
       <button role="tab" id="tab-list" aria-selected="false" data-mode="list">All the terms</button>
     </div>
     <label class="row" style="font-size:15px;min-width:0;max-width:100%">Terms through
@@ -148,7 +148,7 @@ details.cbox>.cmts{margin-top:8px}
     <div id="quiz-place">
       <h3 class="qhead">Where does it live?</h3>
       <div id="sort-grid"></div>
-      <div class="row" style="margin-top:10px"><button id="sort-check" disabled>Check</button><span class="muted" id="sort-hint">Pick one in each row.</span></div>
+      <div class="row" style="margin-top:10px"><button id="sort-check" disabled>Check</button><span class="muted" id="sort-hint">Pick the best option in each row (some are a little fuzzy).</span></div>
     <details class="key" id="key"><summary>What the choices mean</summary>
     <p><b>The pipeline.</b> Everything a team does to go from an idea to a working user experience and back again, in four areas: continuous design, application development, continuous delivery, and hypothesis testing. Some terms are about this machinery around the app rather than the app itself.</p>
     <p><b>MVC.</b> The app itself, in three parts. The Model is the data the app keeps. The View is what a user, or another machine, sees and uses. The Controller is the code that makes things happen between them. Some terms span all three.</p>
@@ -1287,7 +1287,7 @@ function legend() {
   $("concept-legend").innerHTML = engOn().filter(e => e[2]).map(e => `<b>${esc(e[1])}</b>: ${esc(e[2])}`).join(" ");
 }
 
-/* Modes: Surprise me deals random terms; All the terms lists them. Both open the same term view. */
+/* Modes: Quiz me deals random terms; All the terms lists them. Both open the same term view. */
 let mode = "surprise", fromList = false;
 function setMode(m) {
   mode = m;
