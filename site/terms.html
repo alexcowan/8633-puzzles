@@ -95,7 +95,7 @@ select,input[type=search]{font:inherit;color:var(--fg);background:var(--bg);bord
     <div class="eyebrow">Coding with GPT · <span id="through-label"></span></div>
     <h1>Terms, sorted</h1>
   </header>
-  <p>There are a lot of new words in this course. You don't need all of them. What you do need, for each one, is where it fits: which part of the app it belongs to, which of the four steps it comes up in, and which engineering idea it bears on. If you can place a term, you can ask good questions about it. Most terms have more than one sensible answer: we show ours (solid ring) and the ones we'd also call reasonable (dashed ring), with why. Nothing here is scored or recorded.</p>
+  <p>There are a lot of new words in this course. You don't need all of them. What you do need, for each one, is where it fits: which part of the app it belongs to, which of the four steps it comes up in, and which engineering idea it bears on. If you can place a term, you can ask good questions about it. Most terms have more than one sensible answer. I'll show you mine (solid ring) and the ones I'd also call reasonable (dashed ring), and why. Nothing here is scored or recorded.</p>
 
   <div class="spread">
     <div class="tabs" role="tablist">
@@ -168,7 +168,7 @@ const ENG = [
 const TERMS = [
 // ---------------- Session 1 — Storytelling with Vibe Code ----------------
 {id:"oneoh", t:"1.0", s:1,
- a:`The first working version of a product, built as a starting point: a platform for experimentation and for developing the right user behaviors. It isn't an MVP. An MVP tests whether anyone wants it, ideally without code; a 1.0 comes once demand looks real, to learn how people actually use it. What makes it a 1.0 and not just an AI artifact is that the team knows what it expects to happen.`,
+ a:`The first working version of a product, built as a starting point: a platform for experimentation and for developing the right user behaviors. It isn't the test of whether anyone wants the product. That comes first, as cheaply as possible, ideally without code. A 1.0 comes once demand looks real, to learn how people actually use it. What makes it a 1.0 and not just an AI artifact is that the team knows what it expects to happen.`,
  mvc:["all"], mvcWhy:`A 1.0 is the whole application, all three layers.`,
  steps:[1], stepWhy:`What makes it a 1.0 is the intent behind it: what you expect users to do.`,
  eng:["read","soc"], engWhy:`A 1.0 is meant to change. If the next person can't read and rework it, it's a dead end, not a platform.`,
@@ -176,7 +176,7 @@ const TERMS = [
  do:[`Before approving a 1.0, ask what the team expects users to do with it, and by when.`,
      `Ask what will be learned from it, and what result would make the team kill it.`,
      `Accept some technical debt in a 1.0, and write down which debt, so it's a choice and not an accident.`],
- good:`Interviews and a smoke test say technicians want to order parts online. Our 1.0 is a platform for finding out how they'll actually do it.`, goodWhy:`Demand tested cheaply first, then a 1.0 with an expectation attached.`,
+ good:`Interviews and a sign-up page with no app behind it say technicians want to order parts online. Our 1.0 is a platform for finding out how they'll actually do it.`, goodWhy:`Demand tested cheaply first, then a 1.0 with an expectation attached.`,
  bad:`The 1.0 is done; now we can move on to the next product.`, badWhy:`A 1.0 is where the learning starts. Done means you've seen what users actually do with it.`},
 
 {id:"agentic", t:"Agentic vs. assistive", s:1,
@@ -201,7 +201,7 @@ const TERMS = [
      `Ask for the behavior a feature is meant to create before it's prioritized.`,
      `Watch the cost per successful feature, not the cost per feature.`],
  good:`We shipped all four stories on time; the outcome we're watching is whether technicians order online.`, goodWhy:`Output reported, outcome named.`,
- bad:`We had a great quarter: we shipped twelve features.`, badWhy:`That's output, and it's how a feature factory talks. Whether it was a great quarter depends on what users did.`},
+ bad:`We had a great quarter: we shipped twelve features.`, badWhy:`That's output, and it's how a team talks when it's measured on shipping. Whether it was a great quarter depends on what users did.`},
 
 {id:"pipeline", t:"Product pipeline", s:1,
  a:`The irreducible parts of going from an idea to a working user experience and back again, in four areas: continuous design (ideas, designs), application development (code), continuous delivery (tests, deployment), and hypothesis testing (experiment design, observations, inferences). Titles and tools vary; the work doesn't.`,
@@ -231,7 +231,7 @@ const TERMS = [
 {id:"techdebt", t:"Technical debt", s:1,
  a:`Short-term decisions that make subsequent changes more expensive. Like financial debt, it isn't always bad: some is fine in a 1.0. Code nobody uses is debt too; it still has to be tested and worked around. It gets expensive when nobody knows it was taken on, or nobody pays it down.`,
  mvc:["all"], mvcWhy:`Any layer can carry it.`,
- steps:[3,4], stepWhy:`Most of it is taken on in step 3, when a quick choice beats a sound one. Missing automated tests are the most common kind, and test coverage is the most practical way to see it.`,
+ steps:[3,4], stepWhy:`Most of it is taken on in step 3, when a quick choice beats a sound one. Missing automated tests are the most common kind, and how much of the code the tests check is the most practical way to see it.`,
  eng:["dry","soc","dep","read"], engWhy:`All four ideas exist to keep the next change cheap.`,
  ok:{mvc:{pipe:`Tests and coverage, in the pipeline, are where you see it and pay it down.`}},
  do:[`When a shortcut is proposed, ask what it would cost to undo, and write it down.`,
@@ -242,9 +242,9 @@ const TERMS = [
  bad:`Technical debt is what we owe our software vendors.`, badWhy:`It's the cost of change built up in your own code, not an invoice.`},
 
 {id:"persona", t:"Persona", s:1,
- a:`A specific hypothesis about who the user is, tested with discovery interviews and screened with a question or two that tells you whether someone fits. It's never finished; it gets revised as you learn. At HinH it's Trent the Technician.`,
+ a:`A specific hypothesis about who the user is, tested with interviews and screened with a question or two that tells you whether someone fits. It's never finished; it gets revised as you learn. At HinH it's Trent the Technician.`,
  mvc:["pipe"], mvcWhy:`It's an input to design, upstream of the app itself.`,
- steps:[1], stepWhy:`It focuses intent: who are we building for?`,
+ steps:[1], stepWhy:`It focuses intent: who is this for?`,
  eng:["read"], engWhy:`A named persona makes every story easier for the next reader, or an AI, to interpret.`,
  ok:{eng:{none:`It's a design idea more than an engineering one.`}},
  do:[`Ask for the screener question. If there isn't one, the persona isn't specific enough to test.`,
@@ -254,7 +254,7 @@ const TERMS = [
  bad:`Our persona is anyone who might need HVAC parts.`, badWhy:`That's a market, not a persona. It's too broad to test or design for.`},
 
 {id:"jtbd", t:"Job to be done (JTBD)", s:1,
- a:`An underlying need or desire the user has, where they're choosing among alternatives, including whatever they do today (the current alternative). Trent's job: getting replacement parts to a job site. His current alternative: call the office and wait for a call back. Your value proposition is a testable bet that a new alternative beats it.`,
+ a:`An underlying need or desire the user has, where they're choosing among alternatives, including whatever they do today (the current alternative). Trent's job: getting replacement parts to a job site. His current alternative: call the office and wait for a call back. A new product is a testable bet that it can beat that.`,
  mvc:["pipe"], mvcWhy:`It's upstream of the app: a reason for it to exist.`,
  steps:[1], stepWhy:`It's the deepest layer of intent.`,
  eng:["soc"], engWhy:`It keeps the need separate from any solution to it.`,
@@ -278,9 +278,9 @@ const TERMS = [
  bad:`We kept it declarative: first query the parts, then loop through them, then color the backordered ones.`, badWhy:`That's a list of steps. Fine as a plan for step 2, but not declarative.`},
 
 {id:"story", t:"User story", s:1,
- a:`A testable micronarrative in three clauses: As a [persona], I want to [do something] so that I can [realize a testable reward]. It never prescribes the implementation. It's a working usability hypothesis, and the reward is the most important clause and the one most often left out. At HinH: As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair.`,
+ a:`A testable micronarrative in three clauses: As a [persona], I want to [do something] so that I can [realize a testable reward]. It never prescribes the implementation. It's a hypothesis about what the user wants to do, and the reward is the most important clause and the one most often left out. At HinH: As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair.`,
  mvc:["all"], mvcWhy:`A story gets implemented across all three layers.`,
- steps:[1,4], stepWhy:`It focuses intent, and each story is ready to go as an item in a usability test.`,
+ steps:[1,4], stepWhy:`It focuses intent, and each story is ready to go as a test prompt.`,
  eng:["soc"], engWhy:`It keeps what the user needs apart from how it's built. "On my phone" doesn't belong in it.`,
  ok:{mvc:{pipe:`Stories are the main input to the pipeline's design work.`}, eng:{read:`A good story is readable by anyone on the team.`}},
  do:[`Before approving work, ask which story it serves.`,
@@ -359,9 +359,9 @@ const TERMS = [
  ok:{steps:{1:`It starts with a focused definition of success.`}, eng:{none:`It's about outcomes more than code.`}},
  do:[`Ask for the inference after every release: cleared the line or not, and so what.`,
      `Don't accept simulated users as evidence. An AI's guess about users is one more idea.`,
-     `Ask what share of features clear their line. Testing ideas before they're coded is how you raise it. Controlled experiments win less often: Microsoft sees about a third.`],
+     `Ask what share of features clear their line. Testing ideas before they're coded is how you raise it. A/B tests win less often: Microsoft sees about a third.`],
  good:`Online ordering cleared the line, so we're expanding to the second region.`, goodWhy:`Observation, inference, decision.`,
- bad:`Our tests pass, so the hypothesis is confirmed.`, badWhy:`Passing tests confirm functional hypotheses: the software works as designed. Whether users want it takes observing what they do.`},
+ bad:`Our tests pass, so the hypothesis is confirmed.`, badWhy:`Passing tests show the software works as designed. Whether users want it takes observing what they do.`},
 
 // ---------------- Session 2 — Vibe Coding for MBAs ----------------
 {id:"mvc", t:"MVC (model-view-controller)", s:2,
@@ -414,7 +414,7 @@ const TERMS = [
  bad:`Feature flags are the colored labels on our backlog.`, badWhy:`They're switches in the running app, not labels in a planning tool.`},
 
 {id:"saas", t:"SaaS and PaaS", s:2,
- a:`Software-as-a-service: you configure an existing application (Salesforce, say) instead of writing one. Platform-as-a-service: a third party runs the underlying stack (Heroku, AWS Amplify) and you bring the app. Codeless and low-code stacks sit at the SaaS end. Backend-as-a-service (Firebase, Okta) sits in between: you call it for jobs like logins and data, and supply only configuration.`,
+ a:`Software-as-a-service: you configure an existing application (Salesforce, say) instead of writing one. Platform-as-a-service: a third party runs the underlying stack (Heroku, AWS Amplify) and you bring the app. Codeless and low-code stacks sit at the SaaS end. Some services sit in between, like Firebase: you call them for jobs like logins and data, and supply only configuration.`,
  mvc:["pipe"], mvcWhy:`These are choices about the stack underneath the app.`,
  steps:[3], stepWhy:`Build, rent, or buy is effectuating between alternatives.`,
  eng:["dep"], engWhy:`The more you rent, the more you depend on the vendor's choices, including how well they secure your data.`,
@@ -422,7 +422,7 @@ const TERMS = [
  do:[`Ask what you'd lose if you had to leave the vendor.`,
      `Use SaaS where you're not distinctive; ask before building custom there.`,
      `Early on, it's usually worth overpaying to move fast. Ask what the cost becomes at 10× usage, and plan to revisit it then.`,
-     `Ask what security the vendor commits to in the contract. A SOC 2 report is a start.`],
+     `Ask what security the vendor commits to in the contract, and how they prove it.`],
  good:`The corporate site is off-the-shelf; Trent's parts app is custom on a PaaS, because that's where HinH is distinctive.`, goodWhy:`Rent the generic, build the distinctive.`,
  bad:`We're on PaaS, so we don't write any code.`, badWhy:`On a PaaS you still write the app. That's SaaS, or no-code.`},
 
@@ -458,7 +458,7 @@ const TERMS = [
  do:[`Ask the AI (and the team) what existing component could do this before writing new code.`,
      `Ask how many lines a change added, and whether that's proportionate.`,
      `Count the cost of ownership, not the cost of writing, when comparing options.`],
- good:`The AI wrote a whole date-picker. We swapped in a popular, well-kept library, so a big community helps feed it.`, goodWhy:`Fewer puppies of our own, and the one we took on has lots of owners.`,
+ good:`The AI wrote a whole date-picker. We swapped in a popular, well-kept library, so a big community helps feed it.`, goodWhy:`Fewer puppies to feed alone. The one the team took on has lots of owners.`,
  bad:`The code was free to write, so it's free.`, badWhy:`It's free to write. Owning it costs money every month after.`},
 
 {id:"pseudocode", t:"Pseudocode (the plan)", s:2,
@@ -740,7 +740,7 @@ const TERMS = [
  bad:`We're DRY: we copied the working code to the new page so we don't write it again.`, badWhy:`Copying is repeating. DRY means both pages use one shared piece.`},
 
 {id:"soc", t:"Separation of concerns", s:3,
- a:`Each file does one job, and the next reader knows which file to open. The kitchen rule: a place for everything, and everything in its place. The test: is there exactly one place to look? The opposite is tight coupling: one job spread across places, so a change in one breaks another.`,
+ a:`Each file does one job, and the next reader knows which file to open. The kitchen rule: a place for everything, and everything in its place. The test: is there exactly one place to look? The opposite is one job spread across places, so a change in one breaks another.`,
  mvc:["all"], mvcWhy:`MVC itself is separation of concerns, and it continues inside each layer (HTML, CSS, JavaScript).`,
  steps:[2], stepWhy:`It's how you judge the way something was unpacked into code.`,
  eng:["soc"], engWhy:`It is one.`,
@@ -940,7 +940,7 @@ const TERMS = [
  eng:["read","soc","dry"], engWhy:`Readability first: an API's readers are the developers who call it, and its names, shapes and errors are its usability. That's the part teams under-invest in. Behind it, one controller serves two views, a page for Trent and an API for dispatch, with the rule in one place.`,
  ok:{steps:{2:`Designing its fields and types is part of unpacking.`}},
  do:[`Ask who reads the API: could a developer who's never seen it guess what each field means and what an error is telling them?`,
-     `Before signing off on a page, ask: if dispatch needed this data tomorrow, how much would we have to change?`,
+     `Before signing off on a page, ask: if dispatch needed this data tomorrow, how much would have to change?`,
      `For every machine view, ask whether it enforces the same access rules as the page.`,
      `Ask whether the API's contract (fields and types) is written down where callers can see it.`],
  good:`The parts page and the parts API are two views of the same controller.`, goodWhy:`A person's view and a machine's view.`,
@@ -1220,7 +1220,7 @@ const maxS = Math.max(...TERMS.map(t => t.s));
 const engOn = () => ENG.filter(e => e[3] <= through);
 const accepted = (t, k) => { if (k !== "eng") return t[k].map(String);
   const on = engOn().map(e => e[0]), a = t.eng.filter(x => on.includes(x)); return a.length ? a : ["none"]; };
-/* A second good answer: reasonable, with a note on why ours leads. Concepts not yet unlocked are left out. */
+/* A second good answer: reasonable, with a note on why the first pick leads. Concepts not yet unlocked are left out. */
 const reasonable = (t, k) => { const o = (t.ok && t.ok[k]) || {};
   if (k !== "eng") return o; const on = engOn().map(e => e[0]);
   return Object.fromEntries(Object.entries(o).filter(([x]) => on.includes(x) || x === "none")); };
@@ -1292,7 +1292,7 @@ function nextSort() {
 }
 function updTally() {
   const f = k => tally[k] + (tally[k + "R"] ? ` (+${tally[k + "R"]})` : "");
-  $("sort-tally").textContent = tally.n ? `Placed ${tally.n} · ours on MVC ${f("mvc")}, step ${f("step")}` + (through >= 3 ? `, concept ${f("eng")}` : "") + (tally.mvcR + tally.stepR + tally.engR ? " · (+) also reasonable" : "") : `${deck.length} terms`; }
+  $("sort-tally").textContent = tally.n ? `Placed ${tally.n} · matched me on MVC ${f("mvc")}, step ${f("step")}` + (through >= 3 ? `, concept ${f("eng")}` : "") + (tally.mvcR + tally.stepR + tally.engR ? " · (+) also reasonable" : "") : `${deck.length} terms`; }
 $("sort-check").onclick = () => {
   const g = $("sort-grid"); g.classList.add("locked");
   tally.n++;
@@ -1309,14 +1309,14 @@ $("sort-check").onclick = () => {
     const d = document.createElement("div"); d.className = "why";
     const names = ids => esc(ids.map(i => label(list || ENG, i)).join(" or "));
     const others = Object.keys(rs);
-    d.innerHTML = ok ? `<b class="ok">SAME AS OURS</b> ${cur[whyKey]}` + (others.length ? ` <span class="muted">Also reasonable: ${names(others)}. ${others.map(i => rs[i]).join(" ")}</span>` : "")
-      : also ? `<b class="also">ALSO REASONABLE</b> ${rs[p]} We'd lead with <b style="font-family:inherit;font-size:inherit;letter-spacing:0">${names(acc)}</b>: ${cur[whyKey]}`
-      : `<b class="no">WE'D SAY ${names(acc).toUpperCase()}</b> ${cur[whyKey]}` + (others.length ? ` <span class="muted">${names(others)} would be reasonable too: ${others.map(i => rs[i]).join(" ")}</span>` : "");
+    d.innerHTML = ok ? `<b class="ok">SAME AS MINE</b> ${cur[whyKey]}` + (others.length ? ` <span class="muted">Also reasonable: ${names(others)}. ${others.map(i => rs[i]).join(" ")}</span>` : "")
+      : also ? `<b class="also">ALSO REASONABLE</b> ${rs[p]} I'd lead with <b style="font-family:inherit;font-size:inherit;letter-spacing:0">${names(acc)}</b>: ${cur[whyKey]}`
+      : `<b class="no">I'D SAY ${names(acc).toUpperCase()}</b> ${cur[whyKey]}` + (others.length ? ` <span class="muted">${names(others)} would be reasonable too: ${others.map(i => rs[i]).join(" ")}</span>` : "");
     row.append(d);
   });
   $("sort-reveal").innerHTML = `<div class="entry"><div><h3>What it means</h3><p style="margin:0">${cur.a}</p></div>
     <div class="blk"><h3>What a manager does with it</h3><ol>${cur.do.map(d => `<li>${d}</li>`).join("")}</ol></div></div>
-    <p class="muted" style="margin-top:12px;font-size:15px">Disagree with us? Good. Be ready to make the case in class.</p>`;
+    <p class="muted" style="margin-top:12px;font-size:15px">Disagree with me? Good. Be ready to make the case in class.</p>`;
   $("sort-reveal").hidden = false; $("sort-check").hidden = true; $("sort-hint").hidden = true;
   $("sort-next").textContent = "Next term";
   updTally();
