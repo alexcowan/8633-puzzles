@@ -47,11 +47,12 @@ select,input[type=search]{font:inherit;color:var(--fg);background:var(--bg);bord
 .chip{background:var(--bg);color:var(--fg);border:1px solid var(--line-soft);border-radius:999px;padding:4px 12px;font-size:15px}
 .chip[aria-pressed=true]{background:var(--head);color:var(--bg);border-color:var(--head)}
 .chip.ours{box-shadow:inset 0 0 0 2px var(--ok)}
+.chip.also{outline:2px dashed var(--ok);outline-offset:-2px}
 .chip.miss{text-decoration:line-through;text-decoration-color:var(--bad)}
 .locked .chip{cursor:default}
 .why{font-size:15.5px;border-left:3px solid var(--second);padding:4px 10px;margin-top:4px}
 .why b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
-.why b.ok{color:var(--ok)} .why b.no{color:var(--bad)}
+.why b.ok{color:var(--ok)} .why b.no{color:var(--bad)} .why b.also{color:var(--second)}
 .termhead{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
 .tag{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em}
 .tally{font-family:var(--mono);font-size:13px;color:var(--muted)}
@@ -94,7 +95,7 @@ select,input[type=search]{font:inherit;color:var(--fg);background:var(--bg);bord
     <div class="eyebrow">Coding with GPT · <span id="through-label"></span></div>
     <h1>Terms, sorted</h1>
   </header>
-  <p>There are a lot of new words in this course. You don't need all of them. What you do need, for each one, is where it fits: which part of the app it belongs to, which of the four steps it comes up in, and which engineering idea it bears on. If you can place a term, you can ask good questions about it. Nothing here is scored or recorded.</p>
+  <p>There are a lot of new words in this course. You don't need all of them. What you do need, for each one, is where it fits: which part of the app it belongs to, which of the four steps it comes up in, and which engineering idea it bears on. If you can place a term, you can ask good questions about it. Most terms have more than one sensible answer: we show ours (solid ring) and the ones we'd also call reasonable (dashed ring), with why. Nothing here is scored or recorded.</p>
 
   <div class="spread">
     <div class="tabs" role="tablist">
@@ -155,7 +156,7 @@ select,input[type=search]{font:inherit;color:var(--fg);background:var(--bg);bord
    good/goodWhy, bad/badWhy: one sentence each for Good use or misuse
    ===================================================================== */
 const MVC = [["M","Model"],["V","View"],["C","Controller"],["all","All three"],["pipe","Around the app (the pipeline)"]];
-const STEPS = [[1,"1 · Focus intent"],[2,"2 · Unpack"],[3,"3 · Effectuate between alternatives"],[4,"4 · Test & debug"]];
+const STEPS = [[1,"1 · Focus intent"],[2,"2 · Unpack"],[3,"3 · Effectuate between alternatives"],[4,"4 · Test & debug"],[0,"None in particular"]];
 const ENG = [
  ["dry","DRY","Don't repeat yourself: every fact lives in exactly one place.",3],
  ["soc","Separation of concerns","Each piece does one job, so there's exactly one place to look.",3],
@@ -167,14 +168,15 @@ const ENG = [
 const TERMS = [
 // ---------------- Session 1 — Storytelling with Vibe Code ----------------
 {id:"oneoh", t:"1.0", s:1,
- a:`The first working version of a product, built as a starting point: a platform for experimentation and for developing the right user behaviors. What makes it a 1.0 and not just an AI artifact is that the team knows what it expects to happen.`,
+ a:`The first working version of a product, built as a starting point: a platform for experimentation and for developing the right user behaviors. It isn't an MVP. An MVP tests whether anyone wants it, ideally without code; a 1.0 comes once demand looks real, to learn how people actually use it. What makes it a 1.0 and not just an AI artifact is that the team knows what it expects to happen.`,
  mvc:["all"], mvcWhy:`A 1.0 is the whole application, all three layers.`,
  steps:[1], stepWhy:`What makes it a 1.0 is the intent behind it: what you expect users to do.`,
  eng:["read","soc"], engWhy:`A 1.0 is meant to change. If the next person can't read and rework it, it's a dead end, not a platform.`,
+ ok:{mvc:{pipe:`It's also a pipeline milestone: the release that starts the learning.`}, steps:{3:`Deciding what's in and out of it is a choice between alternatives.`}, eng:{none:`It's a product idea more than an engineering one.`}},
  do:[`Before approving a 1.0, ask what the team expects users to do with it, and by when.`,
      `Ask what will be learned from it, and what result would make the team kill it.`,
      `Accept some technical debt in a 1.0, and write down which debt, so it's a choice and not an accident.`],
- good:`Our 1.0 is a platform for finding out whether technicians will order parts online.`, goodWhy:`A starting point with an expectation attached.`,
+ good:`Interviews and a smoke test say technicians want to order parts online. Our 1.0 is a platform for finding out how they'll actually do it.`, goodWhy:`Demand tested cheaply first, then a 1.0 with an expectation attached.`,
  bad:`The 1.0 is done; now we can move on to the next product.`, badWhy:`A 1.0 is where the learning starts. Done means you've seen what users actually do with it.`},
 
 {id:"agentic", t:"Agentic vs. assistive", s:1,
@@ -182,6 +184,7 @@ const TERMS = [
  mvc:["pipe"], mvcWhy:`It's about who does which part of the work across the pipeline, not about any one layer.`,
  steps:[1,2,4], stepWhy:`Intent (1) stays with you; AI is agentic at unpacking (2) and at testing (4) once the intent is clear and testable.`,
  eng:["read"], engWhy:`When AI acts on its own, someone still has to be able to read what it did.`,
+ ok:{mvc:{all:`An agent can act on any layer.`}, steps:{3:`How much to hand an agent is a choice between alternatives.`}, eng:{det:`Agents aren't deterministic, which is why the intent has to be clear.`}},
  do:[`Decide, and write down, where AI may act without review and where it may only propose.`,
      `When AI-built code comes back wrong, look upstream first: the fix is usually an intention that wasn't clear or testable.`,
      `Don't leave priorities to the AI. That's not delegation; it's abdication.`],
@@ -189,24 +192,27 @@ const TERMS = [
  bad:`We're agentic now: the team pastes ChatGPT answers into the code.`, badWhy:`Pasting suggestions is assistive. Agentic means the AI acts on a clear intention on its own.`},
 
 {id:"outcomes", t:"Output vs. outcomes", s:1,
- a:`Output is what a team ships. Outcomes are the user behaviors it was shipped to create. Output is not success: a feature that ships on time and that nobody uses is worth zero.`,
+ a:`Output is what a team ships. Outcomes are the user behaviors it was shipped to create. Output is not success: a feature that ships on time and that nobody uses is worth less than zero: it still has to be tested, maintained, and worked around.`,
  mvc:["pipe"], mvcWhy:`It's about how the whole pipeline is judged.`,
  steps:[1], stepWhy:`You can only judge outcomes if the intent said what behavior you were after.`,
  eng:["none"], engWhy:`It's about the economics of the work, not about how code is built.`,
+ ok:{steps:{4:`You find out about outcomes by testing with users.`}},
  do:[`In status meetings, ask what users did differently, not just what shipped.`,
      `Ask for the behavior a feature is meant to create before it's prioritized.`,
      `Watch the cost per successful feature, not the cost per feature.`],
  good:`We shipped all four stories on time; the outcome we're watching is whether technicians order online.`, goodWhy:`Output reported, outcome named.`,
- bad:`We had a great quarter: we shipped twelve features.`, badWhy:`That's output. Whether it was a great quarter depends on what users did.`},
+ bad:`We had a great quarter: we shipped twelve features.`, badWhy:`That's output, and it's how a feature factory talks. Whether it was a great quarter depends on what users did.`},
 
 {id:"pipeline", t:"Product pipeline", s:1,
- a:`The irreducible parts of going from an idea to a working user experience and back again: product priorities, ideas, designs, code, tests, deployment, experiment design, observations, and inferences. Titles and tools vary; the work doesn't.`,
+ a:`The irreducible parts of going from an idea to a working user experience and back again, in four areas: continuous design (ideas, designs), application development (code), continuous delivery (tests, deployment), and hypothesis testing (experiment design, observations, inferences). Titles and tools vary; the work doesn't.`,
  mvc:["pipe"], mvcWhy:`It's the machinery around the app.`,
  steps:[1,2,3,4], stepWhy:`The four steps apply at every stage, including the infrastructure that tests and deploys the app.`,
  eng:["dry"], engWhy:`Anything done by hand on every release is a repeat; automating it is DRY applied to work.`,
+ ok:{steps:{0:`It's around all four steps rather than one of them.`}, eng:{soc:`Each area of the pipeline does one job.`}},
  do:[`Ask where in your pipeline a human must look before work goes further, and who that is today.`,
      `Ask how long a one-line change takes to reach users. If nobody knows, measure that first.`,
-     `When adopting AI, ask which pipeline steps it should drive and which it should only assist.`],
+     `When adopting AI, ask which pipeline steps it should drive and which it should only assist.`,
+     `Ask where security questions come up. If the answer is "at the end," it's too late.`],
  good:`Coding got faster, so the slow part of our pipeline is now observation: we don't know what users do.`, goodWhy:`Thinking about the whole pipeline, not just code.`,
  bad:`We bought a CI tool, so our pipeline's done.`, badWhy:`A tool is one piece. The pipeline runs from priorities to inferences.`},
 
@@ -215,6 +221,7 @@ const TERMS = [
  mvc:["pipe"], mvcWhy:`It's pipeline, around the app.`,
  steps:[4], stepWhy:`It depends on testing being automated.`,
  eng:["dry"], engWhy:`Every manual release step repeated each time is a candidate for automation.`,
+ ok:{eng:{det:`A release done the same way every time is deterministic.`}},
  do:[`Ask how many times a week the team can release, and what stops it from being more.`,
      `Ask what share of the team's time goes to manual testing and fixing bugs (release friction).`,
      `Ask what happens when a release goes wrong, and how long it takes to undo.`],
@@ -222,21 +229,24 @@ const TERMS = [
  bad:`We do continuous delivery: we release every quarter.`, badWhy:`Quarterly releases are the opposite. The point is releasing reliably, often, without drama.`},
 
 {id:"techdebt", t:"Technical debt", s:1,
- a:`Short-term decisions that make subsequent changes more expensive. Like financial debt, it isn't always bad: some is fine in a 1.0. It gets expensive when nobody knows it was taken on.`,
+ a:`Short-term decisions that make subsequent changes more expensive. Like financial debt, it isn't always bad: some is fine in a 1.0. Code nobody uses is debt too; it still has to be tested and worked around. It gets expensive when nobody knows it was taken on, or nobody pays it down.`,
  mvc:["all"], mvcWhy:`Any layer can carry it.`,
- steps:[3], stepWhy:`Most of it is taken on in step 3, when a quick choice beats a sound one.`,
+ steps:[3,4], stepWhy:`Most of it is taken on in step 3, when a quick choice beats a sound one. Missing automated tests are the most common kind, and test coverage is the most practical way to see it.`,
  eng:["dry","soc","dep","read"], engWhy:`All four ideas exist to keep the next change cheap.`,
+ ok:{mvc:{pipe:`Tests and coverage, in the pipeline, are where you see it and pay it down.`}},
  do:[`When a shortcut is proposed, ask what it would cost to undo, and write it down.`,
      `Track how long similar changes take over time. Rising times are debt coming due.`,
-     `Budget time to pay it down, the way you'd plan to pay down a loan.`],
+     `Budget time to pay it down. About 20% of each sprint is a common rule.`,
+     `Ask which items on the debt list are security shortcuts. That debt comes due all at once.`],
  good:`We took on some debt in the 1.0 to learn faster; here's the list.`, goodWhy:`Debt taken on deliberately, and on record.`,
  bad:`Technical debt is what we owe our software vendors.`, badWhy:`It's the cost of change built up in your own code, not an invoice.`},
 
 {id:"persona", t:"Persona", s:1,
- a:`A specific assumption about who the user is, specific enough to test, often with a screener question that tells you whether someone fits. At HinH it's Trent the Technician.`,
+ a:`A specific hypothesis about who the user is, tested with discovery interviews and screened with a question or two that tells you whether someone fits. It's never finished; it gets revised as you learn. At HinH it's Trent the Technician.`,
  mvc:["pipe"], mvcWhy:`It's an input to design, upstream of the app itself.`,
  steps:[1], stepWhy:`It focuses intent: who are we building for?`,
  eng:["read"], engWhy:`A named persona makes every story easier for the next reader, or an AI, to interpret.`,
+ ok:{eng:{none:`It's a design idea more than an engineering one.`}},
  do:[`Ask for the screener question. If there isn't one, the persona isn't specific enough to test.`,
      `When a feature is debated, ask which persona it's for.`,
      `Ask when the team last talked to someone who fits the persona.`],
@@ -244,10 +254,11 @@ const TERMS = [
  bad:`Our persona is anyone who might need HVAC parts.`, badWhy:`That's a market, not a persona. It's too broad to test or design for.`},
 
 {id:"jtbd", t:"Job to be done (JTBD)", s:1,
- a:`An underlying need or desire the user has, where they're choosing among alternatives, including whatever they do today (the current alternative). Trent's job: getting replacement parts to a job site. His current alternative: call the office and wait for a call back.`,
+ a:`An underlying need or desire the user has, where they're choosing among alternatives, including whatever they do today (the current alternative). Trent's job: getting replacement parts to a job site. His current alternative: call the office and wait for a call back. Your value proposition is a testable bet that a new alternative beats it.`,
  mvc:["pipe"], mvcWhy:`It's upstream of the app: a reason for it to exist.`,
  steps:[1], stepWhy:`It's the deepest layer of intent.`,
  eng:["soc"], engWhy:`It keeps the need separate from any solution to it.`,
+ ok:{eng:{none:`It's a design idea more than an engineering one.`}},
  do:[`Ask what the user does today instead. If it's "nothing," ask again.`,
      `Ask how the product is better than the current alternative, in the user's terms.`,
      `When a feature request comes in, ask which job it serves.`],
@@ -255,10 +266,11 @@ const TERMS = [
  bad:`Trent's job to be done is to use our parts app.`, badWhy:`That's a solution. The job is getting parts to the site; the app is one way to do it.`},
 
 {id:"declarative", t:"Declarative design", s:1,
- a:`A design that states the result you want and leaves open how to get there. User stories, Given-When-Then, and a customer experience (CX) map are all declarative.`,
+ a:`A design that states the user behavior you want, and how you'll know it happened, and leaves open how to get there. User stories with their metrics, Given-When-Then, and a customer experience (CX) map are all declarative.`,
  mvc:["all"], mvcWhy:`Each layer has its declarative side: CSS declares how a View looks, a schema declares what the Model holds, scenarios declare what a Controller must produce.`,
  steps:[1], stepWhy:`It's how you focus and communicate intent without prescribing the code.`,
  eng:["soc","read"], engWhy:`It keeps what you want apart from how it's built, and it's easier to read and check.`,
+ ok:{mvc:{pipe:`DVs and the line in the sand are declarative too, and they live in the pipeline.`}, steps:{4:`A declarative statement is what you test against.`}, eng:{det:`A good declarative statement has one right answer you can check.`}},
  do:[`When a spec reads like instructions to a programmer, ask for it as what should be true when it's done.`,
      `Prefer requirements someone (or an AI) can check against the running app without reading code.`,
      `Ask whether a design leaves room for the team to find a better way.`],
@@ -266,13 +278,15 @@ const TERMS = [
  bad:`We kept it declarative: first query the parts, then loop through them, then color the backordered ones.`, badWhy:`That's a list of steps. Fine as a plan for step 2, but not declarative.`},
 
 {id:"story", t:"User story", s:1,
- a:`A testable micronarrative in three clauses: As a [persona], I want to [do something] so that I can [realize a testable reward]. It never prescribes the implementation. At HinH: As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair.`,
+ a:`A testable micronarrative in three clauses: As a [persona], I want to [do something] so that I can [realize a testable reward]. It never prescribes the implementation. It's a working usability hypothesis, and the reward is the most important clause and the one most often left out. At HinH: As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair.`,
  mvc:["all"], mvcWhy:`A story gets implemented across all three layers.`,
- steps:[1], stepWhy:`It's the main tool for focusing and communicating intent.`,
+ steps:[1,4], stepWhy:`It focuses intent, and each story is ready to go as an item in a usability test.`,
  eng:["soc"], engWhy:`It keeps what the user needs apart from how it's built. "On my phone" doesn't belong in it.`,
+ ok:{mvc:{pipe:`Stories are the main input to the pipeline's design work.`}, eng:{read:`A good story is readable by anyone on the team.`}},
  do:[`Before approving work, ask which story it serves.`,
      `Read stories for implementation that crept in (a screen, a device, a database) and move it out.`,
-     `Ask whether the reward is testable: how would you know Trent got it?`],
+     `Ask whether the reward is testable: how would you know Trent got it?`,
+     `Write stories with the team, not for it. A story is a reminder to have a conversation.`],
  good:`The story doesn't say where the price comes from; that's a choice we can change later.`, goodWhy:`The story says what Trent needs, not how.`,
  bad:`As Trent, I want a dropdown on my phone that pulls from Postgres.`, badWhy:`That's a design and a stack written as a story. It hands the team the answer and hides the need.`},
 
@@ -281,6 +295,7 @@ const TERMS = [
  mvc:["V"], mvcWhy:`It tests what a person can do on the View.`,
  steps:[1,4], stepWhy:`You write it with the story (intent) and use it to test with real people.`,
  eng:["soc"], engWhy:`It tests the need, without saying how the screen works.`,
+ ok:{mvc:{pipe:`Running it is hypothesis testing, which is pipeline work.`}, eng:{none:`It's a design and research tool more than an engineering idea.`}},
  do:[`Ask for the test prompt with each story. If no one can write one, the story isn't testable yet.`,
      `Watch one real test yourself. It's the fastest way to learn what's true.`,
      `Check that the prompt doesn't give away the answer ("click the search box").`],
@@ -292,6 +307,7 @@ const TERMS = [
  mvc:["pipe"], mvcWhy:`It's how the pipeline judges a release, outside the app itself.`,
  steps:[1], stepWhy:`It's intent, stated so it can be checked later.`,
  eng:["read"], engWhy:`A clear OEC lets anyone, including an AI, tell whether something worked.`,
+ ok:{steps:{4:`It's what testing measures against.`}, eng:{none:`It's about outcomes more than code.`}},
  do:[`Ask what must not get worse. Leaving it out is how you get the paperclip problem.`,
      `Ask for the OEC before anything ships, not after.`,
      `When an AI agent is involved, ask for agent-specific measures: how often its work is accepted, corrected, or reversed.`],
@@ -299,10 +315,11 @@ const TERMS = [
  bad:`Our OEC is that the feature ships by March.`, badWhy:`That's a deadline for output. An OEC is about what users do.`},
 
 {id:"gwt", t:"Given-When-Then (BDD)", s:1,
- a:`Behavior-driven development (BDD) describes each behavior you expect as a scenario with three parts: Given states the circumstances, When states what the user does, and Then states what should be true afterward. It says nothing about screens, buttons, or colors.`,
+ a:`Behavior-driven development (BDD) describes each behavior you expect as a scenario with three parts: Given states the circumstances, When states what the user does, and Then states what should be true afterward. It can name what the user does and sees, but not how the page is built or styled.`,
  mvc:["all"], mvcWhy:`A scenario describes behavior a user sees, which usually crosses all three layers.`,
  steps:[1,4], stepWhy:`You write scenarios as intent (1), and each one can be run as a test (4).`,
  eng:["det","read"], engWhy:`A good Then has one right answer you can check (determinism), and anyone can read what it expects.`,
+ ok:{mvc:{pipe:`Automated, the scenarios run in the pipeline on every change.`}, steps:{2:`Writing scenarios is also how a story gets unpacked.`}},
  do:[`Ask for the Then before the build.`,
      `When a bug report comes in, have it restated as a scenario that currently fails.`,
      `Ask whether each story has scenarios for the unhappy paths: nothing found, nothing typed, something unavailable.`],
@@ -310,13 +327,15 @@ const TERMS = [
  bad:`Given we use React, When the sprint ends, Then the feature is done.`, badWhy:`Nothing here is something a user does or sees, so there's nothing to check.`},
 
 {id:"dv", t:"Dependent variable (DV)", s:1,
- a:`The measure of the user behavior you're after. A good DV is a ratio: for HinH, the share of parts orders placed online. The things the team might change to move it are the independent variables (IVs).`,
+ a:`The measure of the user behavior you're after. A good DV is a rate or ratio, so you can tell from one sprint to the next whether a change moved it: for HinH, the share of parts orders placed online. The things the team might change to move it are the independent variables (IVs).`,
  mvc:["pipe"], mvcWhy:`It's how the pipeline measures outcomes.`,
  steps:[1,4], stepWhy:`You name it as intent and observe it after release.`,
  eng:["read"], engWhy:`A precise DV is one everyone reads the same way.`,
+ ok:{eng:{none:`It's about outcomes more than code.`}},
  do:[`Ask what the DV is for each experiment, as a ratio.`,
      `Ask whether the product records the DV yet. If not, that's a story too.`,
-     `Ask which IVs the team plans to change, one at a time.`],
+     `Ask which IVs the team plans to change, one at a time.`,
+     `Ask what the team will do differently based on it. A DV nobody acts on isn't worth tracking.`],
  good:`Our DV is the share of parts orders placed online; onboarding is an IV we can change.`, goodWhy:`A ratio, and a lever.`,
  bad:`Our DV is total orders.`, badWhy:`A raw count rises with any growth. A ratio isolates the behavior you're after.`},
 
@@ -325,6 +344,7 @@ const TERMS = [
  mvc:["pipe"], mvcWhy:`It's part of experiment design, in the pipeline.`,
  steps:[1], stepWhy:`It's intent: what counts as success, decided in advance.`,
  eng:["det","read"], engWhy:`A line set in advance makes the inference a check anyone can read, not an argument.`,
+ ok:{steps:{4:`It's applied when the results come in.`}},
  do:[`Ask for the line before launch. Lines drawn afterward always get cleared.`,
      `Ask what the team will do if it falls short: kill, revise, or expand.`,
      `Revisit lines deliberately, not quietly.`],
@@ -336,11 +356,12 @@ const TERMS = [
  mvc:["pipe"], mvcWhy:`It's pipeline, around the app.`,
  steps:[4], stepWhy:`It's testing, applied to what users do rather than to what the code does.`,
  eng:["read"], engWhy:`The inference should be readable by anyone: here's the line, here's the result.`,
+ ok:{steps:{1:`It starts with a focused definition of success.`}, eng:{none:`It's about outcomes more than code.`}},
  do:[`Ask for the inference after every release: cleared the line or not, and so what.`,
      `Don't accept simulated users as evidence. An AI's guess about users is one more idea.`,
-     `Ask how many experiments succeed. At Google and Microsoft it's 10–30%; a team at 90% isn't testing much.`],
+     `Ask what share of features clear their line. Testing ideas before they're coded is how you raise it. Controlled experiments win less often: Microsoft sees about a third.`],
  good:`Online ordering cleared the line, so we're expanding to the second region.`, goodWhy:`Observation, inference, decision.`,
- bad:`Our tests pass, so the hypothesis is confirmed.`, badWhy:`Tests check the software does what was intended. Whether users want it takes observing users.`},
+ bad:`Our tests pass, so the hypothesis is confirmed.`, badWhy:`Passing tests confirm functional hypotheses: the software works as designed. Whether users want it takes observing what they do.`},
 
 // ---------------- Session 2 — Vibe Coding for MBAs ----------------
 {id:"mvc", t:"MVC (model-view-controller)", s:2,
@@ -348,6 +369,7 @@ const TERMS = [
  mvc:["all"], mvcWhy:`It's the map itself.`,
  steps:[2], stepWhy:`It's how you unpack an application into pieces you can build and check.`,
  eng:["soc"], engWhy:`MVC is separation of concerns at the scale of a whole application.`,
+ ok:{steps:{3:`Where a feature's logic goes is often a choice.`}, eng:{dep:`Views depend on controllers, and controllers on the model.`}},
  do:[`When you hear a new term, ask: is it about the model, the view, or the controller?`,
      `When a fix is proposed, ask which layer it's in and whether that's where the problem is.`,
      `Ask how many layers a change touches. "All three" is bigger than it sounds in a standup.`],
@@ -355,10 +377,11 @@ const TERMS = [
  bad:`Which model does our MVC use, GPT or Claude?`, badWhy:`In MVC, the model is the app's data. An AI can be something a controller calls, but it isn't the model.`},
 
 {id:"stack", t:"Tech stack", s:2,
- a:`The layers your application sits on: your custom code (the app), the bins and libs it uses, the operating system, and the hardware. How you stack your code is as important as how you write it, maybe more.`,
+ a:`The layers your application sits on: your custom code and configuration, the bins and libs it uses, the operating system, and the hardware, plus the outside services it calls. Most apps are several stacks working together. How you stack your code is as important as how you write it, maybe more.`,
  mvc:["pipe"], mvcWhy:`It's what the whole app sits on.`,
  steps:[3], stepWhy:`Choosing what goes in each layer is effectuating between alternatives.`,
  eng:["dep"], engWhy:`Every layer you don't own is something you depend on.`,
+ ok:{mvc:{all:`Every layer of the app runs on it.`}},
  do:[`Ask for the stack on one slide: what's custom, what's borrowed, what's rented.`,
      `Ask which layers the team owns and which a vendor does.`,
      `Ask what it would take to move off each rented layer.`],
@@ -370,31 +393,36 @@ const TERMS = [
  mvc:["C","V"], mvcWhy:`Usually Controller code, though UI libraries live in the View.`,
  steps:[3], stepWhy:`Borrowing instead of writing is a step-3 choice.`,
  eng:["dep"], engWhy:`Your code depends on them, and each one changes on its own schedule.`,
+ ok:{mvc:{all:`Models use them too, like a database driver.`}, steps:{4:`They're also where a lot of bugs come from.`}, eng:{dry:`Using one means not rewriting what someone already wrote.`}},
  do:[`Before writing something common (login, dates, charts), ask whether a well-kept library already does it.`,
-     `Ask how many libraries the app depends on, and who watches them for security fixes.`,
-     `Ask whether the AI chose a library or wrote its own version. AI tends to write its own.`],
+     `Ask how many libraries the app depends on, how the team hears about their security fixes, and how fast it patches.`,
+     `Ask whether the AI chose a library or wrote its own version. AI tends to write its own.`,
+     `For each library, ask how active it is. A project with 1,000 contributors beats one with 10.`],
  good:`We used an open-source library for dates instead of writing our own.`, goodWhy:`Borrowed the generic part.`,
  bad:`We'll get today's stock from a distributor library.`, badWhy:`A library is code running in your app; it can't know what's on the distributor's shelf this morning. That's a service you call.`},
 
 {id:"config", t:"Configuration (and feature flags)", s:2,
  a:`Data inside an application that changes its behavior without changing its underlying code. Feature flags are a kind: switches that turn a feature on or off for a given set of users, which is how A/B tests are often run.`,
  mvc:["M"], mvcWhy:`Configuration is data the app keeps and reads.`,
- steps:[3], stepWhy:`Deciding what should be configurable rather than coded is a choice between alternatives.`,
- eng:["soc"], engWhy:`It keeps what changes often (settings) apart from what doesn't (code).`,
+ steps:[3,4], stepWhy:`Deciding what should be configurable is a choice between alternatives, and flags are also a way to test a release on a slice of users.`,
+ eng:["soc","lp"], engWhy:`It keeps what changes often (settings) apart from what doesn't (code). And some settings are security: who can reach what, and what's public.`,
+ ok:{mvc:{pipe:`Feature flags are also a release and testing tool in the pipeline.`}},
  do:[`Ask which changes can be made by configuration, without a release.`,
-     `Ask for new features behind a flag, so they can be turned off without a rollback.`,
-     `Ask who can change configuration in production, and whether it's recorded.`],
+     `Ask for new features behind a flag, and ask when each flag comes out. A flag left in after launch is technical debt.`,
+     `Ask who can change configuration in production, which settings control access, and whether changes are recorded.`],
  good:`The new search is behind a feature flag, so half the technicians see it.`, goodWhy:`A flag doing exactly its job.`,
  bad:`Feature flags are the colored labels on our backlog.`, badWhy:`They're switches in the running app, not labels in a planning tool.`},
 
 {id:"saas", t:"SaaS and PaaS", s:2,
- a:`Software-as-a-service: you configure an existing application (Salesforce, say) instead of writing one. Platform-as-a-service: a third party runs the underlying stack (Heroku, AWS Amplify) and you bring the app. Codeless and low-code stacks sit at the SaaS end.`,
+ a:`Software-as-a-service: you configure an existing application (Salesforce, say) instead of writing one. Platform-as-a-service: a third party runs the underlying stack (Heroku, AWS Amplify) and you bring the app. Codeless and low-code stacks sit at the SaaS end. Backend-as-a-service (Firebase, Okta) sits in between: you call it for jobs like logins and data, and supply only configuration.`,
  mvc:["pipe"], mvcWhy:`These are choices about the stack underneath the app.`,
  steps:[3], stepWhy:`Build, rent, or buy is effectuating between alternatives.`,
- eng:["dep"], engWhy:`The more you rent, the more you depend on the vendor's choices.`,
+ eng:["dep"], engWhy:`The more you rent, the more you depend on the vendor's choices, including how well they secure your data.`,
+ ok:{mvc:{all:`What you rent can cover every layer.`}},
  do:[`Ask what you'd lose if you had to leave the vendor.`,
      `Use SaaS where you're not distinctive; ask before building custom there.`,
-     `Ask what the monthly cost becomes at 10× today's usage.`],
+     `Early on, it's usually worth overpaying to move fast. Ask what the cost becomes at 10× usage, and plan to revisit it then.`,
+     `Ask what security the vendor commits to in the contract. A SOC 2 report is a start.`],
  good:`The corporate site is off-the-shelf; Trent's parts app is custom on a PaaS, because that's where HinH is distinctive.`, goodWhy:`Rent the generic, build the distinctive.`,
  bad:`We're on PaaS, so we don't write any code.`, badWhy:`On a PaaS you still write the app. That's SaaS, or no-code.`},
 
@@ -402,33 +430,35 @@ const TERMS = [
  a:`An address another program can call, which answers with data in a structured format. A third-party API is one of the ways to get a job done: Twilio's API sends text messages for you, the easiest option with the highest variable cost.`,
  mvc:["V"], mvcWhy:`An API is a view for a machine: it says what's available and in what shape, not what happens. (Session 4 has more.)`,
  steps:[3], stepWhy:`Calling a third-party API is one of the building blocks to choose between.`,
- eng:["dep"], engWhy:`Calling someone's API makes their format and their prices your dependency.`,
+ eng:["dep","read"], engWhy:`Calling someone's API makes their format and prices your dependency. And an API is a view for developers, so its names, docs, and errors are its usability.`,
  do:[`For every outside API, ask what happens when it's slow, down, or changes its format.`,
      `Ask what each call costs at 10× today's usage.`,
-     `Ask whether your own app offers an API, so other systems (and AI agents) don't have to scrape pages.`],
+     `Ask whether your own app offers an API, so other systems (and AI agents) don't have to scrape pages.`,
+     `For every API you offer, ask who can call it and how it checks who's calling.`],
  good:`Twilio's API is the easiest way to send the texts, but it's the most expensive per message.`, goodWhy:`An API as a building block, with its economics.`,
  bad:`The API calculates the price.`, badWhy:`An API is a view for machines. The calculation belongs to a controller behind it.`},
 
 {id:"buildbuy", t:"Build vs. buy, rent vs. own", s:2,
- a:`The two classic mistakes: building what you should have bought, and renting what you needed to own. Build custom where the business is distinctive (Trent's parts app); buy off-the-shelf where it isn't (the corporate website).`,
+ a:`For any part of an application, you build, borrow, or buy. Borrowed code (a library, a snippet, what an AI suggests) still has to be maintained. The two classic mistakes: building what you should have bought, and renting what you needed to own. Early on, the first is far more common: the rent is visible and the cost of doing it yourself isn't. Build custom where the business is distinctive (Trent's parts app); buy off-the-shelf where it isn't (the corporate website).`,
  mvc:["all"], mvcWhy:`The choice comes up in every layer: a component library or a hand-built UI, a vendor's workflow or your own logic, a database cluster or a spreadsheet.`,
  steps:[3], stepWhy:`It's the heart of effectuating between alternatives.`,
  eng:["dep"], engWhy:`Buying and renting create dependencies; building creates code you own and maintain.`,
+ ok:{mvc:{pipe:`It's also a decision about the stack around the app.`}, eng:{dry:`Buying means not rebuilding what already exists.`}},
  do:[`Ask where the business is distinctive. Build there, and question building anywhere else.`,
      `For a rental, ask what it would take to leave. Lock-in shows up later.`,
-     `For a build, ask who will maintain it in two years.`],
+     `For a build, ask who will maintain and secure it in two years.`],
  good:`We'll rent the login and build the parts lookup, because the lookup is our edge.`, goodWhy:`Rent the generic, own the distinctive.`,
- bad:`AI makes code free, so we should build everything ourselves.`, badWhy:`Writing it is cheap. Owning it isn't.`},
+ bad:`AI makes code free, so we should build everything ourselves.`, badWhy:`Writing it is cheap. Owning it, and securing it, isn't.`},
 
-{id:"puppy", t:"Custom code (the free puppy)", s:2,
- a:`New code costs an AI almost nothing to write; the cost of owning that code lands later: maintaining, securing, and changing it. Like a free puppy. An AI has to be told to weigh that.`,
+{id:"puppy", t:"The free puppy (custom and borrowed code)", s:2,
+ a:`Code that's free to get still has to be fed: maintained, secured, and changed. That's true of code an AI writes for you and of open-source code you borrow. An AI has to be told to weigh that.`,
  mvc:["all"], mvcWhy:`It's true of code in every layer.`,
  steps:[3], stepWhy:`It's the hidden cost in every build-or-borrow choice.`,
  eng:["read","dep"], engWhy:`Every line someone has to read and keep working is part of the cost.`,
  do:[`Ask the AI (and the team) what existing component could do this before writing new code.`,
      `Ask how many lines a change added, and whether that's proportionate.`,
      `Count the cost of ownership, not the cost of writing, when comparing options.`],
- good:`The AI wrote a whole date-picker; we swapped in a library so we're not maintaining it.`, goodWhy:`Turned down a free puppy.`,
+ good:`The AI wrote a whole date-picker. We swapped in a popular, well-kept library, so a big community helps feed it.`, goodWhy:`Fewer puppies of our own, and the one we took on has lots of owners.`,
  bad:`The code was free to write, so it's free.`, badWhy:`It's free to write. Owning it costs money every month after.`},
 
 {id:"pseudocode", t:"Pseudocode (the plan)", s:2,
@@ -436,6 +466,7 @@ const TERMS = [
  mvc:["C"], mvcWhy:`It's mostly the Controller's logic, in plain words.`,
  steps:[2], stepWhy:`It's what unpacking looks like.`,
  eng:["read"], engWhy:`Reading four steps is much cheaper than reading four hundred lines.`,
+ ok:{steps:{1:`Plain steps also sharpen the intent.`}},
  do:[`Ask to see the plan before the code.`,
      `Check the plan against the scenarios: does every Then have a step that produces it?`,
      `If the plan surprises you, look upstream: the problem is usually in the intent.`],
@@ -447,6 +478,7 @@ const TERMS = [
  mvc:["pipe"], mvcWhy:`It's pipeline infrastructure around the app.`,
  steps:[4], stepWhy:`It's what makes testing safe: you can always get back to the last version that worked.`,
  eng:["read"], engWhy:`The history explains why the code is the way it is.`,
+ ok:{steps:{3:`Branches make it cheap to try an alternative.`}, eng:{none:`It's infrastructure more than a design principle.`}},
  do:[`Make it a rule: nothing goes to users that isn't in version control, including AI-written code.`,
      `When something breaks, ask what changed since it last worked.`,
      `Ask whether the team could hand the repo to a new developer, or AI tool, tomorrow.`],
@@ -458,6 +490,7 @@ const TERMS = [
  mvc:["pipe"], mvcWhy:`It holds all three layers' code, outside the running app.`,
  steps:[4], stepWhy:`Every test and every release runs against what's in it.`,
  eng:["soc"], engWhy:`A repo is a boundary: one project, one history.`,
+ ok:{steps:{0:`It's where the work of every step lives.`}, eng:{none:`It's infrastructure more than a design principle.`}},
  do:[`For a new project, ask where the repo is before anyone writes code.`,
      `Ask who has write access to each repo that touches customers.`,
      `Ask for a README: what the project is and how to run it.`],
@@ -469,6 +502,7 @@ const TERMS = [
  mvc:["pipe"], mvcWhy:`It's version control, around the app.`,
  steps:[4], stepWhy:`Small commits make it easy to find which change broke something.`,
  eng:["read"], engWhy:`A clear message says why, which the code alone can't.`,
+ ok:{steps:{0:`You commit at the end of any step's work.`}},
  do:[`Ask for one change per commit, with a message that names the story.`,
      `When an AI changed twenty files and you asked about one, ask it to split the work.`,
      `When reviewing AI work, read the commits, not just the end result.`],
@@ -480,6 +514,7 @@ const TERMS = [
  mvc:["pipe"], mvcWhy:`It moves work between copies of the repo.`,
  steps:[4], stepWhy:`Pulling first means you test against what everyone else has done.`,
  eng:["soc"], engWhy:`Your copy and the shared copy are separate on purpose. You decide when work moves.`,
+ ok:{steps:{0:`It's how work moves between people, whatever the step.`}, eng:{none:`It's infrastructure more than a design principle.`}},
  do:[`Ask how often people push. Work that sits on one laptop for a week is invisible and at risk.`,
      `Ask what happens automatically on a push to main. On many teams, it's a release.`,
      `Make "pull before you start" a habit, for people and AI tools alike.`],
@@ -491,6 +526,7 @@ const TERMS = [
  mvc:["pipe"], mvcWhy:`It's how the team coordinates changes around the app.`,
  steps:[4], stepWhy:`Work is tested on a branch before it's merged into main.`,
  eng:["soc"], engWhy:`A branch keeps work in progress apart from what's current.`,
+ ok:{steps:{3:`A branch is a cheap way to try an alternative.`}},
  do:[`Ask how long branches live. The longer they live, the harder the merge.`,
      `Ask what has to be true before something merges into main: tests, a review, both?`,
      `When there's a conflict, ask a person to resolve it, not the AI on its own.`],
@@ -503,6 +539,7 @@ const TERMS = [
  mvc:["V"], mvcWhy:`The UI is the View for people. (A machine's View is an API; more on that in Session 4.)`,
  steps:[1], stepWhy:`The stories say what the UI is for. The UI is working when a technician can walk through each story on it.`,
  eng:["read"], engWhy:`It's the part that changes most, so it's the part that most needs to be easy for the next person (or AI) to read and change.`,
+ ok:{steps:{2:`Stories and wireframes unpack into a UI.`}, eng:{soc:`Each part of the UI does one job.`}},
  do:[`Ask how the UI will be judged: which stories can a user walk through on it, on which devices?`,
      `Ask what it costs to change the UI next month. If the answer is "a lot," that's the problem to fix now.`,
      `Ask which form factors the UI has to work on, and make that part of done, not the story.`],
@@ -514,6 +551,7 @@ const TERMS = [
  mvc:["V"], mvcWhy:`It sketches a View.`,
  steps:[1], stepWhy:`It's part of focusing and communicating intent, a cheap one to throw away.`,
  eng:["soc"], engWhy:`It keeps layout decisions apart from look-and-feel (the style guide) and from what users need (the stories).`,
+ ok:{steps:{2:`It unpacks the stories into a screen.`}, eng:{read:`A wireframe is how the team reads a screen before it exists.`}},
  do:[`Ask for stories and a wireframe instead of one polished mockup. They're cheaper to argue about and harder to mistake for a decision.`,
      `When a wireframe and a story disagree, the story wins. Ask the team to say which story each box serves.`,
      `Ask for more than one wireframe for an important screen. Parallel options are cheap now.`],
@@ -525,6 +563,7 @@ const TERMS = [
  mvc:["V"], mvcWhy:`It's about how the View lays itself out.`,
  steps:[1,4], stepWhy:`You decide which form factors you're committing to (intent), then test each one.`,
  eng:["dry"], engWhy:`One page for every screen, instead of a copy per device that has to be kept in step.`,
+ ok:{steps:{2:`Planning the layouts is part of unpacking.`}, eng:{soc:`Layout rules stay in CSS, not in each page.`}},
  do:[`Ask which form factors the team has committed to, and test the narrowest one yourself.`,
      `Keep the device out of the story; put the form factors in the definition of done.`,
      `When a bug only shows up on phones, ask which element is too wide, and by how much.`],
@@ -534,8 +573,9 @@ const TERMS = [
 {id:"styleguide", t:"Style guide", s:3,
  a:`Keeps the product's look and feel consistent; at a minimum, which colors and typefaces to use. As the product grows, it becomes the list of components the design system provides and the names they go by.`,
  mvc:["V"], mvcWhy:`It governs how every View looks.`,
- steps:[1], stepWhy:`It's one of the inputs that communicates design intent.`,
+ steps:[1], stepWhy:`It's one of the inputs that communicates design intent. Consistency is also the easiest way to make an interface feel right at a glance.`,
  eng:["dep"], engWhy:`Pages use the names the style guide defines. If a page needs something new, it goes into the style guide first, for everyone.`,
+ ok:{steps:{3:`Adopting one, or which one, is a choice between alternatives.`}, eng:{dry:`One place for colors and type.`}},
  do:[`Ask whether there is a style guide, and whether new pages actually use it or invent their own.`,
      `When a page change would mean a style guide change, treat it as a decision for everyone, not one page's fix.`,
      `Ask whether the AI tools were given the style guide. Without it, AI makes your product look like everyone else's.`],
@@ -543,13 +583,15 @@ const TERMS = [
  bad:`Each page team keeps its own style guide.`, badWhy:`Then it isn't a guide. The point is one shared set of names and looks.`},
 
 {id:"designsystem", t:"Design system", s:3,
- a:`A shared vocabulary of reusable HTML and CSS components (buttons, cards, grids) built on top of CSS. Tailwind CSS and Bootstrap are two popular free ones. At HinH, the pages change nearly every week and the design system a few times a year.`,
+ a:`The team's settled answers to recurring design questions (how should search results look?), kept where developers can find them and serve themselves without a hand-off. It includes the style guide and reusable HTML and CSS components; Tailwind CSS and Bootstrap are common starting points. At HinH, the pages change nearly every week and the design system a few times a year.`,
  mvc:["V"], mvcWhy:`It's the shared building material for Views.`,
  steps:[3], stepWhy:`Build your own CSS or use a design system is a choice between alternatives, and an economic decision more than a technical one.`,
  eng:["dep","dry"], engWhy:`HinH's pages depend on the design system, never the other way around: point the dependency at the thing that changes less. And a corner radius changes in one place, for every page.`,
+ ok:{steps:{2:`Its components are how a wireframe gets unpacked into a page.`}, eng:{read:`Shared component names make pages readable.`}},
  do:[`Ask who owns the design system and how a page team gets something added to it.`,
      `When a fix for one page edits the shared CSS, ask what else it touched.`,
-     `Treat build-your-own-CSS vs. a design system as an economic decision: own CSS only for a throwaway.`],
+     `Treat build-your-own-CSS vs. a design system as an economic decision: own CSS only for a throwaway.`,
+     `Test it: hand a developer a wireframe and see whether the design system gets them to a good page without a designer.`],
  good:`The page needs a new kind of card, so it goes into the design system first, and then the page uses it.`, goodWhy:`Pages depend on the design system, so new things go in there, decided once for everyone.`,
  bad:`Just update the design system whenever the parts page changes.`, badWhy:`Backwards. The page changes weekly; the design system a few times a year. The page depends on the design system.`},
 
@@ -558,6 +600,7 @@ const TERMS = [
  mvc:["V"], mvcWhy:`HTML is the View's content and structure.`,
  steps:[2], stepWhy:`Unpacking a wireframe into code starts with what elements go where.`,
  eng:["soc"], engWhy:`HTML says what's on the page, CSS says how it looks, JavaScript says what happens. One job each.`,
+ ok:{eng:{read:`Semantic elements say what each part is.`}},
  do:[`When a request is "make it look different," ask whether the HTML has to change or only the CSS. The second is cheaper.`,
      `Spot-check AI-built pages: do things say what they are, or is everything a generic box?`,
      `Ask whether the HTML gives the controller clear names to find things by. It will need them.`],
@@ -569,6 +612,7 @@ const TERMS = [
  mvc:["V"], mvcWhy:`It's a building block of a View.`,
  steps:[2], stepWhy:`A page's skeleton of divs is how a layout gets unpacked into code.`,
  eng:["read"], engWhy:`A div says nothing about what it holds, so its class name has to.`,
+ ok:{steps:{0:`It's a building block, used whatever the step.`}, eng:{none:`It's a building block more than a principle.`}},
  do:[`When a page is hard to change, ask how deep the divs nest. Deep nesting is a smell.`,
      `Ask that divs carry class names that say what they hold, not how they look.`,
      `Ask the AI to explain the page's div skeleton before it changes it.`],
@@ -580,6 +624,7 @@ const TERMS = [
  mvc:["V"], mvcWhy:`CSS is how the View looks and is laid out.`,
  steps:[2], stepWhy:`It's how look-and-feel and layout get unpacked into code.`,
  eng:["soc","dry"], engWhy:`CSS says how it looks, apart from what's there (HTML). And a style declared once applies to every element that uses it.`,
+ ok:{steps:{4:`Most UI bugs turn out to be CSS bugs.`}},
  do:[`Ask whether a visual change happens in one shared place or gets patched page by page.`,
      `Ask whether the team writes its own CSS or uses a design system, and why. It's an economic decision.`,
      `Ask the team to keep CSS in stylesheets, not scattered through the HTML.`],
@@ -591,6 +636,7 @@ const TERMS = [
  mvc:["V"], mvcWhy:`It links a View's HTML to its CSS.`,
  steps:[2], stepWhy:`Naming classes is part of unpacking a view into code.`,
  eng:["dep","dry"], engWhy:`Every class name is a bet about what will change. A design-system name (card) makes the page depend on the design system; a page name (featured-thermostat) makes the stylesheet depend on the page. And one class for all the parts means one change, not ten.`,
+ ok:{steps:{4:`A misspelled or missing class is a classic UI bug.`}, eng:{read:`A good class name says what the element is.`}},
  do:[`Ask whether class names come from the design system or are invented per page. The second kind piles up.`,
      `When adding something needs new CSS instead of rearranging existing classes, ask why.`,
      `Ask that new things go into the design system first, then onto the page, so names stay shared.`],
@@ -602,6 +648,7 @@ const TERMS = [
  mvc:["V"], mvcWhy:`Rules are what a View's CSS is made of.`,
  steps:[4], stepWhy:`"Which rule gives it that look?" is the first question when a view looks wrong.`,
  eng:["read"], engWhy:`Styles that live where the reader will look for them, in named rules, are readable. Styles scattered in-line aren't.`,
+ ok:{steps:{2:`Writing rules is how the design gets unpacked into CSS.`}, eng:{dry:`A named rule is written once and used everywhere.`}},
  do:[`When a style bug comes back, ask whether the last fix was a new rule fighting the old one.`,
      `Ask for fixes that change one rule in one place.`,
      `In a style dispute, ask for the name of the rule and the file it's in.`],
@@ -613,6 +660,7 @@ const TERMS = [
  mvc:["V"], mvcWhy:`It decides how a View actually looks.`,
  steps:[4], stepWhy:`Most "why does it look like that?" bugs are cascade bugs.`,
  eng:["read"], engWhy:`When every override needs a stronger override (the end of that road is !important, CSS's equivalent of shouting), nobody can read what the page will do.`,
+ ok:{eng:{dep:`Which rule wins decides what a page actually depends on.`}},
  do:[`When a fix uses !important or an ID to win, ask what it's fighting, and fix that instead.`,
      `Ask to see the Styles pane, not a theory, when a style dispute comes up.`,
      `Ask why a rule won before changing anything. Order in the file is usually the wrong answer.`],
@@ -624,6 +672,7 @@ const TERMS = [
  mvc:["V"], mvcWhy:`It's styling buried in the View's HTML.`,
  steps:[4], stepWhy:`It's a usual suspect when a style won't change.`,
  eng:["dry","soc"], engWhy:`Ten properties repeated on every part violates DRY, and putting how-it-looks into what's-there violates separation of concerns. In-line JavaScript (an onchange= in the tag) has the same problem.`,
+ ok:{steps:{3:`Reaching for it is a choice between alternatives, usually the wrong one.`}, eng:{read:`In-line styles are hard to find when you go looking.`}},
  do:[`Ask the team (or the AI) to move in-line styles into named classes as a standing rule.`,
      `When "the stylesheet change didn't work," ask whether something in-line is overriding it.`,
      `When reviewing AI-made pages, look for style= in the HTML. AI adds it freely.`],
@@ -646,6 +695,7 @@ const TERMS = [
  mvc:["V"], mvcWhy:`It's how a View is laid out.`,
  steps:[2], stepWhy:`Sketching the major and minor grids is how you unpack a view, the way pseudocode unpacks an algorithm.`,
  eng:["soc"], engWhy:`Layout lives in the grid, not in each element.`,
+ ok:{eng:{dry:`The grid sizes things once, instead of a fixed width on each card.`}},
  do:[`Ask to see the major grid sketched before a new page is built. It surfaces disagreements early.`,
      `When "design system or CSS Grid?" comes up, know that it's not either-or: the design system is built on top of Grid.`,
      `Ask whether layout lives in the grid or is patched element by element.`],
@@ -657,6 +707,7 @@ const TERMS = [
  mvc:["all"], mvcWhy:`You can see the View in Elements and Styles, and the Controller in the Console and Sources.`,
  steps:[4], stepWhy:`It's the main tool for testing and debugging in a browser.`,
  eng:["read"], engWhy:`It lets you read what the page is actually doing instead of guessing.`,
+ ok:{mvc:{V:`It's most visible on the view.`}, eng:{none:`It's a tool more than a principle.`}},
  do:[`Ask for a DevTools screenshot, not a theory, at the start of a bug discussion.`,
      `Spend twenty minutes in DevTools on your own product. You'll ask better questions after.`,
      `Ask the team to show the bug in DevTools in the first five minutes of a discussion.`],
@@ -668,9 +719,11 @@ const TERMS = [
  mvc:["all"], mvcWhy:`It works on any layer.`,
  steps:[4], stepWhy:`It's how testing turns into a fix.`,
  eng:["read"], engWhy:`Code that follows the four ideas has bugs you can find: one place to look, one place to change.`,
+ ok:{eng:{det:`It works because the code is deterministic: same inputs, same bug.`}},
  do:[`Ask "what did you expect, and what did you see?" before "what did you change?"`,
      `Tell an AI to check and report what it observed, not to "make it work."`,
-     `When a fix is proposed, ask which assumption turned out false. If nobody knows, it's not a fix yet.`],
+     `When a fix is proposed, ask which assumption turned out false. If nobody knows, it's not a fix yet.`,
+     `When a bug reaches users, ask for the simplest automated test that would have caught it, and add it.`],
  good:`I expected a border and got none, so I inspected the part: its class was misspelled catalog-paart.`, goodWhy:`Expected, observed, found the tension, found why.`,
  bad:`We debugged it by trying things until it looked right.`, badWhy:`That's trial and error. It may land on a fix, but nobody knows why it works.`},
 
@@ -679,6 +732,7 @@ const TERMS = [
  mvc:["all"], mvcWhy:`It applies to every layer: one class for all parts, one function for one job, one place to store each fact.`,
  steps:[2], stepWhy:`It's how you judge the way something was unpacked into code.`,
  eng:["dry"], engWhy:`It is one.`,
+ ok:{steps:{4:`You usually find a violation when a change takes many edits.`}},
  do:[`Ask "if this changes, how many places change?" in reviews.`,
      `When two reports disagree, ask whether the number is stored in two places.`,
      `Ask the AI to check its own work for repeats before it calls something done.`],
@@ -686,21 +740,23 @@ const TERMS = [
  bad:`We're DRY: we copied the working code to the new page so we don't write it again.`, badWhy:`Copying is repeating. DRY means both pages use one shared piece.`},
 
 {id:"soc", t:"Separation of concerns", s:3,
- a:`Each file does one job, and the next reader knows which file to open. The kitchen rule: a place for everything, and everything in its place. The test: is there exactly one place to look?`,
+ a:`Each file does one job, and the next reader knows which file to open. The kitchen rule: a place for everything, and everything in its place. The test: is there exactly one place to look? The opposite is tight coupling: one job spread across places, so a change in one breaks another.`,
  mvc:["all"], mvcWhy:`MVC itself is separation of concerns, and it continues inside each layer (HTML, CSS, JavaScript).`,
  steps:[2], stepWhy:`It's how you judge the way something was unpacked into code.`,
  eng:["soc"], engWhy:`It is one.`,
+ ok:{steps:{3:`Where to put something is often a choice.`}},
  do:[`Ask "where would I look to change X?" If the answer is "a few places," that's the problem.`,
      `When a fix lands in a surprising file, ask why it's there.`,
      `Ask whether a new teammate (or AI agent) would know which file to open for a given change.`],
  good:`Look is in the CSS, content in the HTML, behavior in the JavaScript, so I know where to go.`, goodWhy:`One place for each kind of thing.`,
- bad:`We separated concerns by giving each developer their own file.`, badWhy:`It's about separating jobs in the code, not people.`},
+ bad:`We separated concerns by giving each developer their own file.`, badWhy:`It's about separating jobs in the code. Code does tend to split along team lines, though, so splitting by person usually spreads one job across many files.`},
 
 {id:"depdir", t:"Dependency direction", s:3,
  a:`When one thing depends on another, point the dependency at the thing that changes less. HinH's pages change nearly every week and its design system a few times a year, so pages depend on the design system, never the other way around.`,
  mvc:["all"], mvcWhy:`It applies wherever one piece relies on another.`,
  steps:[3], stepWhy:`Choosing what to depend on is a choice between alternatives.`,
  eng:["dep"], engWhy:`It is one.`,
+ ok:{steps:{2:`You set dependency direction while unpacking.`}},
  do:[`Ask what changes most often in the product, and make sure nothing stable depends on it.`,
      `The test for a view: do you expect to write new CSS, or just rearrange what you have? Ask it.`,
      `When the stable thing starts changing because the fast thing changed, ask how the dependency got turned around.`],
@@ -712,6 +768,7 @@ const TERMS = [
  mvc:["all"], mvcWhy:`It applies to every layer.`,
  steps:[4], stepWhy:`You find out how readable code is when someone has to debug it.`,
  eng:["read"], engWhy:`It is one.`,
+ ok:{steps:{2:`You write readable code while unpacking.`}},
  do:[`Ask whether someone new, or an AI agent, could find what they need in the code without asking.`,
      `Treat a name that reads as wrong (catalog-paart) as a bug, not a nit.`,
      `Ask the AI to explain the code before anyone changes it. If the explanation is muddled, the code is too.`],
@@ -724,6 +781,7 @@ const TERMS = [
  mvc:["C"], mvcWhy:`It's the Controller.`,
  steps:[2], stepWhy:`An algorithm is what a story looks like once it's unpacked into codable steps.`,
  eng:["det"], engWhy:`Determinism is the idea this note adds: a good algorithm gives the same output for the same inputs.`,
+ ok:{eng:{read:`A good algorithm reads like the story it implements.`}},
  do:[`Ask what a controller's two jobs are here: do what the story says, and stay amenable to change.`,
      `Ask which scenarios a controller has to pass. That set is its test.`,
      `When a controller does several unrelated things, ask for it to be split.`],
@@ -735,6 +793,7 @@ const TERMS = [
  mvc:["C"], mvcWhy:`It's a property you want in a Controller.`,
  steps:[4], stepWhy:`Deterministic code can be tested once and trusted.`,
  eng:["det"], engWhy:`It is one: the idea this note adds to the four.`,
+ ok:{steps:{2:`You design for it while unpacking.`}},
  do:[`For anything customers rely on (prices, stock, totals), ask whether it's computed deterministically or generated by an AI.`,
      `When an AI is in a feature, ask what deterministic check sits on the other side of it.`,
      `If a bug "only happens sometimes," ask what hidden input is changing.`],
@@ -746,9 +805,11 @@ const TERMS = [
  mvc:["C"], mvcWhy:`The Controller declares and checks its inputs.`,
  steps:[2,4], stepWhy:`You decide the shapes when unpacking, and a lot of bugs turn out to be the wrong type at runtime.`,
  eng:["det"], engWhy:`Explicit types keep the rule inside deterministic: it never sees a malformed input.`,
+ ok:{mvc:{M:`The model declares types for its data, too.`}, eng:{dry:`One shared check at the edge beats every function checking its own inputs.`}},
  do:[`Ask where inputs get cleaned up and checked. It should be once, at the edge.`,
      `When a bug only happens with some inputs, ask what type each value was when it went wrong.`,
-     `Ask whether the API publishes a schema: the list of fields and their types.`],
+     `Ask whether the API publishes a schema: the list of fields and their types.`,
+     `Ask for one shared check where input comes in, so input that's malicious, not just messy, is refused in one place.`],
  good:`The max-price box sends "100" as text, so it's converted to a number before the comparison.`, goodWhy:`Dealt with at the edge.`,
  bad:`Trent typed 100 into the box, so it's a number.`, badWhy:`Anything typed into a page arrives as text until code converts it.`},
 
@@ -757,6 +818,7 @@ const TERMS = [
  mvc:["C"], mvcWhy:`Functions are what Controllers are built from.`,
  steps:[2], stepWhy:`Breaking a story into functions is unpacking.`,
  eng:["soc","dry"], engWhy:`One function, one job, and a rule lives in exactly one function.`,
+ ok:{eng:{read:`A well-named function says what it does.`}},
  do:[`Ask for functions named for what they do in the story's terms (showParts, not handle2).`,
      `When the same logic shows up in three places, ask for one function.`,
      `Ask whether a function can be tested without a browser. If not, it's doing too many jobs.`],
@@ -768,6 +830,7 @@ const TERMS = [
  mvc:["C"], mvcWhy:`Variables are how a Controller holds what it's working on.`,
  steps:[2], stepWhy:`Naming what the algorithm needs to keep track of is part of unpacking.`,
  eng:["read"], engWhy:`A good name says what the value is to someone who knows the story but not the code.`,
+ ok:{steps:{4:`You inspect variables when debugging.`}},
  do:[`In reviews, ask whether a name would make sense to someone who knows the story but not the code.`,
      `When a bug involves a list, ask whether something was counted from one instead of zero.`,
      `Watch for global variables. They're a hidden input that breaks determinism.`],
@@ -779,6 +842,7 @@ const TERMS = [
  mvc:["C"], mvcWhy:`Decisions live in the Controller.`,
  steps:[2], stepWhy:`Each branch is usually one scenario, unpacked.`,
  eng:["det"], engWhy:`A clear test and two clear outcomes keep behavior predictable.`,
+ ok:{eng:{read:`Each branch should read like a line of the story.`}},
  do:[`Ask what happens in the "else." That's where stories are usually silent.`,
      `Ask for one Given-When-Then per branch.`,
      `When a switch keeps growing, ask whether those cases belong in the data instead.`],
@@ -790,6 +854,7 @@ const TERMS = [
  mvc:["C"], mvcWhy:`It's Controller logic.`,
  steps:[2], stepWhy:`"For each part…" is a step you'll see in a lot of plans.`,
  eng:["read"], engWhy:`Fewer lines are better only when the next reader can still tell what the code does.`,
+ ok:{eng:{dry:`A loop does the same thing to each item instead of repeating code.`}},
  do:[`When "the first (or last) one is always wrong," ask about where the loop starts and stops.`,
      `Ask the AI to explain a dense loop before anyone changes it.`,
      `When a loop goes slow with real data, ask how many items it really goes through.`],
@@ -801,6 +866,7 @@ const TERMS = [
  mvc:["C","V"], mvcWhy:`It's the hand-off between View and Controller; the binding lives in the Controller.`,
  steps:[4], stepWhy:`"The button does nothing" is almost always a binding to check.`,
  eng:["dep","soc"], engWhy:`The controller depends on the view's names, the view knows nothing about the controller, and the rule inside knows about neither.`,
+ ok:{steps:{2:`Deciding which element triggers what is part of unpacking.`}},
  do:[`When a control "does nothing," ask what the Console says first.`,
      `When a designer renames things on a page, ask who checks the code that finds them by name.`,
      `Ask for in-line handlers (onchange= in the HTML) to be moved into the controller.`],
@@ -812,6 +878,7 @@ const TERMS = [
  mvc:["C"], mvcWhy:`It shows you the Controller from the inside.`,
  steps:[4], stepWhy:`It's how you instrument an observation.`,
  eng:["det"], engWhy:`It shows the actual values, so you're checking assumptions, not guessing.`,
+ ok:{mvc:{all:`You can log from any layer.`}, eng:{none:`It's a tool more than a principle.`}},
  do:[`Ask what the Console said. It's the first question for any "the page does nothing" report.`,
      `When an AI fixes a bug, ask what it observed first. A fix with no observation is a guess.`,
      `Ask for observations at the step where an assumption might be false, not everywhere.`],
@@ -823,7 +890,8 @@ const TERMS = [
  mvc:["all"], mvcWhy:`Any layer can have them.`,
  steps:[3], stepWhy:`Choosing between alternatives is choosing your dependencies.`,
  eng:["dep"], engWhy:`Point every dependency at the thing that changes less.`,
- do:[`Ask for a list of what the app depends on outside the team's control, and who watches each one.`,
+ ok:{mvc:{pipe:`Services and libraries sit around the app.`}, steps:{4:`Dependencies fail in their own ways, and that's debugging.`}},
+ do:[`Ask for a list of what the app depends on outside the team's control, and who watches each one, including for security fixes.`,
      `Ask which way each dependency points. Fast-changing things should depend on slow-changing ones.`,
      `When a vendor changes something, ask how much of your code had to change.`],
  good:`Choosing the distributor's live API makes their format one of our dependencies.`, goodWhy:`A dependency named at the moment it's chosen.`,
@@ -834,6 +902,7 @@ const TERMS = [
  mvc:["C"], mvcWhy:`It's Controller code.`,
  steps:[3], stepWhy:`Where the interface goes is the real decision in step 3, more than which source.`,
  eng:["dep"], engWhy:`The adapter is the only code that knows about the distributor; the dependency points outward from there.`,
+ ok:{eng:{soc:`The adapter keeps knowledge of the source in one place.`}},
  do:[`When a vendor changes its API, ask how many lines changed in the code for the story. Zero is the goal.`,
      `Ask where the seams are before choosing a vendor. It decides what switching will cost.`,
      `Ask whether an AI can be swapped in or out behind the same interface.`],
@@ -845,17 +914,19 @@ const TERMS = [
  mvc:["C"], mvcWhy:`The Controller calls services and uses libraries.`,
  steps:[3], stepWhy:`Borrow a library or call a service: two of the step-3 options.`,
  eng:["dep"], engWhy:`Both are dependencies; a service also fails when their machine does.`,
+ ok:{mvc:{pipe:`It runs outside your app, on someone else's machine.`}},
  do:[`For each service, ask what users see when it's slow or down.`,
      `Ask what each call costs at 10× today's usage.`,
-     `Ask whether your copy of their data (if any) is fresh enough for the story.`],
+     `Ask whether your copy of their data (if any) is fresh enough for the story.`,
+     `Ask what of your data each service receives, and what happens to you if they're breached.`],
  good:`The distributor's API is current to the minute, but it's a service: their format, their uptime.`, goodWhy:`Clear on what you're depending on.`,
  bad:`We installed the distributor's service, so it's our code now.`, badWhy:`A service runs on the distributor's machine. You call it; you don't own it.`},
 
 {id:"clientserver", t:"Browser vs. server", s:4,
- a:`A controller in the browser is available to the technician's browser and nothing else. A controller on a server, behind an address other programs can call, is an interface HinH owns, usable by the parts page, the dispatch system, and AI agents alike. Anything sent to the browser can be seen there.`,
+ a:`A controller in the browser is available to the technician's browser and nothing else. A controller on a server, behind an address other programs can call, is an interface HinH owns, usable by the parts page, the dispatch system, and AI agents alike. Anything sent to the browser can be seen there. An address other programs can call is also one that bots will find and probe.`,
  mvc:["C"], mvcWhy:`It's about where a Controller runs.`,
  steps:[3], stepWhy:`Where the logic runs is a choice between alternatives.`,
- eng:["dry"], engWhy:`On the server there's one copy of the rule for every client; in the browser, each client needs its own.`,
+ eng:["dry","lp"], engWhy:`On the server there's one copy of the rule for every client; in the browser, each client needs its own. And where the rule runs decides what each caller can reach.`,
  do:[`Ask which clients need this logic: just the page, or dispatch and AI agents too?`,
      `For anything sensitive, ask whether it ever reaches the browser. If yes, assume it's seen.`,
      `Ask where the rules that protect money or privacy run.`],
@@ -867,6 +938,7 @@ const TERMS = [
  mvc:["V"], mvcWhy:`It's a View, for machines.`,
  steps:[3], stepWhy:`Offering one is a design choice; calling someone else's is a step-3 option.`,
  eng:["read","soc","dry"], engWhy:`Readability first: an API's readers are the developers who call it, and its names, shapes and errors are its usability. That's the part teams under-invest in. Behind it, one controller serves two views, a page for Trent and an API for dispatch, with the rule in one place.`,
+ ok:{steps:{2:`Designing its fields and types is part of unpacking.`}},
  do:[`Ask who reads the API: could a developer who's never seen it guess what each field means and what an error is telling them?`,
      `Before signing off on a page, ask: if dispatch needed this data tomorrow, how much would we have to change?`,
      `For every machine view, ask whether it enforces the same access rules as the page.`,
@@ -879,6 +951,7 @@ const TERMS = [
  mvc:["V"], mvcWhy:`It's what a machine view looks like.`,
  steps:[4], stepWhy:`Reading the JSON is often the fastest way to see what a service actually sent.`,
  eng:["read"], engWhy:`People and machines can both read it.`,
+ ok:{mvc:{M:`Document databases store data in much the same shape.`}, steps:{2:`Deciding the fields and types is part of unpacking.`}},
  do:[`When integrating with a partner, ask for a sample of their JSON on day one.`,
      `Ask whether field names and types are stable, and who's told when they change.`,
      `Ask whether the JSON includes fields the caller shouldn't see.`],
@@ -889,7 +962,7 @@ const TERMS = [
  a:`A standard way of telling an AI agent what it can ask for and what it will get back: a machine view designed for agents. (The "model" in the name means an AI model; in this course, "model" otherwise always means the data model.)`,
  mvc:["V"], mvcWhy:`It's a machine view, for AI agents.`,
  steps:[3], stepWhy:`Whether and how to offer one is a choice between alternatives.`,
- eng:["det"], engWhy:`The agent is probabilistic, so the side it calls has to be deterministic.`,
+ eng:["det","read"], engWhy:`The agent is probabilistic, so the side it calls has to be deterministic. And an agent reads the tool descriptions to decide what to call, so readability is its usability.`,
  do:[`Ask which of your systems an AI agent could use today, and through what. "It reads the screen" is fragile.`,
      `For each tool offered to an agent, ask what it can change, not just what it can read.`,
      `Ask what role the agent acts in. It should get the same limits as a person in that role.`],
@@ -901,6 +974,7 @@ const TERMS = [
  mvc:["pipe"], mvcWhy:`It's about how a fix gets from your tab to users.`,
  steps:[4], stepWhy:`After any change, reload and walk the Given-When-Then again. If it only works without a reload, it isn't a fix yet.`,
  eng:["det"], engWhy:`A fix has to work from a fresh start, every time, not just in the state your tab happened to be in.`,
+ ok:{mvc:{all:`You can override any layer's code in the browser.`}},
  do:[`Ask "is it in the repo?" before "is it fixed?"`,
      `Ask whether the fix was checked after a reload.`,
      `Ask which commit contains the fix.`],
@@ -912,10 +986,12 @@ const TERMS = [
  a:`Where the data lives. It has four jobs: represent what the business knows about the real-world things it cares about and how they relate; answer the questions the user stories ask, correctly and fast enough; hold up over change; and let the right people see and change the right things, and nobody else.`,
  mvc:["M"], mvcWhy:`It's the Model.`,
  steps:[2], stepWhy:`You map it from the stories: what does the app have to look up?`,
- eng:["dep"], engWhy:`Controllers depend on the model, and the model depends on nothing else in the application.`,
+ eng:["dep","dry"], engWhy:`Controllers depend on the model, and the model depends on nothing else in the application. And DRY matters most here: two copies of the same data drift apart.`,
+ ok:{steps:{1:`Mapping it starts from the stories' intent.`}},
  do:[`Ask to see the data model as a simple diagram or a spreadsheet with a tab per entity.`,
      `Trace one story's question through it. If you can't, it doesn't answer the story yet.`,
-     `Ask what a change to it would cost. The model is where the cost of change is highest.`],
+     `Ask what a change to it would cost. The model is where the cost of change is highest.`,
+     `Keep the model as small as the stories allow, and ask whether any of this data also lives somewhere else.`],
  good:`Our data model has parts, manufacturers, and reviews, and how they relate.`, goodWhy:`The things the business cares about, and their relationships.`,
  bad:`Our data model is GPT.`, badWhy:`That's an AI. In this course, the model is your data.`},
 
@@ -924,6 +1000,7 @@ const TERMS = [
  mvc:["M"], mvcWhy:`It's about changing the Model.`,
  steps:[3], stepWhy:`It's the cost to weigh before choosing a model design.`,
  eng:["dep"], engWhy:`Everything depends on the model, so changing it touches everything.`,
+ ok:{mvc:{pipe:`It's done as part of a release.`}, steps:{4:`It has to be tested like any release.`}},
  do:[`Before approving a model change, ask how the existing data gets moved, and how you'd undo it.`,
      `Spend more design time on the model than on the view. The view is cheap to change; the model isn't.`,
      `Ask what the app does during the move.`],
@@ -957,6 +1034,7 @@ const TERMS = [
  mvc:["M"], mvcWhy:`Tables make up the Model.`,
  steps:[2], stepWhy:`Deciding the entities is how you unpack a story into a model.`,
  eng:["soc"], engWhy:`One table, one kind of thing.`,
+ ok:{eng:{dry:`Each fact lives in one table.`}},
  do:[`Ask what each table is about, in one noun. If it takes two, it's two tables.`,
      `Ask that tables be named for things in the business, not for screens or features.`,
      `Ask which tables a new story touches. It's a quick size estimate.`],
@@ -968,6 +1046,7 @@ const TERMS = [
  mvc:["M"], mvcWhy:`They're how you map a Model.`,
  steps:[2], stepWhy:`They're the main tool for unpacking the real world into a model.`,
  eng:["soc"], engWhy:`They keep each kind of thing, and each relationship, distinct.`,
+ ok:{steps:{1:`Naming the entities is close to naming the intent.`}},
  do:[`Ask a person who knows the business, not just the spreadsheet: "Can a site have more than one customer?"`,
      `Run a has-a/is-a whiteboard session before the schema exists.`,
      `When a story surprises the model, ask which relationship was missed.`],
@@ -979,6 +1058,7 @@ const TERMS = [
  mvc:["M"], mvcWhy:`Keys are part of the Model.`,
  steps:[2], stepWhy:`Choosing keys is part of unpacking the model.`,
  eng:["dep"], engWhy:`Everything that points at a row depends on its key never changing.`,
+ ok:{eng:{dry:`Other tables refer to one key instead of copying the row.`}},
  do:[`Ask what identifies a customer (or part) across your systems. Different answers are a known source of pain.`,
      `Ask what happens if a "natural" key changes, like a supplier renumbering a part.`,
      `Avoid names and emails as keys. They repeat and they change.`],
@@ -990,6 +1070,7 @@ const TERMS = [
  mvc:["M"], mvcWhy:`It's how the Model connects its tables.`,
  steps:[2,4], stepWhy:`You design the links in unpacking, and broken ones show up in testing.`,
  eng:["dry"], engWhy:`Point to the part instead of copying its details into every review.`,
+ ok:{eng:{dep:`The many side depends on the one side.`}},
  do:[`Ask the team to walk one story's question as a path of links.`,
      `Ask what happens to linked rows when something is deleted.`,
      `When a report has missing rows, ask about referential integrity first.`],
@@ -1001,6 +1082,7 @@ const TERMS = [
  mvc:["M"], mvcWhy:`Types are declared in the Model.`,
  steps:[2], stepWhy:`Choosing types is part of unpacking a model.`,
  eng:["read"], engWhy:`Types tell the next reader, or an AI writing a query, what a field holds.`,
+ ok:{eng:{det:`Typed data gives you deterministic comparisons.`}},
  do:[`Ask that prices be stored as numbers and dates as dates, never as text.`,
      `When an import fails, ask which values didn't fit their type.`,
      `Ask whether the API's types match the model's.`],
@@ -1023,6 +1105,7 @@ const TERMS = [
  mvc:["M"], mvcWhy:`It's how the Model is structured.`,
  steps:[2], stepWhy:`It's how you check the way a model was unpacked.`,
  eng:["dry"], engWhy:`In a model, DRY has a formal name: normalization.`,
+ ok:{steps:{4:`You often find a problem when an update goes stale.`}},
  do:[`When numbers disagree between reports, ask where each one is stored. Two places is usually the answer.`,
      `Ask "if this changes, how many cells change?" about any fact that matters.`,
      `When a messy spreadsheet becomes an app, ask that it be split into tables first.`],
@@ -1034,6 +1117,7 @@ const TERMS = [
  mvc:["C"], mvcWhy:`It's done by a controller (often an import utility) on its way into the Model.`,
  steps:[2], stepWhy:`It's a step you plan when unpacking an import.`,
  eng:["det"], engWhy:`The same rating should always scale to the same value.`,
+ ok:{mvc:{M:`Scaled values are often stored in the model.`}},
  do:[`When data comes from two sources, ask whether they use the same scales and units.`,
      `Ask where scaling happens: once on import, or every time it's displayed.`,
      `Ask what's lost in the conversion, and whether anyone needs the original.`],
@@ -1056,9 +1140,11 @@ const TERMS = [
  mvc:["M"], mvcWhy:`It's enforced where the data lives.`,
  steps:[1,3], stepWhy:`Who needs what is intent; where it's enforced is a choice.`,
  eng:["lp"], engWhy:`It is one: the engineering principle this note adds.`,
+ ok:{mvc:{pipe:`It also applies between the machines and services around the app.`}},
  do:[`For each role, ask "needs, not would like": which data does it need to do its job?`,
      `Ask whether the rule is enforced in the database or only hidden on the page.`,
-     `Give AI agents and import utilities roles too, with the same scrutiny as people.`],
+     `Give AI agents and import utilities roles too, with the same scrutiny as people.`,
+     `Ask how access is taken away when someone leaves or changes roles.`],
  good:`Technicians can read parts and write their own reviews; the import utility can only write parts.`, goodWhy:`Minimum access, by role.`,
  bad:`Technicians can't see cost because the CSS hides it.`, badWhy:`The cost still reaches their browser. Least privilege means it's never sent.`},
 
@@ -1067,6 +1153,7 @@ const TERMS = [
  mvc:["M"], mvcWhy:`It's enforced in the Model.`,
  steps:[1], stepWhy:`The grid is intent: who should see and change what.`,
  eng:["lp"], engWhy:`It's least privilege, written down so it can be enforced and checked.`,
+ ok:{steps:{2:`The grid unpacks who can do what.`}},
  do:[`Ask to see the access grid. If there isn't one, ask who decides what each role can see.`,
      `Ask for scenarios that test the grid: Given Trent is signed in, When he asks for cost, Then he gets nothing.`,
      `Ask who reviews the grid when a new role (or AI agent) is added.`],
@@ -1078,6 +1165,7 @@ const TERMS = [
  mvc:["M"], mvcWhy:`It's a question of data architecture.`,
  steps:[3], stepWhy:`How the AI gets your data is a choice between alternatives.`,
  eng:["lp"], engWhy:`Your data should reach the AI only as much as the role asking is allowed to see.`,
+ ok:{mvc:{pipe:`Which data reaches a vendor is also a stack decision.`}},
  do:[`Ask which of your data another firm using the same AI doesn't have. That's the advantage.`,
      `Ask what crosses the boundary to the AI vendor on each request, and read that contract term.`,
      `Ask whether the AI's answers can include anything the person asking isn't allowed to see.`],
@@ -1085,7 +1173,7 @@ const TERMS = [
  bad:`The AI knows our prices because it was trained on the internet.`, badWhy:`A public AI was trained on nothing of yours. It knows your prices only if you hand them over.`},
 
 {id:"rag", t:"Retrieval-augmented generation (RAG)", s:5,
- a:`Handing the AI your data at the moment of the question: the controller retrieves the relevant records (the part, its reviews, the distributor's delivery history) and sends them with the question as context. It's cheap, current, and respects least privilege by construction.`,
+ a:`Handing the AI your data at the moment of the question: the controller retrieves the relevant records (the part, its reviews, the distributor's delivery history) and sends them with the question as context. It's cheap and current, and it can respect least privilege, if retrieval runs as the asking user's role.`,
  mvc:["C","M"], mvcWhy:`A controller retrieves from the Model and calls the AI.`,
  steps:[3], stepWhy:`RAG or training is a choice between alternatives.`,
  eng:["lp"], engWhy:`The controller retrieves only what the asking user's role can see.`,
@@ -1132,6 +1220,10 @@ const maxS = Math.max(...TERMS.map(t => t.s));
 const engOn = () => ENG.filter(e => e[3] <= through);
 const accepted = (t, k) => { if (k !== "eng") return t[k].map(String);
   const on = engOn().map(e => e[0]), a = t.eng.filter(x => on.includes(x)); return a.length ? a : ["none"]; };
+/* A second good answer: reasonable, with a note on why ours leads. Concepts not yet unlocked are left out. */
+const reasonable = (t, k) => { const o = (t.ok && t.ok[k]) || {};
+  if (k !== "eng") return o; const on = engOn().map(e => e[0]);
+  return Object.fromEntries(Object.entries(o).filter(([x]) => on.includes(x) || x === "none")); };
 const rowsOn = () => ROWS.filter(r => r[0] === "eng" ? through >= 3 : through >= 2);
 
 /* The link decides the deck: terms.html?s=3 gives terms through Session 3. */
@@ -1163,17 +1255,18 @@ document.addEventListener("click", e => { const a = e.target.closest("[data-mode
 
 /* The (a)(b)(c) for a term */
 function entryHTML(t) {
-  const lv = (name, ids, list, why) => `<dt>${name}</dt><dd><b>${ids.map(i => esc(label(list, i))).join(" or ")}</b>. ${why}</dd>`;
+  const lv = (name, ids, list, why, rs) => `<dt>${name}</dt><dd><b>${ids.map(i => esc(label(list, i))).join(" or ")}</b>. ${why}` +
+    Object.entries(rs || {}).map(([i, w]) => ` <span class="muted">Also reasonable: ${esc(label(list, i))}. ${w}</span>`).join("") + `</dd>`;
   return `<div class="entry">
     <div><h3>What it means</h3><p style="margin:0">${t.a}</p></div>
     ${through >= 2 ? `<div class="blk"><h3>Where it lives</h3>` : `<div hidden>`}<dl class="lives" style="margin:0">
-      ${through >= 2 ? lv("MVC", t.mvc, MVC, t.mvcWhy) + lv("Step", t.steps, STEPS, t.stepWhy) : ""}${through >= 3 ? lv("Concept", accepted(t, "eng"), ENG, t.engWhy) : ""}</dl></div>
+      ${through >= 2 ? lv("MVC", t.mvc, MVC, t.mvcWhy, reasonable(t, "mvc")) + lv("Step", t.steps, STEPS, t.stepWhy, reasonable(t, "steps")) : ""}${through >= 3 ? lv("Concept", accepted(t, "eng"), ENG, t.engWhy, reasonable(t, "eng")) : ""}</dl></div>
     <div class="blk"><h3>What a manager does with it</h3><ol>${t.do.map(d => `<li>${d}</li>`).join("")}</ol></div>
   </div>`;
 }
 
 /* ---------- Where does it live? ---------- */
-let sortQ = [], cur = null, picks = {}, tally = {n:0, mvc:0, step:0, eng:0};
+let sortQ = [], cur = null, picks = {}, tally = {n:0, mvc:0, step:0, eng:0, mvcR:0, stepR:0, engR:0};
 const ROWS = [["mvc","Which part of the app?",MVC,"mvcWhy"],["steps","Which of the four steps?",STEPS,"stepWhy"],["eng","Which engineering concept?",null,"engWhy"]];
 function nextSort() {
   if (!deck.length) return;
@@ -1197,20 +1290,28 @@ function nextSort() {
   });
   updTally();
 }
-function updTally() { $("sort-tally").textContent = tally.n ? `Placed ${tally.n} · matched us on MVC ${tally.mvc}, step ${tally.step}` + (through >= 3 ? `, concept ${tally.eng}` : "") : `${deck.length} terms`; }
+function updTally() {
+  const f = k => tally[k] + (tally[k + "R"] ? ` (+${tally[k + "R"]})` : "");
+  $("sort-tally").textContent = tally.n ? `Placed ${tally.n} · ours on MVC ${f("mvc")}, step ${f("step")}` + (through >= 3 ? `, concept ${f("eng")}` : "") + (tally.mvcR + tally.stepR + tally.engR ? " · (+) also reasonable" : "") : `${deck.length} terms`; }
 $("sort-check").onclick = () => {
   const g = $("sort-grid"); g.classList.add("locked");
   tally.n++;
   rowsOn().forEach(([k, q, list, whyKey]) => {
-    const acc = accepted(cur, k), ok = acc.includes(picks[k]);
-    if (ok) tally[k === "steps" ? "step" : k]++;
+    const acc = accepted(cur, k), rs = reasonable(cur, k), p = picks[k];
+    const ok = acc.includes(p), also = !ok && p in rs, tk = k === "steps" ? "step" : k;
+    if (ok) tally[tk]++; else if (also) tally[tk + "R"]++;
     g.querySelectorAll(`.chips[data-k="${k}"] .chip`).forEach(c => {
       if (acc.includes(c.dataset.v)) c.classList.add("ours");
-      else if (c.dataset.v === picks[k]) c.classList.add("miss");
+      else if (c.dataset.v in rs) c.classList.add("also");
+      else if (c.dataset.v === p) c.classList.add("miss");
     });
     const row = g.querySelector(`.chips[data-k="${k}"]`).parentElement;
     const d = document.createElement("div"); d.className = "why";
-    d.innerHTML = `<b class="${ok ? "ok" : "no"}">${ok ? "SAME AS OURS" : "WE'D SAY " + esc(acc.map(i => label(list || ENG, i)).join(" OR ").toUpperCase())}</b> ${cur[whyKey]}`;
+    const names = ids => esc(ids.map(i => label(list || ENG, i)).join(" or "));
+    const others = Object.keys(rs);
+    d.innerHTML = ok ? `<b class="ok">SAME AS OURS</b> ${cur[whyKey]}` + (others.length ? ` <span class="muted">Also reasonable: ${names(others)}. ${others.map(i => rs[i]).join(" ")}</span>` : "")
+      : also ? `<b class="also">ALSO REASONABLE</b> ${rs[p]} We'd lead with <b style="font-family:inherit;font-size:inherit;letter-spacing:0">${names(acc)}</b>: ${cur[whyKey]}`
+      : `<b class="no">WE'D SAY ${names(acc).toUpperCase()}</b> ${cur[whyKey]}` + (others.length ? ` <span class="muted">${names(others)} would be reasonable too: ${others.map(i => rs[i]).join(" ")}</span>` : "");
     row.append(d);
   });
   $("sort-reveal").innerHTML = `<div class="entry"><div><h3>What it means</h3><p style="margin:0">${cur.a}</p></div>

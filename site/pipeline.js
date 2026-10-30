@@ -1,9 +1,10 @@
-/* Where each puzzle sits: the product pipeline, with the four steps running inside Development.
+/* Where each puzzle sits: the product pipeline (continuous design, application development, continuous delivery,
+   hypothesis testing), with the four steps running inside Development.
    One source of truth. A puzzle page shows its own strip with  <div data-pipeline></div><script src="pipeline.js"></script>
    The index shows the whole map with  <div data-pipeline-map></div>  in the same way.
    To move a puzzle, change its line in PUZZLES. */
 (function(){
-  const STAGES=[["design","Design"],["development","Development"],["delivery","Delivery"]];
+  const STAGES=[["design","Design"],["development","Development"],["delivery","Delivery"],["testing","Hypothesis testing"]];
   const STEPS=[["intent","Intent"],["plan","Plan"],["alternatives","Alternatives"],["debug","Test & debug"]];
   const PUZZLES={
     "s1-warmup":           {title:"Punch card: predict, then run", s:1, stages:["design","development"], steps:["intent","debug"]},
@@ -24,24 +25,24 @@
 
   const css=`
   .pl{--pl-head:var(--head,#002D45);--pl-muted:var(--muted,#808285);--pl-line:var(--line-soft,#D1D3D4);--pl-on:var(--second,#63ADB1);--pl-bg:var(--panel,#fff);
-      font-family:var(--sans,"Abel",system-ui,sans-serif);font-size:13px;letter-spacing:.04em;margin:10px 0 14px;max-width:560px}
-  .pl-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+      font-family:var(--sans,"Abel",system-ui,sans-serif);font-size:13px;letter-spacing:.04em;margin:10px 0 14px;max-width:680px}
+  .pl-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
   .pl-stage,.pl-step{border:1px solid var(--pl-line);border-radius:3px;padding:3px 8px;color:var(--pl-muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pl-stage.on{border-color:var(--pl-on);background:var(--pl-on);color:#fff}
   .pl-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:6px;padding-top:6px;position:relative}
-  .pl-steps::before{content:"";position:absolute;top:0;left:calc(50% - 1px);width:2px;height:6px;background:var(--pl-line)}
+  .pl-steps::before{content:"";position:absolute;top:0;left:calc(37.5% - 1px);width:2px;height:6px;background:var(--pl-line)}
   .pl-step{font-size:12px;padding:2px 4px}
   .pl-step.on{border-color:var(--pl-on);color:var(--pl-head);box-shadow:inset 0 -3px 0 var(--pl-on)}
   .pl-note{color:var(--pl-muted);font-size:12.5px;margin-top:6px;letter-spacing:.02em}
   .pl-tag{display:inline-block;font-family:var(--sans,"Abel",system-ui,sans-serif);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
           color:#fff;background:var(--second,#63ADB1);border-radius:3px;padding:1px 6px;margin-left:8px;vertical-align:2px}
-  .plmap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:8px 0 24px}
+  .plmap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:8px 0 24px}
   .plmap h3{font-family:var(--serif,"Bree Serif",Georgia,serif);font-weight:400;color:var(--pl-head,#002D45);font-size:17px;margin:0 0 6px}
   .plmap .col{border-top:3px solid var(--second,#63ADB1);padding-top:6px}
   .plmap .grp{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#808285);margin:8px 0 2px}
   .plmap a{display:block;margin:2px 0;font-size:14px}
   .plmap .ses{color:var(--muted,#808285);font-size:12px}
-  @media (max-width:560px){.plmap{grid-template-columns:1fr}.pl-step{font-size:11px}}`;
+  @media (max-width:560px){.plmap{grid-template-columns:1fr 1fr}.pl-step,.pl-stage{font-size:11px;padding:2px 3px;white-space:normal;line-height:1.25;display:flex;align-items:center;justify-content:center}}`;
   const st=document.createElement("style"); st.textContent=css; document.head.append(st);
 
   function strip(p){
