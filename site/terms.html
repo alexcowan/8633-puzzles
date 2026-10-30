@@ -59,6 +59,15 @@ select,input[type=search]{font:inherit;color:var(--fg);background:var(--bg);bord
 
 /* Entry body (a, b, c) */
 .entry{display:grid;gap:12px}
+/* Comments */
+.cmts{display:grid;gap:8px}
+.cmt{border-left:3px solid var(--line-soft);padding:2px 10px;font-size:15.5px}
+.cmt .who{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em}
+.cmt .del{background:transparent;color:var(--bad);border:0;padding:0 0 0 8px;font-size:12px;cursor:pointer}
+.cform{display:grid;gap:6px}
+.cform textarea{width:100%;box-sizing:border-box;min-height:60px;font:inherit;font-size:15.5px;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:6px 8px}
+.cform input{font:inherit;font-size:15px;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:5px 8px}
+.cform .row{gap:8px}
 .entry .blk{border-top:1px solid var(--line-soft);padding-top:10px}
 .entry ol{margin:4px 0 0;padding-left:22px}
 .entry li{margin:4px 0}
@@ -1275,6 +1284,7 @@ function entryHTML(t) {
     ${through >= 2 ? `<div class="blk"><h3>Where it lives</h3>` : `<div hidden>`}<dl class="lives" style="margin:0">
       ${through >= 2 ? lv("MVC", t.mvc, MVC, t.mvcWhy, reasonable(t, "mvc")) + lv("Step", t.steps, STEPS, t.stepWhy, reasonable(t, "steps")) : ""}${through >= 3 ? lv("Concept", accepted(t, "eng"), ENG, t.engWhy, reasonable(t, "eng")) : ""}</dl></div>
     <div class="blk"><h3>What a manager does with it</h3><ol>${t.do.map(d => `<li>${d}</li>`).join("")}</ol></div>
+    <div class="blk"><h3>Comments</h3><div class="cmts" data-term="${t.id}"></div></div>
   </div>`;
 }
 
@@ -1328,8 +1338,9 @@ $("sort-check").onclick = () => {
     row.append(d);
   });
   $("sort-reveal").innerHTML = `<div class="entry"><div><h3>What it means</h3><p style="margin:0">${cur.a}</p></div>
-    <div class="blk"><h3>What a manager does with it</h3><ol>${cur.do.map(d => `<li>${d}</li>`).join("")}</ol></div></div>
-    <p class="muted" style="margin-top:12px;font-size:15px">Disagree with me? Good. Be ready to make the case in class.</p>`;
+    <div class="blk"><h3>What a manager does with it</h3><ol>${cur.do.map(d => `<li>${d}</li>`).join("")}</ol></div>
+    <div class="blk"><h3>Comments</h3><p class="muted" style="margin:0 0 6px;font-size:15px">Disagree with me? Good. Make the case here, or in class.</p><div class="cmts" data-term="${cur.id}"></div></div></div>`;
+  loadComments($("sort-reveal").querySelector(".cmts"));
   $("sort-reveal").hidden = false; $("sort-check").hidden = true; $("sort-hint").hidden = true;
   $("sort-next").textContent = "Next term";
   updTally();
@@ -1370,6 +1381,57 @@ function renderList() {
   $("list").innerHTML = html || `<p class="muted">No terms match.</p>`;
 }
 $("q").oninput = renderList;
+$("list").addEventListener("toggle", e => { const d = e.target; if (d.open) { const c = d.querySelector(".cmts"); if (c && !c.dataset.loaded) loadComments(c); } }, true);
+
+/* ---------- Comments ----------
+   Public, initials only. Posting asks for the course number. ?instructor=CODE once in the URL turns on delete
+   buttons in this browser; the worker checks the code. */
+const CAPI = "https://shrill-wood-3253.acowan.workers.dev/comments";
+const store = (k, v) => { try { if (v === undefined) return localStorage.getItem(k) || ""; localStorage.setItem(k, v); } catch (e) { return ""; } };
+if (params.get("instructor")) { store("cwg-instructor", params.get("instructor")); }
+function renderComments(box, list, note) {
+  const inst = store("cwg-instructor");
+  box.innerHTML = "";
+  if (!list.length) { const p = document.createElement("p"); p.className = "muted"; p.style.margin = "0"; p.style.fontSize = "15px"; p.textContent = "No comments yet."; box.append(p); }
+  list.forEach(c => {
+    const d = document.createElement("div"); d.className = "cmt";
+    const who = document.createElement("div"); who.className = "who"; who.textContent = c.i + " · " + new Date(c.at).toLocaleDateString(undefined, {month: "short", day: "numeric"});
+    if (inst) { const x = document.createElement("button"); x.className = "del"; x.textContent = "delete"; x.onclick = () => delComment(box, c.id); who.append(x); }
+    const t = document.createElement("div"); t.textContent = c.t; t.style.whiteSpace = "pre-wrap";
+    d.append(who, t); box.append(d);
+  });
+  const f = document.createElement("form"); f.className = "cform";
+  f.innerHTML = `<textarea maxlength="600" aria-label="Your comment" placeholder="Your comment (public)"></textarea>
+    <div class="row"><input class="ini" maxlength="4" size="5" placeholder="Initials" aria-label="Your initials">
+    <input class="chk" maxlength="6" size="16" inputmode="numeric" placeholder="Course number?" aria-label="What's the course number?">
+    <button type="submit">Post</button><span class="muted msg" style="font-size:14px"></span></div>`;
+  f.querySelector(".ini").value = store("cwg-initials"); f.querySelector(".chk").value = store("cwg-check");
+  if (note) f.querySelector(".msg").textContent = note;
+  f.onsubmit = e => { e.preventDefault(); postComment(box, f); };
+  box.append(f);
+}
+async function loadComments(box) {
+  box.dataset.loaded = "1"; box.innerHTML = `<span class="muted" style="font-size:15px">Loading comments…</span>`;
+  try { const r = await fetch(CAPI + "?term=" + encodeURIComponent(box.dataset.term)); const d = await r.json();
+    if (!r.ok) throw new Error(d.error); renderComments(box, d.comments || []); }
+  catch (e) { box.innerHTML = `<span class="muted" style="font-size:15px">Comments aren't available right now.</span>`; }
+}
+async function postComment(box, f) {
+  const text = f.querySelector("textarea").value.trim(), ini = f.querySelector(".ini").value.trim(), chk = f.querySelector(".chk").value.trim(), msg = f.querySelector(".msg");
+  if (!text) { f.querySelector("textarea").focus(); return; }
+  if (!ini) { f.querySelector(".ini").focus(); msg.textContent = "Initials, please."; return; }
+  msg.textContent = "Posting…"; store("cwg-initials", ini);
+  try { const r = await fetch(CAPI, {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({term: box.dataset.term, initials: ini, text, check: chk})});
+    const d = await r.json(); if (!r.ok) { msg.textContent = d.error || "Couldn't post."; return; }
+    store("cwg-check", chk); renderComments(box, d.comments || [], "Posted."); }
+  catch (e) { msg.textContent = "Couldn't reach the server."; }
+}
+async function delComment(box, id) {
+  try { const r = await fetch(CAPI + "/delete", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify({term: box.dataset.term, id, code: store("cwg-instructor")})});
+    const d = await r.json(); if (!r.ok) { alertless(box, d.error); return; } renderComments(box, d.comments || [], "Deleted."); }
+  catch (e) { alertless(box, "Couldn't reach the server."); }
+}
+function alertless(box, m) { const s = box.querySelector(".msg"); if (s) s.textContent = m; }
 function openTerm(id) {
   setMode("browse"); $("q").value = ""; renderList();
   const d = $("t-" + id); if (!d) return;

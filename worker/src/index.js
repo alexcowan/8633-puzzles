@@ -127,7 +127,9 @@ export default {
     const cors = corsHeaders(origin, env);
 
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
-    if (request.method !== "POST" || new URL(request.url).pathname !== "/grade") {
+    const path = new URL(request.url).pathname;
+    const isComments = path === "/comments" || path === "/comments/delete";
+    if (!(request.method === "POST" && (path === "/grade" || isComments)) && !(request.method === "GET" && path === "/comments")) {
       return json({ error: "Not found" }, 404, cors);
     }
     if (!allowedOrigin(origin, env)) return json({ error: "Origin not allowed" }, 403, cors);
@@ -136,6 +138,8 @@ export default {
     const ip = request.headers.get("CF-Connecting-IP") || "unknown";
     const { success } = await env.RATE_LIMITER.limit({ key: ip });
     if (!success) return json({ error: "Too many requests from this network. Try again in a minute." }, 429, cors);
+
+    if (isComments) return comments(request, env, path, cors);
 
     let body;
     try { body = await request.json(); } catch { return json({ error: "Bad JSON" }, 400, cors); }
@@ -241,11 +245,49 @@ function allowedOrigin(origin, env) {
 function corsHeaders(origin, env) {
   return {
     "Access-Control-Allow-Origin": allowedOrigin(origin, env) ? origin : "null",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "content-type",
     "Vary": "Origin",
   };
 }
 function json(obj, status, headers) {
   return new Response(JSON.stringify(obj), { status, headers: { "content-type": "application/json", ...headers } });
+}
+
+// Comments on the Terms page. One KV key per term ("c:<term id>") holding a JSON array, newest last.
+// Posting needs the course number (8633) as a speed bump for bots, initials only (comments are public),
+// and up to 600 characters. Deleting needs INSTRUCTOR_CODE, a secret set in the dashboard.
+const TERM_ID = /^[a-z0-9-]{1,40}$/;
+const MAX_PER_TERM = 200;
+async function comments(request, env, path, cors) {
+  if (!env.COMMENTS) return json({ error: "Comments aren't set up yet." }, 503, cors);
+  if (request.method === "GET") {
+    const term = new URL(request.url).searchParams.get("term") || "";
+    if (!TERM_ID.test(term)) return json({ error: "Unknown term." }, 400, cors);
+    const list = JSON.parse((await env.COMMENTS.get("c:" + term)) || "[]");
+    return json({ comments: list }, 200, { ...cors, "Cache-Control": "no-store" });
+  }
+  let b; try { b = await request.json(); } catch { return json({ error: "Bad JSON" }, 400, cors); }
+  const term = String(b.term || "");
+  if (!TERM_ID.test(term)) return json({ error: "Unknown term." }, 400, cors);
+  const key = "c:" + term;
+  const list = JSON.parse((await env.COMMENTS.get(key)) || "[]");
+
+  if (path === "/comments/delete") {
+    if (!env.INSTRUCTOR_CODE || String(b.code || "").trim() !== env.INSTRUCTOR_CODE) return json({ error: "Wrong instructor code." }, 401, cors);
+    const left = list.filter(c => c.id !== b.id);
+    await env.COMMENTS.put(key, JSON.stringify(left));
+    return json({ comments: left }, 200, cors);
+  }
+
+  if (String(b.check || "").trim() !== "8633") return json({ error: "That's not the course number." }, 401, cors);
+  const initials = String(b.initials || "").replace(/[^A-Za-z]/g, "").toUpperCase();
+  if (initials.length < 1 || initials.length > 4) return json({ error: "Initials only: one to four letters." }, 400, cors);
+  const text = String(b.text || "").replace(/\s+$/, "").trim();
+  if (!text) return json({ error: "Write something first." }, 400, cors);
+  if (text.length > 600) return json({ error: "Keep it under 600 characters." }, 413, cors);
+  list.push({ id: crypto.randomUUID().slice(0, 8), i: initials, t: text, at: new Date().toISOString() });
+  while (list.length > MAX_PER_TERM) list.shift();
+  await env.COMMENTS.put(key, JSON.stringify(list));
+  return json({ comments: list }, 200, cors);
 }
