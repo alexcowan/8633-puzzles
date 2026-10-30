@@ -61,6 +61,15 @@ select,input[type=search]{font:inherit;color:var(--fg);background:var(--bg);bord
 .entry{display:grid;gap:12px}
 /* Comments */
 .cmts{display:grid;gap:8px}
+.qhead{font-size:19px;margin:14px 0 6px}
+#quiz-use{border-top:1px solid var(--line-soft);margin-top:16px;padding-top:4px}
+.useitem{display:grid;gap:8px;padding:10px 0;border-top:1px dashed var(--line-soft)}
+.useitem:first-child{border-top:0}
+.useitem .sentence{margin:0}
+.useitem .verdict{margin-top:0}
+.list a.term{display:block;padding:7px 0;border-top:1px solid var(--line-soft);font-family:var(--serif);font-size:18px;color:var(--head);text-decoration:none}
+.list a.term:hover{text-decoration:underline}
+.list .sess + a.term{border-top:0}
 details.key{margin-top:14px;font-size:15.5px}
 details.key>summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px;font-size:15px}
 details.key p{margin:8px 0 0}
@@ -115,52 +124,52 @@ details.cbox>.cmts{margin-top:8px}
     <div class="eyebrow">Coding with GPT · <span id="through-label"></span></div>
     <h1>Terms, Terms, Terms</h1>
   </header>
-  <p>There are a lot of new words in this course. You don't need all of them. What you do need, for each one, is where it fits: which part of the app it belongs to, which of the four steps it comes up in, and which engineering idea it bears on. If you can place a term, you can ask good questions about it. Most terms have more than one sensible answer. I'll show you mine (solid ring) and the ones I'd also call reasonable (dashed ring), and why. Nothing here is scored or recorded.</p>
+  <p>There are a lot of new words in this course. You don't need all of them. What you do need, for each one, is where it fits: which part of the app it belongs to, which of the four steps it comes up in, which engineering idea it bears on, and how people use it (and misuse it). Take a term, quiz yourself, then see what I'd say. Most terms have more than one sensible answer; I'll show you mine (solid ring) and the ones I'd also call reasonable (dashed ring). Nothing here is scored or recorded.</p>
 
   <div class="spread">
     <div class="tabs" role="tablist">
-      <button role="tab" id="tab-sort" aria-selected="true" data-mode="sort">Where does it live?</button>
-      <button role="tab" id="tab-use" aria-selected="false" data-mode="use">Good use or misuse?</button>
-      <button role="tab" id="tab-browse" aria-selected="false" data-mode="browse">All the terms</button>
+      <button role="tab" id="tab-surprise" aria-selected="true" data-mode="surprise">Surprise me</button>
+      <button role="tab" id="tab-list" aria-selected="false" data-mode="list">All the terms</button>
     </div>
     <label class="row" style="font-size:15px;min-width:0;max-width:100%">Terms through
       <select id="through" style="max-width:100%"></select></label>
   </div>
 
-  <!-- MODE: sort -->
-  <section id="mode-sort" class="panel">
-    <p id="sort-closed" hidden style="margin:0">This game starts in Session 2, once you have MVC and the four steps to sort terms into. For now, try <a href="#" data-mode-link="use">Good use or misuse?</a> or browse <a href="#" data-mode-link="browse">all the terms</a>.</p>
-    <div id="sort-open">
-    <div class="spread"><div class="eyebrow">Place it, then check</div><span class="tally" id="sort-tally"></span></div>
-    <div class="termhead" style="margin:6px 0 4px"><h2 id="sort-term"></h2><span class="tag" id="sort-sess"></span></div>
-    <div id="sort-grid"></div>
-    <div class="row" style="margin-top:10px"><button id="sort-check" disabled>Check</button><button class="ghost" id="sort-next">Skip</button><span class="muted" id="sort-hint">Pick one in each row.</span></div>
+  <!-- One term: quiz, then answers, then comments -->
+  <section id="term" class="panel">
+    <div class="spread">
+      <a href="#" id="back" hidden style="font-size:15px">← All the terms</a>
+      <span class="tally" id="deal-note"></span>
+      <button class="ghost" id="next">Next term</button>
+    </div>
+    <div class="termhead" style="margin:8px 0 4px"><h2 id="term-name"></h2><span class="tag" id="term-sess"></span></div>
+
+    <div class="eyebrow" style="margin-top:10px">Quiz me</div>
+    <div id="quiz-place">
+      <h3 class="qhead">Where does it live?</h3>
+      <div id="sort-grid"></div>
+      <div class="row" style="margin-top:10px"><button id="sort-check" disabled>Check</button><span class="muted" id="sort-hint">Pick one in each row.</span></div>
     <details class="key" id="key"><summary>What the choices mean</summary>
     <p><b>The pipeline.</b> Everything a team does to go from an idea to a working user experience and back again, in four areas: continuous design, application development, continuous delivery, and hypothesis testing. Some terms are about this machinery around the app rather than the app itself.</p>
     <p><b>MVC.</b> The app itself, in three parts. The Model is the data the app keeps. The View is what a user, or another machine, sees and uses. The Controller is the code that makes things happen between them. Some terms span all three.</p>
     <p><b>The four steps.</b> How any one piece gets built, mostly inside application development. 1. Focusing and communicating design intent. 2. Unpacking what you want to have happen into codable steps. 3. Effectuating between alternatives. 4. Testing and debugging. Some terms don't belong to any one step.</p>
     <p style="margin:0" id="legend-eng"><b>Engineering concepts.</b> <span id="concept-legend"></span></p>
     </details>
-    <div id="sort-reveal" hidden style="margin-top:16px"></div>
-    <div id="sort-cbox"></div>
     </div>
+    <div id="quiz-use">
+      <h3 class="qhead">Good use or misuse?</h3>
+      <p class="muted" style="margin:0 0 6px;font-size:15px">Someone in a meeting says…</p>
+      <div id="use-items"></div>
+    </div>
+    <div class="row" style="margin-top:12px"><a href="#" id="just-show" style="font-size:15px">Skip the quiz, just show me</a></div>
+
+    <div id="answers" hidden style="margin-top:18px"></div>
+    <div id="cbox"></div>
   </section>
 
-  <!-- MODE: use or misuse -->
-  <section id="mode-use" class="panel" hidden>
-    <div class="spread"><div class="eyebrow">Someone in a meeting says…</div><span class="tally" id="use-tally"></span></div>
-    <div class="sentence" id="use-sentence"></div>
-    <div class="row"><button id="use-good">Good use</button><button id="use-bad">Misuse</button></div>
-    <div id="use-reveal" hidden></div>
-    <div class="row" style="margin-top:12px"><button class="ghost" id="use-next">Next</button></div>
-  </section>
-
-  <!-- MODE: browse -->
-  <section id="mode-browse" class="panel" hidden>
-    <div class="row" style="margin-bottom:12px">
-      <input type="search" id="q" placeholder="Find a term" style="flex:1 1 220px">
-      <button class="ghost" id="random">Random term</button>
-    </div>
+  <!-- All the terms -->
+  <section id="list-view" class="panel" hidden>
+    <input type="search" id="q" placeholder="Find a term" style="width:100%;box-sizing:border-box;margin-bottom:6px">
     <div class="list" id="list"></div>
   </section>
 
@@ -1267,8 +1276,8 @@ function setThrough(n, push) {
   through = n; deck = TERMS.filter(t => t.s <= through);
   $("through-label").textContent = through === maxS && !params.get("s") ? "All sessions so far" : `Terms through Session ${through}`;
   $("through").value = String(through);
-  if (push) { const u = new URL(location); u.searchParams.set("s", through); u.searchParams.delete("term"); history.replaceState(null, "", u); }
-  sortQ = []; useQ = []; legend(); nextSort(); nextUse(); renderList();
+  dealQ = []; legend();
+  if (push) { if (mode === "list") { renderList(); setURL(null); } else setMode("surprise"); }
 }
 $("through").innerHTML = Array.from({length: maxS}, (_, i) => `<option value="${i+1}">Session ${i+1}</option>`).join("");
 $("through").onchange = e => setThrough(parseInt(e.target.value, 10), true);
@@ -1278,13 +1287,17 @@ function legend() {
   $("concept-legend").innerHTML = engOn().filter(e => e[2]).map(e => `<b>${esc(e[1])}</b>: ${esc(e[2])}`).join(" ");
 }
 
-/* Tabs */
+/* Modes: Surprise me deals random terms; All the terms lists them. Both open the same term view. */
+let mode = "surprise", fromList = false;
 function setMode(m) {
+  mode = m;
   document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.mode === m));
-  ["sort","use","browse"].forEach(x => $("mode-" + x).hidden = x !== m);
+  $("list-view").hidden = m !== "list";
+  $("term").hidden = m === "list";
+  if (m === "surprise") { fromList = false; deal(); }
+  if (m === "list") { renderList(); setURL(null); }
 }
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => setMode(b.dataset.mode));
-document.addEventListener("click", e => { const a = e.target.closest("[data-mode-link]"); if (a) { e.preventDefault(); setMode(a.dataset.modeLink); } });
 
 /* The bigger picture for one term: where it sits in the pipeline, MVC, the four steps, and the engineering
    concepts, and why. A lens that isn't pertinent to the term is left out. only: limit to some lenses. */
@@ -1304,34 +1317,25 @@ function bigPicture(t, only, alts) {
   return out.length ? `<div class="bp">${out.join("")}</div>` : "";
 }
 
-/* The (a)(b)(c) for a term */
-function entryHTML(t) {
-  const lv = (name, ids, list, why, rs) => `<dt>${name}</dt><dd><b>${ids.map(i => esc(label(list, i))).join(" or ")}</b>. ${why}` +
-    Object.entries(rs || {}).map(([i, w]) => ` <span class="muted">Also reasonable: ${esc(label(list, i))}. ${w}</span>`).join("") + `</dd>`;
-  return `<div class="entry">
-    <div><h3>What it means</h3><p style="margin:0">${t.a}</p></div>
-    ${(bp => bp ? `<div class="blk"><h3>The bigger picture</h3>${bp}</div>` : "")(bigPicture(t, null, true))}
-    <div class="blk"><h3>What a manager does with it (examples)</h3><ol>${t.do.map(d => `<li>${d}</li>`).join("")}</ol></div>
-    <div class="blk"><h3>Comments on ${esc(t.t)}</h3><div class="cmts" data-term="${t.id}"></div></div>
-  </div>`;
-}
-
-/* ---------- Where does it live? ---------- */
-let sortQ = [], cur = null, picks = {}, tally = {n:0, mvc:0, step:0, eng:0, mvcR:0, stepR:0, engR:0};
+/* ---------- One term ---------- */
+let dealQ = [], cur = null, picks = {}, placed = false, useDone = 0;
 const ROWS = [["mvc","Which part of the app?",MVC,"mvcWhy"],["steps","Which of the four steps?",STEPS,"stepWhy"],["eng","Which engineering concept?",null,"engWhy"]];
-function nextSort() {
+function setURL(id) { const u = new URL(location); u.searchParams.set("s", through); if (id) u.searchParams.set("term", id); else u.searchParams.delete("term"); history.replaceState(null, "", u); }
+function deal() {
   if (!deck.length) return;
-  const closed = through < 2;
-  $("sort-closed").hidden = !closed; $("sort-open").hidden = closed;
-  if (closed) return;
-  if (!sortQ.length) sortQ = shuffle(deck);
-  cur = sortQ.pop(); picks = {};
-  $("sort-term").textContent = cur.t;
-  $("sort-sess").textContent = "Session " + cur.s;
-  $("key").hidden = through < 2;
-  $("sort-reveal").hidden = true; $("sort-check").hidden = false; $("sort-check").disabled = true;
-  commentBox($("sort-cbox"), cur.id, {note: "Heads up: classmates' comments may give away where it lives. Place it first if you can."});
-  $("sort-next").textContent = "Skip"; $("sort-hint").hidden = false;
+  if (!dealQ.length) dealQ = shuffle(deck);
+  showTerm(dealQ.pop());
+}
+function showTerm(t) {
+  cur = t; picks = {}; placed = false; useDone = 0;
+  setURL(t.id);
+  $("term-name").textContent = t.t; $("term-sess").textContent = "Session " + t.s;
+  $("back").hidden = !fromList; $("next").hidden = fromList;
+  $("answers").hidden = true; $("answers").innerHTML = ""; $("just-show").parentElement.hidden = false;
+  /* Where does it live? starts in Session 2, once there's MVC and the four steps to sort into. */
+  $("quiz-place").hidden = through < 2;
+  $("key").hidden = through < 2; $("key").open = false;
+  $("sort-check").hidden = false; $("sort-check").disabled = true; $("sort-hint").hidden = false;
   $("sort-grid").className = "";
   $("sort-grid").innerHTML = rowsOn().map(([k, q, list]) => `<div class="sortrow"><h3>${q}</h3><div class="chips" data-k="${k}">` +
     (list || engOn()).map(o => `<button class="chip" aria-pressed="false" data-v="${o[0]}">${esc(o[1])}</button>`).join("") + `</div></div>`).join("");
@@ -1341,18 +1345,37 @@ function nextSort() {
     picks[row.dataset.k] = b.dataset.v;
     $("sort-check").disabled = Object.keys(picks).length < rowsOn().length;
   });
-  updTally();
+  /* Good use or misuse? This term's two sentences, in random order. */
+  const items = shuffle([{ok:true, s:t.good, why:t.goodWhy}, {ok:false, s:t.bad, why:t.badWhy}]);
+  $("use-items").innerHTML = items.map((it, i) => `<div class="useitem" data-i="${i}"><div class="sentence">“${it.s}”</div>
+    <div class="row"><button data-said="1">Good use</button><button data-said="0">Misuse</button></div><div class="res" hidden></div></div>`).join("");
+  $("use-items").querySelectorAll(".useitem").forEach(el => el.onclick = e => {
+    const b = e.target.closest("button[data-said]"); if (!b || b.disabled) return;
+    const it = items[+el.dataset.i], said = b.dataset.said === "1", right = said === it.ok;
+    el.querySelectorAll("button").forEach(x => x.disabled = true);
+    const r = el.querySelector(".res"); r.hidden = false;
+    r.innerHTML = `<div class="verdict ${it.ok ? "" : "no"}"><b>${it.ok ? "GOOD USE" : "MISUSE"}${right ? "" : " (not what you said)"}</b><br>${it.why}</div>`;
+    useDone++; maybeReveal();
+  });
+  commentBox($("cbox"), t.id, {note: "Heads up: classmates' comments may give the answers away. Quiz yourself first if you can."});
+  $("deal-note").textContent = fromList ? "" : `${deck.length} terms through Session ${through}`;
 }
-function updTally() {
-  const f = k => tally[k] + (tally[k + "R"] ? ` (+${tally[k + "R"]})` : "");
-  $("sort-tally").textContent = tally.n ? `Placed ${tally.n} · matched me on MVC ${f("mvc")}, step ${f("step")}` + (through >= 3 ? `, concept ${f("eng")}` : "") + (tally.mvcR + tally.stepR + tally.engR ? " · (+) also reasonable" : "") : `${deck.length} terms`; }
+function maybeReveal() { if ((placed || through < 2) && useDone === 2) reveal(); }
+function reveal() {
+  if (!$("answers").hidden) return;
+  const bp = bigPicture(cur, null, !placed);
+  $("answers").innerHTML = `<div class="eyebrow">What I'd say</div><div class="entry" style="margin-top:6px">
+    <div><h3>What it means</h3><p style="margin:0">${cur.a}</p></div>
+    ${bp ? `<div class="blk"><h3>The bigger picture</h3>${bp}</div>` : ""}
+    <div class="blk"><h3>What a manager does with it (examples)</h3><ol>${cur.do.map(d => `<li>${d}</li>`).join("")}</ol></div></div>`;
+  $("answers").hidden = false; $("just-show").parentElement.hidden = true;
+  commentBox($("cbox"), cur.id, {open: true, note: "Disagree with me? Good. Make the case here, or in class."});
+}
 $("sort-check").onclick = () => {
   const g = $("sort-grid"); g.classList.add("locked");
-  tally.n++;
-  rowsOn().forEach(([k, q, list, whyKey]) => {
+  rowsOn().forEach(([k, q, list]) => {
     const acc = accepted(cur, k), rs = reasonable(cur, k), p = picks[k];
-    const ok = acc.includes(p), also = !ok && p in rs, tk = k === "steps" ? "step" : k;
-    if (ok) tally[tk]++; else if (also) tally[tk + "R"]++;
+    const ok = acc.includes(p), also = !ok && p in rs;
     g.querySelectorAll(`.chips[data-k="${k}"] .chip`).forEach(c => {
       if (acc.includes(c.dataset.v)) c.classList.add("ours");
       else if (c.dataset.v in rs) c.classList.add("also");
@@ -1362,47 +1385,19 @@ $("sort-check").onclick = () => {
     const d = document.createElement("div"); d.className = "why";
     const names = ids => esc(ids.map(i => label(list || ENG, i)).join(" or "));
     const others = Object.keys(rs);
-    /* Verdict only; the reasons for my pick are in the bigger picture below. */
+    /* Verdict only; the reasons for my pick are in the bigger picture. */
     d.innerHTML = ok ? `<b class="ok">SAME AS MINE</b>` + (others.length ? ` <span class="muted">Also reasonable: ${names(others)}. ${others.map(i => rs[i]).join(" ")}</span>` : "")
       : also ? `<b class="also">ALSO REASONABLE</b> ${rs[p]} I'd lead with <b style="font-family:inherit;font-size:inherit;letter-spacing:0">${names(acc)}</b>.`
       : `<b class="no">I'D SAY ${names(acc).toUpperCase()}</b>` + (others.length ? ` <span class="muted">${names(others)} would be reasonable too: ${others.map(i => rs[i]).join(" ")}</span>` : "");
     row.append(d);
   });
-  const bpPipe = bigPicture(cur, null, false);
-  $("key").open = false; $("key").hidden = true;
-  $("sort-reveal").innerHTML = `<div class="entry"><div><h3>What it means</h3><p style="margin:0">${cur.a}</p></div>
-    ${bpPipe ? `<div class="blk"><h3>The bigger picture</h3>${bpPipe}</div>` : ""}
-    <div class="blk"><h3>What a manager does with it (examples)</h3><ol>${cur.do.map(d => `<li>${d}</li>`).join("")}</ol></div></div>`;
-  commentBox($("sort-cbox"), cur.id, {open: true, note: "Disagree with me? Good. Make the case here, or in class."});
-  $("sort-reveal").hidden = false; $("sort-check").hidden = true; $("sort-hint").hidden = true;
-  $("sort-next").textContent = "Next term";
-  updTally();
+  placed = true; $("key").hidden = true;
+  $("sort-check").hidden = true; $("sort-hint").hidden = true;
+  maybeReveal();
 };
-$("sort-next").onclick = nextSort;
-
-/* ---------- Good use or misuse? ---------- */
-let useQ = [], uc = null, ut = {n:0, right:0};
-function nextUse() {
-  if (!deck.length) return;
-  if (!useQ.length) useQ = shuffle(deck.flatMap(t => [{t, ok:true, s:t.good, why:t.goodWhy}, {t, ok:false, s:t.bad, why:t.badWhy}]));
-  uc = useQ.pop();
-  $("use-sentence").innerHTML = `“${uc.s}”`;
-  $("use-reveal").hidden = true; $("use-good").disabled = $("use-bad").disabled = false;
-  $("use-tally").textContent = ut.n ? `${ut.right} of ${ut.n}` : "";
-}
-function answerUse(saidGood) {
-  const right = saidGood === uc.ok; ut.n++; if (right) ut.right++;
-  $("use-good").disabled = $("use-bad").disabled = true;
-  $("use-reveal").innerHTML = `<div class="verdict ${uc.ok ? "" : "no"}"><b>${uc.ok ? "GOOD USE" : "MISUSE"}${right ? "" : " (not what you said)"}</b><br>${uc.why}
-    <div style="margin-top:6px;font-size:15px"><a href="#" data-open="${uc.t.id}">More on ${esc(uc.t.t)}</a></div></div>`;
-  const cb = document.createElement("div"); $("use-reveal").append(cb); commentBox(cb, uc.t.id);
-  $("use-reveal").hidden = false;
-  $("use-tally").textContent = `${ut.right} of ${ut.n}`;
-}
-$("use-good").onclick = () => answerUse(true);
-$("use-bad").onclick = () => answerUse(false);
-$("use-next").onclick = nextUse;
-$("use-reveal").onclick = e => { const a = e.target.closest("[data-open]"); if (a) { e.preventDefault(); openTerm(a.dataset.open); } };
+$("just-show").onclick = e => { e.preventDefault(); reveal(); };
+$("next").onclick = deal;
+$("back").onclick = e => { e.preventDefault(); setMode("list"); };
 
 /* ---------- All the terms ---------- */
 function renderList() {
@@ -1410,12 +1405,20 @@ function renderList() {
   let html = "", last = 0;
   deck.filter(t => !q || (t.t + " " + t.a).toLowerCase().includes(q)).forEach(t => {
     if (t.s !== last) { html += `<div class="sess">Session ${t.s}${SESSIONS[t.s] ? " · " + esc(SESSIONS[t.s]) : ""}</div>`; last = t.s; }
-    html += `<details id="t-${t.id}"><summary><span class="t">${esc(t.t)}</span></summary>${entryHTML(t)}</details>`;
+    html += `<a class="term" href="?s=${through}&term=${t.id}" data-id="${t.id}">${esc(t.t)}</a>`;
   });
   $("list").innerHTML = html || `<p class="muted">No terms match.</p>`;
 }
 $("q").oninput = renderList;
-$("list").addEventListener("toggle", e => { const d = e.target; if (d.open) { const c = d.querySelector(".cmts"); if (c && !c.dataset.loaded) loadComments(c); } }, true);
+$("list").onclick = e => { const a = e.target.closest("a.term"); if (!a || e.metaKey || e.ctrlKey) return; e.preventDefault(); openTerm(a.dataset.id); };
+function openTerm(id) {
+  const t = deck.find(x => x.id === id); if (!t) return;
+  fromList = true; mode = "term";
+  $("list-view").hidden = true; $("term").hidden = false;
+  document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.mode === "list"));
+  showTerm(t);
+  window.scrollTo(0, 0);
+}
 
 /* A collapsible comment thread for one term, with a count. Used on the sort card and the use-or-misuse verdict. */
 function commentBox(host, term, opts) {
@@ -1479,17 +1482,10 @@ async function delComment(box, id) {
   catch (e) { alertless(box, "Couldn't reach the server."); }
 }
 function alertless(box, m) { const s = box.querySelector(".msg"); if (s) s.textContent = m; }
-function openTerm(id) {
-  setMode("browse"); $("q").value = ""; renderList();
-  const d = $("t-" + id); if (!d) return;
-  d.open = true; d.classList.remove("flash"); void d.offsetWidth; d.classList.add("flash");
-  d.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start"});
-}
-$("random").onclick = () => openTerm(deck[Math.floor(Math.random() * deck.length)].id);
-
-/* Start. ?mode=use|browse picks a tab; ?term=id opens one term (handy for a warm call). */
+/* Start. ?term=id opens that term (handy for a warm call or a Canvas link); ?mode=list opens the list. */
 setThrough(through, false);
-if (params.get("term") && deck.some(t => t.id === params.get("term"))) openTerm(params.get("term"));
-else if (["use","browse"].includes(params.get("mode"))) setMode(params.get("mode"));
+const startTerm = params.get("term");
+if (startTerm && deck.some(t => t.id === startTerm)) openTerm(startTerm);
+else setMode(params.get("mode") === "list" ? "list" : "surprise");
 </script>
 </body></html>
