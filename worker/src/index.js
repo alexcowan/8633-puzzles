@@ -95,16 +95,13 @@ const RUBRICS = {
   },
   // Coaching on the tables in a student's own sheet, shown right after the page reads it (s5-price, question 2).
   "s5-price-tables": {
-    story: "A student is splitting HinH's single jobs sheet (job, date, customer, address, part_number, part_name, price) into tables, one tab per table, in their own Google Sheet. You see each tab's name, its header row, and a few rows. This is a warm-up. Only four things matter, checked in this order. Nothing else (customers, addresses, keys, J-1047, two parts in one cell, line items) should come up.",
-    note: "one to three short sentences, under 50 words, about the FIRST issue found only,",
-    summary: "a summary: if a SECOND issue was found, one to three short sentences, under 50 words, about it, using its wording below; otherwise an empty string. Never recap the note.",
+    story: "A student is splitting HinH's single jobs sheet (job, date, customer, address, part_number, part_name, price) into tables, one tab per table, in their own Google Sheet. You see each tab's name, its header row, and a few rows. This is a warm-up. The page has already checked that the split has started and that no part number appears twice in the parts tab. Only two things are left to check. Nothing else (customers, addresses, keys, J-1047, two parts in one cell, line items) should come up.",
+    note: "the message for the FIRST issue found, in the wording below (or, if no issue, one sentence on what's strong),",
+    summary: "an empty string.",
     guidance: [
-      "Work through these checks in order. Report the first issue found in the note and the second (if any) in the summary. Verdict is ok only if no check finds an issue; then the note says in one sentence what's strong and the summary is empty.",
-      "Check A, split not started: there is only one tab, or every tab still has both job columns and part columns like the original. Note: 'You haven't split it yet. Start with a tab just for parts.'",
-      "Check B, duplicate parts: in the tab holding part prices, the same part_number appears on more than one row. Be plain and specific: 'HX-2201 is in your parts tab twice (184 and 199). Parts needs one row per part, at today's price, or Trent's search still has two prices to pick from. Which one stays?' (use the actual part number, values, and tab name).",
-      "Check C, history lost: no tab records what each customer was charged on each job (a column like price, price_paid, or price_charged on the jobs tab). Ask: 'What did Alvarez pay on J-1041, and where does that number live now?' A price on the jobs tab that differs from the parts tab is NOT a problem; it is the history, and it should stay.",
-      "Check D, parts facts left on jobs: the jobs tab still has part_name (or another fact about the part other than part_number and what was charged). Use exactly this shape, with their tab names: 'You've started separating concerns among the tabs: [jobs tab] about jobs and [parts tab] about parts. How would you go all the way with that? There's still some parts data in [jobs tab] that needs to find its way home.'",
-      "A jobs tab with columns job, date, customer, address, part_number, and a charged price, plus a parts tab with one row per part_number holding part_name and price, passes every check: verdict ok.",
+      "Check C first, history lost: no tab records what each customer was charged on each job (a column like price, price_paid, or price_charged on the jobs tab). Message: 'What did Alvarez pay on J-1041, and where does that number live now?' A price on the jobs tab that differs from the parts tab is NOT a problem; it is the history, and it should stay.",
+      "Check D only if C passes, parts facts left on jobs: the jobs tab still has part_name (or another fact about the part other than part_number and what was charged). Message, exactly this shape with their tab names: 'You've started separating concerns among the tabs: [jobs tab] about jobs and [parts tab] about parts. How would you go all the way with that? There's still some parts data in [jobs tab] that needs to find its way home.'",
+      "Verdict ok only if C and D both pass; otherwise thin. The note is just the one message: no preamble, no praise before it, no second issue.",
     ],
   },
   "s5-map": {
