@@ -280,15 +280,15 @@ function localCheck(tabs){
   for(const r of parts.rows.slice(1)){ const k=String(r[pn]||"").trim(); if(k) (seen[k]=seen[k]||[]).push(r); }
   const dup=Object.entries(seen).find(([,rs])=>rs.length>1);
   if(dup){ const pi=ph.findIndex(h=>/price|cost/.test(h)); const vals=pi>=0?" ("+dup[1].map(r=>r[pi]).join(" and ")+")":"";
-    return {msg:`${dup[0]} is in your ${parts.name} tab ${dup[1].length===2?"twice":dup[1].length+" times"}${vals}. The ${parts.name} tab needs one row per part, at today's price, or Trent's search still has two prices to pick from. Which one stays?`}; }
+    return {msg:`${dup[0]} is in your '${parts.name}' tab ${dup[1].length===2?"twice":dup[1].length+" times"}${vals}. The '${parts.name}' tab needs one row per part, at today's price, or Trent's search still has two prices to pick from. Which one stays?`}; }
   // C. what each customer paid stays with the job
   const jh=H(jobs);
   if(!jh.some(h=>/price|paid|charged|amount|total|cost/.test(h)))
     return {msg:"What did Alvarez pay on J-1041, and where does that number live now?"};
   // D. facts about parts live with parts
   if(jh.some(h=>/^(part_?name|name|description|part_description)$/.test(h)))
-    return {msg:`You've started separating concerns among the tabs: ${jobs.name} about jobs and ${parts.name} about parts. How would you go all the way with that? There's still some parts data in ${jobs.name} that needs to find its way home.`};
-  return {ok:true, msg:`Looks right: one row per part in ${parts.name}, what each customer paid stays on the job in ${jobs.name}, and facts about parts live with parts. Now try question 3.`};
+    return {msg:`You've started separating concerns among the tabs: '${jobs.name}' about jobs and '${parts.name}' about parts. How would you go all the way with that? There's still some parts data in '${jobs.name}' that needs to find its way home.`};
+  return {ok:true, msg:`Looks right: one row per part in '${parts.name}', what each customer paid stays on the job in '${jobs.name}', and facts about parts live with parts. Now try question 3.`};
 }
 /* After the sheet is read, an AI looks at the tables and gives a hint. It needs the class code: use the saved one, or ask. */
 function coach(tabs){
