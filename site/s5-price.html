@@ -128,9 +128,13 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
     <h2>Your answers</h2>
     <p class="muted">Saved in this browser as you type, so reloading won't lose them.</p>
     <div class="q"><label for="a1">1. What did Trent see, and why?</label><textarea id="a1"></textarea></div>
-    <div class="q"><label for="a2">2. Split the sheet into tables. For each: its columns, its key, and how it links to the others.</label>
-      <p class="muted" style="margin:0">Split the table above in <a href="https://docs.google.com/spreadsheets/d/1YjbN0oRWYto7wotezmiEAnPE0zcq1ZPyGWAS9zsh3a4/copy" target="_blank" rel="noopener">your own copy of the sheet</a>, one tab per table. Careful: is the price on a job row the list price, or what that customer paid? Then write your tables here, like <code>Table(column, …) key: … links to: …</code></p>
-      <textarea id="a2" style="min-height:120px"></textarea></div>
+    <div class="q"><label for="sheet-url">2. Split the sheet into tables. For each: its columns, its key, and how it links to the others.</label>
+      <p class="muted" style="margin:0">Split the table above in <a href="https://docs.google.com/spreadsheets/d/1YjbN0oRWYto7wotezmiEAnPE0zcq1ZPyGWAS9zsh3a4/copy" target="_blank" rel="noopener">your own copy of the sheet</a>, one tab per table. Careful: is the price on a job row the list price, or what that customer paid? Then set Share to "Anyone with the link" and paste the link here.</p>
+      <div class="row"><input id="sheet-url" type="text" placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off" style="flex:1;min-width:0;font-family:var(--mono);font-size:13px"><button type="button" id="read-sheet">Read my sheet</button></div>
+      <div class="muted" id="sheet-status" style="font-size:15px"></div>
+      <div id="sheet-tabs" style="display:grid;gap:10px"></div>
+      <label for="a2" class="muted" style="font-family:var(--sans);font-size:15px">Optional: anything the tabs don't show, like which column is each tab's key.</label>
+      <textarea id="a2" style="min-height:60px"></textarea></div>
     <div class="q"><label for="a3">3. After your fix, the price goes up again. How many cells change, and what happens to the old jobs?</label><textarea id="a3"></textarea></div>
     <div class="q"><label for="a4">4. Look at J-1047. What is that cell telling you?</label><textarea id="a4"></textarea></div>
     <div class="q"><label for="a5">5. Alvarez calls about the J-1041 invoice. What should it show, and where does that number live in your tables?</label><textarea id="a5"></textarea></div>
@@ -238,7 +242,32 @@ document.getElementById("part-number").addEventListener("keydown",e=>{ if(e.key=
 const IDS=["a1","a2","a3","a4","a5"];
 keepFields(IDS);
 const LABELS=["What Trent saw","Your tables","The next price change","J-1047","The old invoice"];
-wireGrader("s5-price", ()=>({ items: IDS.map((id,i)=>({label:LABELS[i], answer:val(id)})) }));
+/* Question 2 reads the student's own sheet through the grader worker (Google blocks the browser from reading it directly). */
+const SHEET_API="https://shrill-wood-3253.acowan.workers.dev/sheet";
+function showTabs(tabs){
+  const host=document.getElementById("sheet-tabs"); host.innerHTML="";
+  tabs.forEach(t=>{ const h=document.createElement("div"); h.style.fontFamily="var(--serif)"; h.style.color="var(--head)"; { const n=Math.max(0,t.rows.length-1); h.textContent=t.name+" ("+n+(n===1?" row)":" rows)"); }
+    const box=document.createElement("div"); box.append(h);
+    const holder=document.createElement("div"); box.append(holder);
+    renderTable(holder, t.rows[0]||[], t.rows.slice(1,6)); host.append(box); });
+}
+function tabsText(tabs){
+  return tabs.map(t=>`Tab "${t.name}": ${(t.rows[0]||[]).join(", ")}`+(t.rows.length>1?`\n  e.g. ${t.rows.slice(1,4).map(r=>r.join(" | ")).join("\n  e.g. ")}`:"")).join("\n");
+}
+document.getElementById("sheet-url").value=load().sheetUrl||"";
+if(load().tabs) showTabs(load().tabs);
+document.getElementById("read-sheet").onclick=async()=>{
+  const url=document.getElementById("sheet-url").value.trim(), st=document.getElementById("sheet-status");
+  if(!url){ document.getElementById("sheet-url").focus(); return; }
+  st.textContent="Reading your sheet…";
+  try{ const r=await fetch(SHEET_API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({url})}); const d=await r.json();
+    if(!r.ok){ st.textContent=d.error||"Couldn't read the sheet."; return; }
+    store({sheetUrl:url, tabs:d.tabs}); showTabs(d.tabs);
+    st.textContent=d.tabs.length<2?"I found one tab. Split the jobs sheet into a tab per table, then read it again.":`Read ${d.tabs.length} tabs. This is what the checker will see.`;
+  }catch(e){ st.textContent="Couldn't reach the server."; }
+};
+wireGrader("s5-price", ()=>{ const s=load(); return { items: IDS.map((id,i)=>({label:LABELS[i],
+  answer: id==="a2" ? ((s.tabs?tabsText(s.tabs):"(sheet not read yet)")+(val("a2")?"\nNote: "+val("a2"):"")) : val(id)})) }; });
 </script>
 <script src="pipeline.js"></script>
 </body></html>

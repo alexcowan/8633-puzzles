@@ -87,7 +87,7 @@ const RUBRICS = {
     story: "As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair. HinH keeps service jobs in one sheet with columns job, date, customer, address, part_number, part_name, price. The lookup shows the name and price from the FIRST job row with that part number. The distributor raised HX-2201 to $199.00 on Oct 9; J-1045 (Oct 9) has 199.00, but J-1041, J-1043 and J-1046 (Oct 12, after the raise) still have 184.00. J-1047 has 'HX-2201, CP-0450' in one cell with a combined price of 206.50. Trent searched HX-2201 and saw $184.00, read from J-1041.",
     guidance: [
       "What Trent saw: passes if it says $184 AND why: the lookup read the first (oldest) row, J-1041, and the price is stored on every job row, so updating it in one place (J-1045) left the other copies stale. Saying only 'it shows the old price' is thin. Naming the update anomaly or 'the same fact stored in many places' is well seen. If it notes J-1046 was logged AFTER the raise at the old price (someone copied an old row), say that was well seen.",
-      "Your tables: the sheet's price column holds two facts: the current list price of a part, and what the customer was charged on that job. Passes if the list price lives in a Parts table keyed by part_number (with name), so a price change is one cell, AND the price charged stays with the job, on a Job_Parts (line items) table that links job and part_number (e.g. price_charged, qty). Strong answers also have Customers (key: a customer id or name) and Jobs (key: job; links to customer). Address on Customers or its own Sites table are both fine. Thin if the design drops every job-level price (or replaces it with a lookup to the current list price): old invoices can no longer be reproduced, so say that normalizing split the facts but this design lost one. Thin if there is no Job_Parts table and J-1047 isn't handled. Typing part_number as a number is wrong (it has letters and dashes); don't fail on types that aren't stated.",
+      "Your tables: the student's tables come from their own Google Sheet, one tab per table (answers.items 'Your tables' lists each tab's name, its header row, and a few rows), plus an optional note. Infer keys and links from column names (a part_number column in a Job_Parts tab links to Parts) unless the note says otherwise; don't mark thin just because keys weren't spelled out. If the tabs still look like the original single jobs sheet, say the split hasn't been done. The sheet's price column holds two facts: the current list price of a part, and what the customer was charged on that job. Passes if the list price lives in a Parts table keyed by part_number (with name), so a price change is one cell, AND the price charged stays with the job, on a Job_Parts (line items) table that links job and part_number (e.g. price_charged, qty). Strong answers also have Customers (key: a customer id or name) and Jobs (key: job; links to customer). Address on Customers or its own Sites table are both fine. Thin if the design drops every job-level price (or replaces it with a lookup to the current list price): old invoices can no longer be reproduced, so say that normalizing split the facts but this design lost one. Thin if there is no Job_Parts table and J-1047 isn't handled. Typing part_number as a number is wrong (it has letters and dashes); don't fail on types that aren't stated.",
       "The next price change: the answer is one cell (the price on the HX-2201 row in Parts), and the old jobs don't change, because what was charged is recorded on each job. Passes if it says one, in any words. Saying the old jobs change too (because they look up the current price) is thin: that rewrites history. 'Fewer' with no number is thin.",
       "J-1047: passes if it says the cell holds two parts (a list in a cell / repeating group), which means a job can have many parts and a part appears on many jobs, so the link needs its own table (Job_Parts, line items, a junction table). Saying only 'it's messy' or 'split it into two columns' is thin: two columns break on the third part. Also fine to note 206.50 is a sum that can't be traced to either part.",
       "The old invoice: the answer is $184, because that's what Alvarez was charged on Oct 2, and it lives on the job (price_charged on Job_Parts or the job's line item), not in Parts. Passes if it says $184 AND points to where that number is kept on the job. If the student says $199, or says it comes from the Parts table, it's thin: a lookup to the current price would rewrite history. Saying list price and price charged are different facts about the business, not just about the data, is well seen.",
@@ -129,7 +129,7 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     const path = new URL(request.url).pathname;
     const isComments = path === "/comments" || path === "/comments/delete";
-    if (!(request.method === "POST" && (path === "/grade" || isComments)) && !(request.method === "GET" && path === "/comments")) {
+    if (!(request.method === "POST" && (path === "/grade" || path === "/sheet" || isComments)) && !(request.method === "GET" && path === "/comments")) {
       return json({ error: "Not found" }, 404, cors);
     }
     if (!allowedOrigin(origin, env)) return json({ error: "Origin not allowed" }, 403, cors);
@@ -140,6 +140,7 @@ export default {
     if (!success) return json({ error: "Too many requests from this network. Try again in a minute." }, 429, cors);
 
     if (isComments) return comments(request, env, path, cors);
+    if (path === "/sheet") return readSheet(request, cors);
 
     let body;
     try { body = await request.json(); } catch { return json({ error: "Bad JSON" }, 400, cors); }
@@ -290,4 +291,49 @@ async function comments(request, env, path, cors) {
   while (list.length > MAX_PER_TERM) list.shift();
   await env.COMMENTS.put(key, JSON.stringify(list));
   return json({ comments: list }, 200, cors);
+}
+
+// Reads a student's Google Sheet for the s5 puzzles. The sheet has to be shared "Anyone with the link".
+// Tab names and ids come from the sheet's htmlview page; each tab is then read as CSV.
+const SHEET_ID = /\/spreadsheets\/d\/([A-Za-z0-9_-]{20,})/;
+const NOT_SHARED = "I can't open that sheet. In Google Sheets, click Share, set General access to \"Anyone with the link\" (Viewer), and try again.";
+async function readSheet(request, cors) {
+  let b; try { b = await request.json(); } catch { return json({ error: "Bad JSON" }, 400, cors); }
+  const m = SHEET_ID.exec(String(b.url || ""));
+  if (!m) return json({ error: "That doesn't look like a Google Sheets link. Copy it from your browser's address bar or from Share → Copy link." }, 400, cors);
+  const id = m[1], base = "https://docs.google.com/spreadsheets/d/" + id;
+  let html;
+  try {
+    const res = await fetch(base + "/htmlview", { redirect: "follow" });
+    if (!res.ok || /accounts\.google\.com/.test(res.url)) return json({ error: NOT_SHARED }, 403, cors);
+    html = await res.text();
+  } catch { return json({ error: "Couldn't reach Google Sheets. Try again in a moment." }, 502, cors); }
+  const tabs = [...html.matchAll(/items\.push\(\{name: "((?:[^"\\]|\\.)*)", pageUrl: "[^"]*", gid: "(\d+)"/g)].map(x => ({ name: unescapeJs(x[1]), gid: x[2] }));
+  if (!tabs.length) return json({ error: NOT_SHARED }, 403, cors);
+  const out = [];
+  for (const t of tabs.slice(0, 12)) {
+    const res = await fetch(base + "/export?format=csv&gid=" + t.gid, { redirect: "follow" });
+    if (!res.ok) return json({ error: NOT_SHARED }, 403, cors);
+    const rows = parseCSV((await res.text()).slice(0, 60000))
+      .filter(r => r.some(c => c.trim() !== ""))
+      .slice(0, 40).map(r => r.slice(0, 15).map(c => c.slice(0, 80)));
+    out.push({ name: t.name.slice(0, 60), rows });
+  }
+  return json({ tabs: out }, 200, cors);
+}
+function parseCSV(text) {
+  const rows = []; let row = [], cell = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) { if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === ",") { row.push(cell); cell = ""; }
+    else if (ch === "\n") { row.push(cell.replace(/\r$/, "")); rows.push(row); row = []; cell = ""; }
+    else cell += ch;
+  }
+  if (cell !== "" || row.length) { row.push(cell.replace(/\r$/, "")); rows.push(row); }
+  return rows;
+}
+function unescapeJs(s) {
+  try { return JSON.parse('"' + s.replace(/\\x([0-9a-fA-F]{2})/g, "\\u00$1") + '"'); } catch { return s; }
 }
