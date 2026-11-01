@@ -1,21 +1,9 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Terms, Terms, Terms</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="ws.css">
 <style>
 /* COWAN+ worksheet palette, same as the puzzle pages. */
-:root{
-  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
-  --accent:#DA5138; --accent-fg:#FFFFFF; --second:#63ADB1; --ok:#357B68; --bad:#DA5138; --mark:#FFF3C4;
-  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
-}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
-  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --mark:#4A4320; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
-  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --mark:#4A4320; color-scheme:dark}
-body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;margin:0;
-  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 main{max-width:860px;margin:0 auto;display:grid;gap:24px}
 main>*{min-width:0}
 h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15}
@@ -34,12 +22,10 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid 
 select,input[type=search]{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:6px 8px;min-width:0}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .spread{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-
 /* Tabs */
 .tabs{display:flex;gap:0;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .tabs button{background:transparent;color:var(--muted);border-radius:0;padding:8px 14px;border-bottom:3px solid transparent;margin-bottom:-1px}
 .tabs button[aria-selected=true]{color:var(--head);border-bottom-color:var(--accent)}
-
 /* Sort: the grid */
 .sortrow{display:grid;gap:6px;padding-block:12px;border-top:1px solid var(--line-soft)}
 .sortrow:first-of-type{border-top:0}
@@ -52,11 +38,12 @@ select,input[type=search]{font:inherit;color:var(--fg);background:var(--bg);bord
 .locked .chip{cursor:default}
 .why{font-size:15.5px;border-left:3px solid var(--second);padding:4px 10px;margin-top:4px}
 .why b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
-.why b.ok{color:var(--ok)} .why b.no{color:var(--bad)} .why b.also{color:var(--second)}
+.why b.ok{color:var(--ok)}
+.why b.no{color:var(--bad)}
+.why b.also{color:var(--second)}
 .termhead{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
 .tag{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em}
 .tally{font-family:var(--mono);font-size:13px;color:var(--muted)}
-
 /* Entry body (a, b, c) */
 .entry{display:grid;gap:12px}
 /* Comments */
@@ -95,14 +82,12 @@ details.cbox>.cmts{margin-top:8px}
 .lives dt{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:3px;white-space:nowrap}
 .lives dd{margin:0}
 .lives dd b{color:var(--head);font-weight:400;font-family:var(--serif)}
-
 /* Use or misuse */
 .sentence{font-family:var(--serif);font-size:21px;line-height:1.4;color:var(--head);border-left:4px solid var(--second);padding:6px 14px;margin:6px 0 14px}
 .sentence mark{background:var(--mark);color:inherit;padding:0 2px}
 .verdict{margin-top:12px;padding:10px 12px;border-radius:4px;background:var(--bg);border-left:4px solid var(--ok)}
 .verdict.no{border-left-color:var(--bad)}
 .verdict b{font-family:var(--mono);font-size:13px;letter-spacing:.06em}
-
 /* Browse */
 .list{display:grid;gap:0}
 .list details{border-top:1px solid var(--line-soft);padding:10px 0}

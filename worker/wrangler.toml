@@ -12,8 +12,17 @@ name = "RATE_LIMITER"
 namespace_id = "1001"
 simple = { limit = 300, period = 60 }
 
-# Comments on the Terms page. Create the namespace in the dashboard (Storage & databases → KV),
-# bind it to this worker as COMMENTS, and put its id here.
+# D1 holds the Terms comments and the grading record. Create it once with
+#   npx wrangler d1 create cwg
+# put the id it prints below, then: npx wrangler d1 migrations apply cwg --remote
+[[d1_databases]]
+binding = "DB"
+database_name = "cwg"
+database_id = "822dbc07-dd29-4f86-ac67-70cb800087fa"
+migrations_dir = "migrations"
+
+# The old home of the Terms comments. The worker copies each term's comments into D1 the first time
+# that term is read; after that this binding is only a fallback and can be removed.
 [[kv_namespaces]]
 binding = "COMMENTS"
 id = "c4f1c5de74ca47e98682fa0e21095e3b"
@@ -21,4 +30,4 @@ id = "c4f1c5de74ca47e98682fa0e21095e3b"
 # Secrets are set with `wrangler secret put`, never written here:
 #   ANTHROPIC_API_KEY   the key from the cwg-grader workspace
 #   CLASS_CODE          the code students enter (rotate each term)
-#   INSTRUCTOR_CODE     lets the instructor delete comments on the Terms page
+#   INSTRUCTOR_CODE     lets the instructor delete comments on the Terms page and read the grading record (stats.html)

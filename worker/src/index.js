@@ -1,11 +1,13 @@
 // cwg-grader: a small proxy that grades puzzle submissions with Claude.
-// The API key, class code and rubrics live here, never in the pages.
+// The API key, class code and answer keys live here, never in the pages.
+// Storage is D1 (binding DB): comments on the Terms page, and an anonymous record of each grading call.
 
 const MODEL = "claude-haiku-5-5";
 const MAX_TOKENS = 1500;
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
-// One rubric per puzzle. Each criterion is a short, checkable statement.
-// The page shows the same list to the student ("Be ready to explain").
+// One answer key per puzzle. The page shows students the questions ("Be ready to explain");
+// the guidance below is what the grader checks their answers against, so it stays out of the pages.
 const RUBRICS = {
   "s1-predict-then-run": {
     story: "As Trent the Technician, I know the part number, and I want to find it in the system so I can figure out the next steps of the repair.",
@@ -132,14 +134,14 @@ const RUBRICS = {
 };
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const origin = request.headers.get("Origin") || "";
     const cors = corsHeaders(origin, env);
 
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     const path = new URL(request.url).pathname;
     const isComments = path === "/comments" || path === "/comments/delete";
-    if (!(request.method === "POST" && (path === "/grade" || path === "/sheet" || isComments)) && !(request.method === "GET" && path === "/comments")) {
+    if (!(request.method === "POST" && (path === "/grade" || path === "/sheet" || path === "/stats" || isComments)) && !(request.method === "GET" && path === "/comments")) {
       return json({ error: "Not found" }, 404, cors);
     }
     if (!allowedOrigin(origin, env)) return json({ error: "Origin not allowed" }, 403, cors);
@@ -151,6 +153,7 @@ export default {
 
     if (isComments) return comments(request, env, path, cors);
     if (path === "/sheet") return readSheet(request, cors);
+    if (path === "/stats") return stats(request, env, cors);
 
     let body;
     try { body = await request.json(); } catch { return json({ error: "Bad JSON" }, 400, cors); }
@@ -203,7 +206,10 @@ export default {
       },
     };
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    // A whole class clicks Check within a few minutes, so a busy API (429, 529) or a blip (5xx) gets
+    // two retries with a short wait before the student sees an error.
+    let res;
+    try { res = await fetchWithRetry(env.ANTHROPIC_URL || ANTHROPIC_URL, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -219,10 +225,14 @@ export default {
         tool_choice: { type: "tool", name: "report_review" },
         messages: [{ role: "user", content: "Student answers (JSON):\n" + answers }],
       }),
-    });
+    }); } catch {
+      logGrade(env, ctx, body.puzzle, null, "network");
+      return json({ error: "Grader unavailable (network)" }, 502, cors);
+    }
 
     if (!res.ok) {
       const detail = await res.text();
+      logGrade(env, ctx, body.puzzle, null, "api " + res.status);
       return json({ error: "Grader unavailable (" + res.status + ")", detail: detail.slice(0, 300) }, 502, cors);
     }
     const data = await res.json();
@@ -232,7 +242,10 @@ export default {
       // Fallback: the model answered in text after all.
       const text = (data.content || []).map(c => c.text || "").join("");
       try { parsed = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)); }
-      catch { return json({ error: "Grader returned something unreadable.", raw: text.slice(0, 300) }, 502, cors); }
+      catch {
+        logGrade(env, ctx, body.puzzle, null, "unreadable");
+        return json({ error: "Grader returned something unreadable.", raw: text.slice(0, 300) }, 502, cors);
+      }
     }
 
     // One verdict per item, in order; fill any the model skipped.
@@ -245,9 +258,57 @@ export default {
       const v = String(r.verdict || r.status || "").toLowerCase();
       return { label: l, verdict: v === "ok" ? "ok" : "thin", note: String(r.note || r.comment || "") };
     });
+    logGrade(env, ctx, body.puzzle, results, null);
     return json({ results, summary: String(parsed.summary || "") }, 200, cors);
   },
 };
+
+async function fetchWithRetry(url, init, waits = [800, 2000]) {
+  for (let attempt = 0; ; attempt++) {
+    let res;
+    try { res = await fetch(url, init); }
+    catch (e) { if (attempt >= waits.length) throw e; res = null; }
+    const busy = !res || res.status === 429 || res.status === 529 || res.status >= 500;
+    if (!busy || attempt >= waits.length) return res;
+    const after = res && Number(res.headers.get("retry-after"));
+    await new Promise(r => setTimeout(r, after > 0 && after <= 3 ? after * 1000 : waits[attempt]));
+  }
+}
+
+// The grading record: one anonymous row per Check click. No class code, no IP, nothing the student typed:
+// just which puzzle, when, and each item's verdict (or the error), so we can see which puzzles students get through.
+function logGrade(env, ctx, puzzle, results, error) {
+  if (!env.DB) return;
+  const verdicts = results ? JSON.stringify(results.map(r => ({ label: r.label, verdict: r.verdict }))) : null;
+  const ok = results ? results.filter(r => r.verdict === "ok").length : null;
+  const write = env.DB.prepare("INSERT INTO grades (at, puzzle, items, ok, verdicts, error) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(new Date().toISOString(), String(puzzle).slice(0, 60), results ? results.length : null, ok, verdicts, error)
+    .run().catch(() => {});
+  if (ctx && ctx.waitUntil) ctx.waitUntil(write);
+}
+
+// Instructor view of the grading record: per puzzle, how many checks, how many errors, and the ok rate per item.
+async function stats(request, env, cors) {
+  let b; try { b = await request.json(); } catch { return json({ error: "Bad JSON" }, 400, cors); }
+  if (!env.INSTRUCTOR_CODE || String(b.code || "").trim() !== env.INSTRUCTOR_CODE) return json({ error: "Wrong instructor code." }, 401, cors);
+  if (!env.DB) return json({ error: "The grading record isn't set up yet." }, 503, cors);
+  const days = Math.min(Math.max(parseInt(b.days, 10) || 30, 1), 365);
+  const since = new Date(Date.now() - days * 864e5).toISOString();
+  const { results: rows } = await env.DB.prepare("SELECT puzzle, verdicts, error FROM grades WHERE at >= ?").bind(since).all();
+  const by = {};
+  for (const r of rows) {
+    const p = by[r.puzzle] || (by[r.puzzle] = { puzzle: r.puzzle, checks: 0, errors: 0, items: {} });
+    p.checks++;
+    if (r.error) { p.errors++; continue; }
+    for (const v of JSON.parse(r.verdicts || "[]")) {
+      const it = p.items[v.label] || (p.items[v.label] = { label: v.label, ok: 0, n: 0 });
+      it.n++; if (v.verdict === "ok") it.ok++;
+    }
+  }
+  const puzzles = Object.values(by).sort((a, b) => a.puzzle.localeCompare(b.puzzle))
+    .map(p => ({ ...p, items: Object.values(p.items) }));
+  return json({ days, puzzles }, 200, cors);
+}
 
 function allowedOrigin(origin, env) {
   const allowed = (env.ALLOWED_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
@@ -265,30 +326,32 @@ function json(obj, status, headers) {
   return new Response(JSON.stringify(obj), { status, headers: { "content-type": "application/json", ...headers } });
 }
 
-// Comments on the Terms page. One KV key per term ("c:<term id>") holding a JSON array, newest last.
+// Comments on the Terms page: one row per comment in D1, so two students posting at once can't overwrite
+// each other (the old store kept one KV document per term, and the later write won).
 // Posting needs the course number (8633) as a speed bump for bots, initials only (comments are public),
-// and up to 600 characters. Deleting needs INSTRUCTOR_CODE, a secret set in the dashboard.
+// and up to 600 characters. Deleting needs INSTRUCTOR_CODE, a secret set with wrangler.
+// Comments posted before the move still sit in KV (binding COMMENTS, key "c:<term id>"); the first read of a
+// term copies them into D1 once. Once every term has been read, the KV binding can go.
 const TERM_ID = /^[a-z0-9-]{1,40}$/;
 const MAX_PER_TERM = 200;
 async function comments(request, env, path, cors) {
-  if (!env.COMMENTS) return json({ error: "Comments aren't set up yet." }, 503, cors);
+  if (!env.DB) return json({ error: "Comments aren't set up yet." }, 503, cors);
+  let term, b;
   if (request.method === "GET") {
-    const term = new URL(request.url).searchParams.get("term") || "";
-    if (!TERM_ID.test(term)) return json({ error: "Unknown term." }, 400, cors);
-    const list = JSON.parse((await env.COMMENTS.get("c:" + term)) || "[]");
-    return json({ comments: list }, 200, { ...cors, "Cache-Control": "no-store" });
+    term = new URL(request.url).searchParams.get("term") || "";
+  } else {
+    try { b = await request.json(); } catch { return json({ error: "Bad JSON" }, 400, cors); }
+    term = String(b.term || "");
   }
-  let b; try { b = await request.json(); } catch { return json({ error: "Bad JSON" }, 400, cors); }
-  const term = String(b.term || "");
   if (!TERM_ID.test(term)) return json({ error: "Unknown term." }, 400, cors);
-  const key = "c:" + term;
-  const list = JSON.parse((await env.COMMENTS.get(key)) || "[]");
+  await importFromKV(env, term);
+
+  if (request.method === "GET") return json({ comments: await listComments(env, term) }, 200, { ...cors, "Cache-Control": "no-store" });
 
   if (path === "/comments/delete") {
     if (!env.INSTRUCTOR_CODE || String(b.code || "").trim() !== env.INSTRUCTOR_CODE) return json({ error: "Wrong instructor code." }, 401, cors);
-    const left = list.filter(c => c.id !== b.id);
-    await env.COMMENTS.put(key, JSON.stringify(left));
-    return json({ comments: left }, 200, cors);
+    await env.DB.prepare("DELETE FROM comments WHERE term = ? AND id = ?").bind(term, String(b.id || "")).run();
+    return json({ comments: await listComments(env, term) }, 200, cors);
   }
 
   if (String(b.check || "").trim() !== "8633") return json({ error: "That's not the course number." }, 401, cors);
@@ -297,10 +360,30 @@ async function comments(request, env, path, cors) {
   const text = String(b.text || "").replace(/\s+$/, "").trim();
   if (!text) return json({ error: "Write something first." }, 400, cors);
   if (text.length > 600) return json({ error: "Keep it under 600 characters." }, 413, cors);
-  list.push({ id: crypto.randomUUID().slice(0, 8), i: initials, t: text, at: new Date().toISOString() });
-  while (list.length > MAX_PER_TERM) list.shift();
-  await env.COMMENTS.put(key, JSON.stringify(list));
-  return json({ comments: list }, 200, cors);
+  await env.DB.batch([
+    env.DB.prepare("INSERT INTO comments (id, term, initials, text, at) VALUES (?, ?, ?, ?, ?)")
+      .bind(crypto.randomUUID().slice(0, 8), term, initials, text, new Date().toISOString()),
+    // Keep the newest MAX_PER_TERM per term, as before.
+    env.DB.prepare("DELETE FROM comments WHERE term = ? AND id NOT IN (SELECT id FROM comments WHERE term = ? ORDER BY at DESC, rowid DESC LIMIT ?)")
+      .bind(term, term, MAX_PER_TERM),
+  ]);
+  return json({ comments: await listComments(env, term) }, 200, cors);
+}
+async function listComments(env, term) {
+  // Same shape the Terms page has always read: oldest first, {id, i, t, at}.
+  const { results } = await env.DB.prepare("SELECT id, initials AS i, text AS t, at FROM comments WHERE term = ? ORDER BY at, rowid").bind(term).all();
+  return results;
+}
+async function importFromKV(env, term) {
+  if (!env.COMMENTS) return;
+  const done = await env.DB.prepare("SELECT 1 FROM kv_imported WHERE term = ?").bind(term).first();
+  if (done) return;
+  const old = JSON.parse((await env.COMMENTS.get("c:" + term)) || "[]");
+  await env.DB.batch([
+    ...old.map(c => env.DB.prepare("INSERT OR IGNORE INTO comments (id, term, initials, text, at) VALUES (?, ?, ?, ?, ?)")
+      .bind(String(c.id), term, String(c.i), String(c.t), String(c.at))),
+    env.DB.prepare("INSERT OR IGNORE INTO kv_imported (term) VALUES (?)").bind(term),
+  ]);
 }
 
 // Reads a student's Google Sheet for the s5 puzzles. The sheet has to be shared "Anyone with the link".

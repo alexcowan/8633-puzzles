@@ -1,0 +1,63 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Grading record · Coding with GPT</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="ws.css">
+<style>
+.page{max-width:900px;margin:0 auto;display:grid;gap:28px}
+.ws table{border-collapse:collapse;width:100%;font-size:15px}
+.ws th,.ws td{text-align:left;padding:6px 8px;border-top:1px solid var(--line-soft);vertical-align:top}
+.ws th{font-family:var(--serif);font-weight:400;color:var(--head)}
+.ws td.n{font-family:var(--mono);font-size:13px;text-align:right;white-space:nowrap}
+.ws .bar{display:inline-block;height:8px;border-radius:2px;background:var(--second);vertical-align:middle;margin-right:6px}
+.ws .low{color:var(--bad)}
+.ws .err{color:var(--bad)}
+.ws .tablewrap{overflow-x:auto}
+</style></head><body>
+<main class="page">
+  <header class="ws">
+    <div class="eyebrow">Instructor</div>
+    <h1>Grading record</h1>
+    <p class="muted">One anonymous row per Check click: which puzzle, and each item's verdict. Nothing about who submitted or what they wrote. Items under half ok are marked in red: those are the puzzles to revise.</p>
+  </header>
+  <section class="ws panel">
+    <div class="row">
+      <label for="code">Instructor code</label>
+      <input type="text" id="code" autocomplete="off" spellcheck="false">
+      <label for="days">Last</label>
+      <input type="text" id="days" value="30" size="3" inputmode="numeric"> <span>days</span>
+      <button id="go">Show</button>
+    </div>
+    <p id="msg" class="muted" role="status"></p>
+  </section>
+  <section class="ws panel" id="out" hidden><div class="tablewrap"><table>
+    <thead><tr><th>Puzzle</th><th>Item</th><th style="text-align:right">Checks</th><th style="text-align:right">ok</th></tr></thead>
+    <tbody id="rows"></tbody></table></div></section>
+</main>
+<script>
+const STATS_URL="https://shrill-wood-3253.acowan.workers.dev/stats";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+async function show(){
+  $("msg").textContent="Loading…"; $("out").hidden=true;
+  try{
+    const r=await fetch(STATS_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({code:$("code").value,days:$("days").value})});
+    const d=await r.json();
+    if(!r.ok){ $("msg").textContent=d.error||("Error "+r.status); return; }
+    if(!d.puzzles.length){ $("msg").textContent="No checks in the last "+d.days+" days."; return; }
+    let h="";
+    for(const p of d.puzzles){
+      const first='<td rowspan="'+Math.max(p.items.length,1)+'"><b>'+esc(p.puzzle)+'</b><br><span class="muted">'+p.checks+' checks'+(p.errors?', <span class="err">'+p.errors+' errors</span>':'')+'</span></td>';
+      if(!p.items.length){ h+='<tr>'+first+'<td class="muted">no graded items</td><td></td><td></td></tr>'; continue; }
+      p.items.forEach((it,i)=>{
+        const pct=it.n?Math.round(100*it.ok/it.n):0;
+        h+='<tr>'+(i?'':first)+'<td>'+esc(it.label)+'</td><td class="n">'+it.n+'</td><td class="n'+(pct<50?' low':'')+'"><span class="bar" style="width:'+Math.round(pct*0.6)+'px"></span>'+pct+'%</td></tr>';
+      });
+    }
+    $("rows").innerHTML=h; $("out").hidden=false; $("msg").textContent="Last "+d.days+" days.";
+  }catch(e){ $("msg").textContent="Couldn't reach the grader."; }
+}
+$("go").addEventListener("click",show);
+$("code").addEventListener("keydown",e=>{ if(e.key==="Enter") show(); });
+</script>
+</body></html>

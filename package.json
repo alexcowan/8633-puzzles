@@ -1,0 +1,14 @@
+{
+  "name": "8633-puzzles",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "npm run test:worker && npm run test:pages",
+    "test:worker": "node --test tests/worker.test.mjs",
+    "test:pages": "node --test tests/pages.test.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.0",
+    "wrangler": "^4.0.0"
+  }
+}
