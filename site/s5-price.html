@@ -137,8 +137,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
       <label for="a2" class="muted" style="font-family:var(--sans);font-size:15px">Optional: anything the tabs don't show, like which column is each tab's key.</label>
       <textarea id="a2" style="min-height:60px"></textarea></div>
     <div class="q"><label for="a3">3. After your fix, suppose the distributor's price goes up again. How many cells change, and what happens to the old jobs?</label><textarea id="a3"></textarea></div>
-    <div class="q"><label for="a4">4. Look at J-1047. What is that cell telling you?</label><textarea id="a4"></textarea></div>
-    <div class="q"><label for="a5">5. Alvarez calls about the J-1041 invoice. What should it show, and where does that number live in your tables?</label><textarea id="a5"></textarea></div>
+    <div class="q"><label for="a5">4. Alvarez calls about the J-1041 invoice. What should it show, and where does that number live in your tables?</label><textarea id="a5"></textarea></div>
   </section>
 
   <section class="ws rubric">
@@ -147,7 +146,6 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
       <li>What Trent saw, and why.</li>
       <li>How you'd split the sheet into tables: each table's columns, its key, and how it links to the others, and what each price column records.</li>
       <li>After your fix, suppose the distributor's price goes up again. How many cells change, and what happens to the old jobs?</li>
-      <li>What the cell in J-1047 is telling you.</li>
       <li>Alvarez calls about the J-1041 invoice: what it should show, and where that number lives in your tables.</li>
     </ol>
   </section>
@@ -217,7 +215,6 @@ const JOBS=[
   ["J-1044","Oct 8","Chen","4 Mill Ln","TH-7710","Thermostat, programmable","96.00"],
   ["J-1045","Oct 9","Brooks","88 Ridge Rd","HX-2201","Blower motor, 1/2 HP","199.00"],
   ["J-1046","Oct 12","Dao","301 Oak Ave","HX-2201","Blower motor, 1/2 HP","184.00"],
-  ["J-1047","Oct 14","Chen","4 Mill Ln","HX-2201, CP-0450","Blower motor, 1/2 HP; Run capacitor, 45 µF","206.50"],
 ];
 const table=renderTable(document.getElementById("jobs"), COLS, JOBS, {numCols:[6]});
 
@@ -240,9 +237,9 @@ function lookup(){
 document.getElementById("search-button").onclick=lookup;
 document.getElementById("part-number").addEventListener("keydown",e=>{ if(e.key==="Enter") lookup(); });
 
-const IDS=["a1","a2","a3","a4","a5"];
+const IDS=["a1","a2","a3","a5"];
 keepFields(IDS);
-const LABELS=["What Trent saw","Your tables","The next price change","J-1047","The old invoice"];
+const LABELS=["What Trent saw","Your tables","The next price change","The old invoice"];
 /* Question 2 reads the student's own sheet through the grader worker (Google blocks the browser from reading it directly). */
 const SHEET_API="https://shrill-wood-3253.acowan.workers.dev/sheet";
 function showTabs(tabs){
