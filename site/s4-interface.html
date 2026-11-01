@@ -3,59 +3,14 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <!-- The app's own styles. -->
 <link rel="stylesheet" href="s4-interface/parts.css">
+<link rel="stylesheet" href="ws.css">
 <style>
-/* Worksheet styles (COWAN+). Everything here is scoped to .ws so it never touches the HinH app. */
-:root{
-  --bg:#F2F1E6; --panel:#FFFFFF; --fg:#58595B; --head:#002D45; --muted:#808285; --line:#A99E94; --line-soft:#D1D3D4;
-  --accent:#DA5138; --accent-fg:#FFFFFF; --second:#63ADB1; --ok:#357B68; --bad:#DA5138; --note:#FFFFFF; --mark:#FFF3C4;
-  --serif:"Bree Serif",Georgia,serif; --sans:"Abel","Proxima Nova",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
-}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
-  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; --mark:#4A4320; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#17242E; --panel:#213340; --fg:#E6E4DA; --head:#F2F1E6; --muted:#A9B3BB; --line:#5A6B77; --line-soft:#3C4F5E;
-  --accent:#E8705A; --accent-fg:#17242E; --second:#63ADB1; --ok:#7FC3AC; --bad:#E8705A; --note:#213340; --mark:#4A4320; color-scheme:dark}
-body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;margin:0;
-  padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .page{max-width:900px;margin:0 auto;display:grid;gap:28px}
 .page>*{min-width:0}
-.ws h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--head);margin:0;line-height:1.15;text-wrap:balance}
-.ws h2{font-family:var(--serif);font-size:22px;font-weight:400;color:var(--head);margin:0 0 10px}
 .ws h3{font-family:var(--serif);font-size:18px;font-weight:400;color:var(--head);margin:14px 0 6px}
 .ws p{margin:0 0 10px;max-width:70ch}
-.ws .eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.ws .muted{color:var(--muted)}
-.ws.panel{background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:18px}
-.ws.rubric{background:var(--note);border-left:4px solid var(--second);border-radius:4px;padding:14px 16px}
-.ws ol{margin:6px 0 0;padding-left:22px}
-.ws li{margin:5px 0}
-.ws kbd,.ws code{font-family:var(--mono);font-size:.82em;background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:0 5px}
-.ws input[type=text],.ws textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:7px 9px;min-width:0}
-.ws textarea{width:100%;resize:vertical;min-height:60px;box-sizing:border-box}
-.ws button{font:inherit;background:var(--accent);color:var(--accent-fg);border:0;border-radius:4px;padding:7px 14px;cursor:pointer;letter-spacing:.02em}
-.ws button.ghost{background:transparent;color:var(--head);border:1px solid var(--line)}
 .ws button[disabled]{opacity:.5;cursor:default}
-.ws button:focus-visible,.ws input:focus-visible,.ws textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.ws .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.ws details summary{cursor:pointer;color:var(--head);text-decoration:underline;text-underline-offset:3px}
-.ws .q{display:grid;gap:6px;padding-block:14px;border-top:1px solid var(--line-soft)}
-.ws .q:first-of-type{border-top:0;padding-top:4px}
-.ws .q label{font-family:var(--serif);color:var(--head)}
-.ws .checks{display:grid;gap:6px;margin-top:12px}
 .ws .chk{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:baseline}
-.ws .chk b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
-.ws .chk b.ok{color:var(--ok)} .ws .chk b.no{color:var(--bad)}
-.ws .verdict{margin-top:10px;padding:10px 12px;border-radius:4px;background:var(--bg);border-left:3px solid var(--second)}
-.ws .verdict.no{border-left-color:var(--bad)}
-.ws .fbrow{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line-soft)}
-.ws .fbrow:first-child{border-top:0}
-.ws .fbhead{display:flex;gap:10px;align-items:baseline}
-.ws .fbhead b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
-.ws .fbhead b.ok{color:var(--ok)} .ws .fbhead b.thin{color:var(--bad)}
-.ws .fblabel{font-family:var(--serif);color:var(--head)}
-.ws .score{font-family:var(--serif);font-size:20px;color:var(--head)}
-
 /* Code view */
 .ws pre.code{font-family:var(--mono);font-size:12.5px;line-height:1.55;background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:10px 0;overflow-x:auto;margin:0;counter-reset:ln}
 .ws pre.code .ln{display:block;padding:0 12px 0 0;white-space:pre}
@@ -66,7 +21,6 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
 .ws .counts{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:12.5px;margin-top:10px}
 .ws .counts b{color:var(--head);font-weight:500}
 .ws .counts b.hot{color:var(--bad)}
-
 /* Choice cards */
 .ws .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:10px}
 @media (max-width:720px){.ws .cards{grid-template-columns:1fr}}
