@@ -267,19 +267,29 @@ document.getElementById("read-sheet").onclick=async()=>{
     st.textContent=d.tabs.length<2?"I found one tab. Split the jobs sheet into a tab per table, then read it again.":`Read ${d.tabs.length} tabs. This is what the checker will see.`;
   }catch(e){ st.textContent="Couldn't reach the server."; }
 };
+/* The four warm-up checks, in order. They're mechanical, so the page does them and gives the exact message.
+   Returns {msg, ok} when it recognizes the tabs, or null when it can't tell which tab is which (then the AI looks). */
 function localCheck(tabs){
-  const norm=x=>String(x||"").trim().toLowerCase();
-  if(tabs.length<2) return "You haven't split it yet. Start with a tab just for parts.";
-  for(const t of tabs){
-    const head=(t.rows[0]||[]).map(norm), pn=head.indexOf("part_number");
-    if(pn<0 || head.includes("job")) continue;
-    const seen={};
-    for(const r of t.rows.slice(1)){ const k=String(r[pn]||"").trim(); if(!k) continue; (seen[k]=seen[k]||[]).push(r); }
-    const dup=Object.entries(seen).find(([,rs])=>rs.length>1);
-    if(dup){ const pi=head.findIndex(h=>/price/.test(h)); const vals=pi>=0?" ("+dup[1].map(r=>r[pi]).join(" and ")+")":"";
-      return `${dup[0]} is in your ${t.name} tab ${dup[1].length===2?"twice":dup[1].length+" times"}${vals}. The ${t.name} tab needs one row per part, at today's price, or Trent's search still has two prices to pick from. Which one stays?`; }
-  }
-  return "";
+  const norm=x=>String(x||"").trim().toLowerCase().replace(/\s+/g,"_");
+  if(tabs.length<2) return {msg:"You haven't split it yet. Start with a tab just for parts."};
+  const H=t=>(t.rows[0]||[]).map(norm);
+  const jobs=tabs.find(t=>H(t).some(h=>h==="job"||h==="job_id"||h==="job_number"));
+  const parts=tabs.find(t=>t!==jobs && H(t).includes("part_number"));
+  if(!jobs || !parts) return null;
+  // B. one row per part
+  const ph=H(parts), pn=ph.indexOf("part_number"), seen={};
+  for(const r of parts.rows.slice(1)){ const k=String(r[pn]||"").trim(); if(k) (seen[k]=seen[k]||[]).push(r); }
+  const dup=Object.entries(seen).find(([,rs])=>rs.length>1);
+  if(dup){ const pi=ph.findIndex(h=>/price|cost/.test(h)); const vals=pi>=0?" ("+dup[1].map(r=>r[pi]).join(" and ")+")":"";
+    return {msg:`${dup[0]} is in your ${parts.name} tab ${dup[1].length===2?"twice":dup[1].length+" times"}${vals}. The ${parts.name} tab needs one row per part, at today's price, or Trent's search still has two prices to pick from. Which one stays?`}; }
+  // C. what each customer paid stays with the job
+  const jh=H(jobs);
+  if(!jh.some(h=>/price|paid|charged|amount|total|cost/.test(h)))
+    return {msg:"What did Alvarez pay on J-1041, and where does that number live now?"};
+  // D. facts about parts live with parts
+  if(jh.some(h=>/^(part_?name|name|description|part_description)$/.test(h)))
+    return {msg:`You've started separating concerns among the tabs: ${jobs.name} about jobs and ${parts.name} about parts. How would you go all the way with that? There's still some parts data in ${jobs.name} that needs to find its way home.`};
+  return {ok:true, msg:`Looks right: one row per part in ${parts.name}, what each customer paid stays on the job in ${jobs.name}, and facts about parts live with parts. Now try question 3.`};
 }
 /* After the sheet is read, an AI looks at the tables and gives a hint. It needs the class code: use the saved one, or ask. */
 function coach(tabs){
@@ -294,9 +304,9 @@ function coach(tabs){
   }
   // Clerical checks first, done here so the message is plain and exact: has the split started, and is any part listed twice?
   const plain=localCheck(tabs);
-  if(plain){ const v=document.createElement("div"); v.className="verdict no"; v.style.marginTop="6px";
-    const bb=document.createElement("b"); bb.style.fontFamily="var(--mono)"; bb.style.fontSize="12px"; bb.style.letterSpacing=".06em"; bb.textContent="A HINT";
-    v.append(bb, document.createTextNode(" "+plain)); host.innerHTML=""; host.append(v); return; }
+  if(plain){ const v=document.createElement("div"); v.className="verdict"+(plain.ok?"":" no"); v.style.marginTop="6px";
+    const bb=document.createElement("b"); bb.style.fontFamily="var(--mono)"; bb.style.fontSize="12px"; bb.style.letterSpacing=".06em"; bb.textContent=plain.ok?"LOOKS GOOD":"A HINT";
+    v.append(bb, document.createTextNode(" "+plain.msg)); host.innerHTML=""; host.append(v); return; }
   host.innerHTML=`<div class="muted" style="font-size:15px">Looking at your tables…</div>`;
   fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:"s5-price-tables",code,answers:{items:[{label:"Your tables",answer:tabsText(tabs)}]}})})
     .then(r=>r.json().then(d=>({ok:r.ok,d})))
@@ -305,7 +315,7 @@ function coach(tabs){
         host.innerHTML=`<div class="muted" style="font-size:15px"></div>`; host.firstChild.textContent=d.error||"Couldn't get feedback."; return; }
       const x=(d.results||[])[0]||{}; const v=document.createElement("div"); v.className="verdict"+(x.verdict==="ok"?"":" no"); v.style.marginTop="6px";
       const b=document.createElement("b"); b.style.fontFamily="var(--mono)"; b.style.fontSize="12px"; b.style.letterSpacing=".06em"; b.textContent=x.verdict==="ok"?"LOOKS GOOD":"A HINT";
-      v.append(b, document.createTextNode(" "+(x.note||"")+(d.summary?" "+d.summary:""))); host.innerHTML=""; host.append(v);
+      v.append(b, document.createTextNode(" "+(x.note||""))); host.innerHTML=""; host.append(v);
     }).catch(()=>{ host.textContent="Couldn't reach the server."; });
 }
 wireGrader("s5-price", ()=>{ const s=load(); return { items: IDS.map((id,i)=>({label:LABELS[i],
