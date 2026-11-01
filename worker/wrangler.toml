@@ -1,4 +1,8 @@
-name = "cwg-grader"
+# This is the worker the pages call (shrill-wood-3253.acowan.workers.dev). It was created in the dashboard,
+# which is where its secrets live, so deploys must target this name.
+name = "shrill-wood-3253"
+# Keep any variables set in the dashboard that aren't listed below.
+keep_vars = true
 main = "src/index.js"
 compatibility_date = "2025-09-01"
 
