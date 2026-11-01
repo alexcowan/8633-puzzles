@@ -133,6 +133,7 @@ body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px
       <div class="row"><input id="sheet-url" type="text" placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off" style="flex:1;min-width:0;font-family:var(--mono);font-size:13px"><button type="button" id="read-sheet">Read my sheet</button></div>
       <div class="muted" id="sheet-status" style="font-size:15px"></div>
       <div id="sheet-tabs" style="display:grid;gap:10px"></div>
+      <div id="sheet-coach"></div>
       <label for="a2" class="muted" style="font-family:var(--sans);font-size:15px">Optional: anything the tabs don't show, like which column is each tab's key.</label>
       <textarea id="a2" style="min-height:60px"></textarea></div>
     <div class="q"><label for="a3">3. After your fix, the price goes up again. How many cells change, and what happens to the old jobs?</label><textarea id="a3"></textarea></div>
@@ -262,10 +263,32 @@ document.getElementById("read-sheet").onclick=async()=>{
   st.textContent="Reading your sheet…";
   try{ const r=await fetch(SHEET_API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({url})}); const d=await r.json();
     if(!r.ok){ st.textContent=d.error||"Couldn't read the sheet."; return; }
-    store({sheetUrl:url, tabs:d.tabs}); showTabs(d.tabs);
+    store({sheetUrl:url, tabs:d.tabs}); showTabs(d.tabs); coach(d.tabs);
     st.textContent=d.tabs.length<2?"I found one tab. Split the jobs sheet into a tab per table, then read it again.":`Read ${d.tabs.length} tabs. This is what the checker will see.`;
   }catch(e){ st.textContent="Couldn't reach the server."; }
 };
+/* After the sheet is read, an AI looks at the tables and gives a hint. It needs the class code: use the saved one, or ask. */
+function coach(tabs){
+  const host=document.getElementById("sheet-coach"); host.innerHTML="";
+  let code=""; try{ code=localStorage.getItem("cwg-code")||""; }catch(e){}
+  if(!code){
+    host.innerHTML=`<div class="row" style="margin-top:6px"><span>Want feedback on your tables? Enter the class code (it's on the Canvas page):</span>
+      <input id="coach-code" type="text" placeholder="Class code" autocomplete="off" style="max-width:160px;font-family:var(--mono)"><button type="button" id="coach-go">Get feedback</button></div>`;
+    document.getElementById("coach-go").onclick=()=>{ const c=document.getElementById("coach-code").value.trim(); if(!c) return;
+      try{ localStorage.setItem("cwg-code",c); }catch(e){} const ci=document.getElementById("code-input"); if(ci) ci.value=c; coach(tabs); };
+    return;
+  }
+  host.innerHTML=`<div class="muted" style="font-size:15px">Looking at your tables…</div>`;
+  fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:"s5-price-tables",code,answers:{items:[{label:"Your tables",answer:tabsText(tabs)}]}})})
+    .then(r=>r.json().then(d=>({ok:r.ok,d})))
+    .then(({ok,d})=>{
+      if(!ok){ if(/class code/i.test(d.error||"")){ try{ localStorage.removeItem("cwg-code"); }catch(e){} coach(tabs); host.insertAdjacentHTML("afterbegin",`<div class="muted" style="font-size:15px">That class code didn't work.</div>`); return; }
+        host.innerHTML=`<div class="muted" style="font-size:15px"></div>`; host.firstChild.textContent=d.error||"Couldn't get feedback."; return; }
+      const x=(d.results||[])[0]||{}; const v=document.createElement("div"); v.className="verdict"+(x.verdict==="ok"?"":" no"); v.style.marginTop="6px";
+      const b=document.createElement("b"); b.style.fontFamily="var(--mono)"; b.style.fontSize="12px"; b.style.letterSpacing=".06em"; b.textContent=x.verdict==="ok"?"LOOKS GOOD":"A HINT";
+      v.append(b, document.createTextNode(" "+(x.note||"")+(d.summary?" "+d.summary:""))); host.innerHTML=""; host.append(v);
+    }).catch(()=>{ host.textContent="Couldn't reach the server."; });
+}
 wireGrader("s5-price", ()=>{ const s=load(); return { items: IDS.map((id,i)=>({label:LABELS[i],
   answer: id==="a2" ? ((s.tabs?tabsText(s.tabs):"(sheet not read yet)")+(val("a2")?"\nNote: "+val("a2"):"")) : val(id)})) }; });
 </script>
