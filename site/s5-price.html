@@ -262,7 +262,7 @@ document.getElementById("read-sheet").onclick=async()=>{
   if(!url){ document.getElementById("sheet-url").focus(); return; }
   st.textContent="Reading your sheet…";
   try{ const r=await fetch(SHEET_API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({url})}); const d=await r.json();
-    if(!r.ok){ st.textContent=d.error||"Couldn't read the sheet."; return; }
+    if(!r.ok){ st.textContent=d.error||"Couldn't read the sheet."; store({tabs:null}); document.getElementById("sheet-tabs").innerHTML=""; document.getElementById("sheet-coach").innerHTML=""; return; }
     store({sheetUrl:url, tabs:d.tabs}); showTabs(d.tabs); coach(d.tabs);
     st.textContent=d.tabs.length<2?"I found one tab. Split the jobs sheet into a tab per table, then read it again.":`Read ${d.tabs.length} tabs. This is what the checker will see.`;
   }catch(e){ st.textContent="Couldn't reach the server."; }
