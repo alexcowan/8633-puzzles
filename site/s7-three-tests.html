@@ -1,0 +1,350 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><script>/* Instructor reset: add ?reset to any puzzle URL to clear saved work on every puzzle (keeps the class code). */(function(){try{if(!/[?&]reset\b/.test(location.search))return;Object.keys(localStorage).forEach(function(k){if(k!=="cwg-code"&&(/^cwg-s\d/.test(k)||/^(ptr|pick|stf)-draft$/.test(k)||k==="gh-setup"))localStorage.removeItem(k);});location.replace(location.pathname);}catch(e){}})();</script><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Which Test Catches It?</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!-- The app's own styles. -->
+<link rel="stylesheet" href="s4-price/parts.css">
+<link rel="stylesheet" href="ws.css">
+<style>
+.page{max-width:860px;margin:0 auto;display:grid;gap:28px}
+.page>*{min-width:0}
+.ws p{margin:0 0 10px;max-width:68ch}
+.ws pre{font-family:var(--mono);font-size:13px;line-height:1.5;background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:10px 12px;overflow-x:auto;margin:6px 0 14px;color:var(--fg)}
+.ws pre .c{color:var(--muted)}
+.search{flex-wrap:wrap}
+.search input{min-width:0}
+.search input.narrow{flex:0 0 110px}
+.ws .tests{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:720px){.ws .tests{grid-template-columns:1fr}}
+.ws .tests h3{font-family:var(--serif);font-weight:400;color:var(--head);font-size:17px;margin:0 0 4px}
+.ws .tests pre{font-size:12px;margin:0}
+.ws .brk{border-top:1px solid var(--line-soft);padding:14px 0}
+.ws .brk:first-of-type{border-top:0}
+.ws .brk h3{font-family:var(--serif);font-weight:400;color:var(--head);font-size:17px;margin:0 0 4px}
+.ws .pred{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;margin:8px 0}
+.ws .pred label{display:flex;gap:6px;align-items:center;font-size:15px}
+.ws .res{display:grid;grid-template-columns:96px 48px minmax(0,1fr);gap:4px 10px;font-size:14px;margin-top:8px}
+.ws .res b{font-family:var(--mono);font-size:12px;letter-spacing:.06em}
+.ws .res b.ok{color:var(--ok)} .ws .res b.no{color:var(--bad)}
+.ws .res .msg{font-family:var(--mono);font-size:12px;color:var(--fg);overflow-wrap:anywhere}
+.ws .match{margin-top:6px;font-size:14px;color:var(--muted)}
+</style></head><body>
+
+<main class="page">
+  <nav aria-label="Puzzles" style="font-size:14px;letter-spacing:.02em"><a href="index.html" style="color:var(--head);text-underline-offset:3px">← All puzzles</a></nav>
+  <header class="ws">
+    <div class="eyebrow">Coding with GPT · Session 7 · In class</div>
+    <h1>Which test catches it?</h1>
+    <div data-pipeline></div>
+    <p>The story: <em>As Trent the Technician, I want to see only the parts at or under the price the customer gave me, so I can offer a repair they'll say yes to.</em></p>
+    <p>The parts page below works, and it has three tests: a unit test, an integration test, and a system test. Below them are three changes HinH's developers might plausibly make. For each one, predict which tests will fail, then plant the change and run all three. The page puts the code back after each run.</p>
+  </header>
+
+  <!-- ===================== The app ===================== -->
+  <div class="hinh" id="app">
+    <div class="hinh-bar">HinH Parts Lookup</div>
+    <div class="hinh-body">
+      <div class="search">
+        <input id="part-number" type="text" placeholder="Part number" autocomplete="off" aria-label="Part number">
+        <input id="max-price" class="narrow" type="text" inputmode="decimal" placeholder="Max price" autocomplete="off" aria-label="Max price">
+        <button id="search-button" type="button">Search</button>
+      </div>
+      <div class="parts-grid" id="results">
+        <div class="catalog-part" data-part="HX-2201" data-price="184.00">
+          <span class="num">HX-2201</span><span class="name">Blower motor, 1/2 HP</span><span class="price">$184.00</span><span class="stock">In stock</span>
+        </div>
+        <div class="catalog-part" data-part="CP-0450" data-price="22.50">
+          <span class="num">CP-0450</span><span class="name">Run capacitor, 45 µF</span><span class="price">$22.50</span><span class="stock">In stock</span>
+        </div>
+        <div class="catalog-part backordered" data-part="CP-0450-L" data-price="31.00">
+          <span class="num">CP-0450-L</span><span class="name">Run capacitor, 45 µF, low-temp</span><span class="price">$31.00</span><span class="stock">Backordered</span>
+        </div>
+        <div class="catalog-part" data-part="TH-7710" data-price="96.00">
+          <span class="num">TH-7710</span><span class="name">Thermostat, programmable</span><span class="price">$96.00</span><span class="stock">In stock</span>
+        </div>
+        <div class="catalog-part backordered" data-part="FL-1620" data-price="14.25">
+          <span class="num">FL-1620</span><span class="name">Filter, 16×20 pleated</span><span class="price">$14.25</span><span class="stock">Backordered</span>
+        </div>
+        <div class="catalog-part" data-part="IG-3300" data-price="61.00">
+          <span class="num">IG-3300</span><span class="name">Hot surface igniter</span><span class="price">$61.00</span><span class="stock">In stock</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+  // The rule, on its own: one question, one answer.
+  function isAffordable(price, maxPrice) {
+    return maxPrice === '' || Number(price) <= Number(maxPrice);
+  }
+  // The controller: reads the page, applies the rule to each part, shows or hides it.
+  function showParts() {
+    const query = document.getElementById('part-number').value.trim().toUpperCase();
+    const maxPrice = document.getElementById('max-price').value.trim();
+    document.querySelectorAll('.catalog-part').forEach(card => {
+      const matches = card.dataset.part.startsWith(query);
+      card.hidden = !(matches && isAffordable(card.dataset.price, maxPrice));
+    });
+  }
+  document.getElementById('search-button').addEventListener('click', () => showParts());
+  </script>
+  <!-- =================================================== -->
+
+  <section class="ws panel">
+    <h2>The code</h2>
+    <p>Try the page first: type 50 in the price box and click Search. Then read the code that did it.</p>
+<pre><span class="c">// The rule, on its own: one question, one answer.</span>
+function isAffordable(price, maxPrice) {
+  return maxPrice === '' || Number(price) &lt;= Number(maxPrice);
+}
+
+<span class="c">// The controller: reads the page, applies the rule to each part, shows or hides it.</span>
+function showParts() {
+  const query = document.getElementById('part-number').value.trim().toUpperCase();
+  const maxPrice = document.getElementById('max-price').value.trim();
+  document.querySelectorAll('.catalog-part').forEach(card =&gt; {
+    const matches = card.dataset.part.startsWith(query);
+    card.hidden = !(matches &amp;&amp; isAffordable(card.dataset.price, maxPrice));
+  });
+}</pre>
+    <h2 style="margin-top:18px">The three tests</h2>
+    <div class="tests">
+      <div><h3>Unit</h3><p class="muted">Calls the rule directly. Nothing else runs.</p>
+<pre>isAffordable('184.00', '50')
+  → expect false
+isAffordable('22.50', '50')
+  → expect true
+isAffordable('184.00', '')
+  → expect true</pre></div>
+      <div><h3>Integration</h3><p class="muted">Loads a test copy of the page with three parts, runs showParts(). Nobody types.</p>
+<pre>test page: HX-2201 $184.00,
+  CP-0450 $22.50, FL-1620 $14.25
+set #max-price to 50
+showParts()
+  → expect HX-2201 hidden
+  → expect CP-0450 showing</pre></div>
+      <div><h3>System</h3><p class="muted">Uses the real page the way Trent would.</p>
+<pre>type 50 in the box labeled
+  "Max price"
+click Search
+  → expect the blower motor gone
+  → expect the run capacitor
+    showing</pre></div>
+    </div>
+    <div class="row" style="margin-top:12px"><button type="button" id="run-base">Run all three tests</button><span class="muted">On the code as it is now.</span></div>
+    <div id="res-base"></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Three changes: predict, then run</h2>
+    <p>Tick the tests you think will <b>fail</b>. Then plant the change and run all three.</p>
+
+    <div class="brk" data-break="a">
+      <h3>A. The rule compares text</h3>
+      <p>An AI “tidied up” <code>isAffordable()</code> and dropped the two <code>Number()</code> calls. Prices on the page are text.</p>
+<pre>return maxPrice === '' || price &lt;= maxPrice;</pre>
+      <div class="pred"><span class="muted">Will fail:</span><label><input type="checkbox" data-t="unit"> Unit</label><label><input type="checkbox" data-t="integration"> Integration</label><label><input type="checkbox" data-t="system"> System</label></div>
+      <div class="row"><button type="button" id="run-a">Plant A and run the tests</button></div>
+      <div class="out"></div>
+    </div>
+
+    <div class="brk" data-break="b">
+      <h3>B. The controller reads a new name</h3>
+      <p>The data team renamed price to <code>list_price</code>. An AI updated the controller to read the new name. The page's HTML still says <code>data-price</code>.</p>
+<pre>card.hidden = !(matches &amp;&amp; isAffordable(card.dataset.listPrice, maxPrice));</pre>
+      <div class="pred"><span class="muted">Will fail:</span><label><input type="checkbox" data-t="unit"> Unit</label><label><input type="checkbox" data-t="integration"> Integration</label><label><input type="checkbox" data-t="system"> System</label></div>
+      <div class="row"><button type="button" id="run-b">Plant B and run the tests</button></div>
+      <div class="out"></div>
+    </div>
+
+    <div class="brk" data-break="c">
+      <h3>C. The page renames the price box</h3>
+      <p>A designer renamed the price box's id in the page's HTML. The code still looks for <code>max-price</code>.</p>
+<pre>&lt;input id="price-limit" … aria-label="Max price"&gt;</pre>
+      <div class="pred"><span class="muted">Will fail:</span><label><input type="checkbox" data-t="unit"> Unit</label><label><input type="checkbox" data-t="integration"> Integration</label><label><input type="checkbox" data-t="system"> System</label></div>
+      <div class="row"><button type="button" id="run-c">Plant C and run the tests</button></div>
+      <div class="out"></div>
+    </div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Your answers</h2>
+    <p class="muted">Saved in this browser as you type, so reloading won't lose them.</p>
+    <div class="q"><label for="a1">1. For each change, which failing test told you the most about where the problem was? Why that one?</label><textarea id="a1"></textarea></div>
+    <div class="q"><label for="a2">2. Only one test caught change C. Why didn't the other two, and what does that tell you about a test suite that's only unit tests?</label><textarea id="a2"></textarea></div>
+    <div class="q"><label for="a3">3. HinH's workflow runs on every push. If you could only keep one of the three tests in it, which would you keep, and what would you give up?<span class="pl-tag">Delivery</span></label><textarea id="a3"></textarea></div>
+  </section>
+
+  <section class="ws rubric">
+    <div class="eyebrow">Be ready to explain</div>
+    <ol>
+      <li>Which test pointed closest to the problem for each change, and why the others couldn't.</li>
+      <li>Why change C got past two tests, and what that says about relying on one kind of test.</li>
+      <li>Which single test you'd run on every push, and what you'd be giving up.</li>
+    </ol>
+  </section>
+
+  <section class="ws panel">
+    <h2>Check my work</h2>
+    <p class="muted">An AI reads your three answers against the list above and tells you which ones hold up. Your score shows here and isn't recorded. Class code is on the Canvas page.</p>
+    <div class="row">
+      <input id="code" type="text" placeholder="Class code" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
+      <button type="button" id="grade">Check my answers</button>
+      <span class="muted" id="status" hidden></span>
+    </div>
+    <div id="feedback" style="margin-top:12px"></div>
+  </section>
+</main>
+
+<script>
+/* ---------- Saved state ---------- */
+const KEY="cwg-s7-three-tests";
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
+function store(patch){ try{ localStorage.setItem(KEY, JSON.stringify(Object.assign(load(),patch))); }catch(e){} }
+
+/* ---------- The tests ----------
+   Each returns {pass, msg}. The messages are as specific as that level of test can honestly be. */
+const ORIGINAL={ rule:isAffordable, show:showParts };
+
+function unitTest(){
+  const cases=[["184.00","50",false],["22.50","50",true],["184.00","",true]];
+  for(const [p,m,want] of cases){
+    let got; try{ got=isAffordable(p,m); }catch(e){ return {pass:false,msg:`isAffordable('${p}', '${m}') threw: ${e.message}`}; }
+    if(got!==want) return {pass:false,msg:`isAffordable('${p}', '${m}') returned ${got}; expected ${want}.`};
+  }
+  return {pass:true,msg:"All three cases came out as expected."};
+}
+
+function integrationTest(){
+  return new Promise(resolve=>{
+    const f=document.createElement("iframe"); f.hidden=true; f.setAttribute("aria-hidden","true");
+    f.srcdoc=`<!doctype html><input id="part-number" value=""><input id="max-price" value="">
+      <div class="catalog-part" data-part="HX-2201" data-price="184.00">HX-2201</div>
+      <div class="catalog-part" data-part="CP-0450" data-price="22.50">CP-0450</div>
+      <div class="catalog-part" data-part="FL-1620" data-price="14.25">FL-1620</div>
+      <script>${String(isAffordable)}\n${String(showParts)}<\/script>`;
+    f.onload=()=>{
+      const w=f.contentWindow, d=f.contentDocument, card=n=>d.querySelector(`[data-part="${n}"]`);
+      let r;
+      try{
+        d.getElementById("max-price").value="50"; w.showParts();
+        if(!card("HX-2201").hidden) r={pass:false,msg:"With #max-price at 50, HX-2201 ($184.00) was showing; expected hidden."};
+        else if(card("CP-0450").hidden) r={pass:false,msg:"With #max-price at 50, CP-0450 ($22.50) was hidden; expected showing."};
+        else r={pass:true,msg:"Test page filtered as expected."};
+      }catch(e){ r={pass:false,msg:"showParts() threw: "+e.message}; }
+      f.remove(); resolve(r);
+    };
+    document.body.append(f);
+  });
+}
+
+function systemTest(){
+  const box=document.querySelector('[aria-label="Max price"]'), btn=document.getElementById("search-button"), q=document.getElementById("part-number");
+  const saved={box:box.value,q:q.value};
+  const swallow=e=>{ e.preventDefault(); }; window.addEventListener("error",swallow);
+  const shown=n=>!document.querySelector(`#results [data-part="${n}"]`).hidden;
+  document.querySelectorAll("#results .catalog-part").forEach(c=>c.hidden=false);
+  q.value=""; box.value="50"; box.dispatchEvent(new Event("input",{bubbles:true})); btn.click();
+  let r;
+  if(shown("HX-2201")) r={pass:false,msg:"Typed 50 and clicked Search: the blower motor was still showing."};
+  else if(!shown("CP-0450")) r={pass:false,msg:"Typed 50 and clicked Search: the run capacitor wasn't showing."};
+  else r={pass:true,msg:"Typed 50 and clicked Search: the page showed the right parts."};
+  window.removeEventListener("error",swallow);
+  q.value=saved.q; box.value=saved.box; document.querySelectorAll("#results .catalog-part").forEach(c=>c.hidden=false);
+  return r;
+}
+
+async function runAll(){ return {unit:unitTest(), integration:await integrationTest(), system:systemTest()}; }
+
+/* ---------- The changes ---------- */
+const BREAKS={
+  a:{ plant(){ window.isAffordable=function isAffordable(price, maxPrice){ return maxPrice === '' || price <= maxPrice; }; } },
+  b:{ plant(){ window.showParts=function showParts(){
+        const query = document.getElementById('part-number').value.trim().toUpperCase();
+        const maxPrice = document.getElementById('max-price').value.trim();
+        document.querySelectorAll('.catalog-part').forEach(card => {
+          const matches = card.dataset.part.startsWith(query);
+          card.hidden = !(matches && isAffordable(card.dataset.listPrice, maxPrice));
+        });
+      }; } },
+  c:{ plant(){ document.getElementById("max-price").id="price-limit"; } },
+};
+function restore(){
+  window.isAffordable=ORIGINAL.rule; window.showParts=ORIGINAL.show;
+  const box=document.getElementById("price-limit"); if(box) box.id="max-price";
+}
+
+const NAMES={unit:"Unit",integration:"Integration",system:"System"};
+function renderResults(host,res,pred){
+  host.innerHTML="";
+  const g=document.createElement("div"); g.className="res";
+  for(const t of ["unit","integration","system"]){
+    const a=document.createElement("span"); a.textContent=NAMES[t];
+    const b=document.createElement("b"); b.className=res[t].pass?"ok":"no"; b.textContent=res[t].pass?"PASS":"FAIL";
+    const m=document.createElement("span"); m.className="msg"; m.textContent=res[t].msg;
+    g.append(a,b,m);
+  }
+  host.append(g);
+  if(pred){
+    const right=["unit","integration","system"].filter(t=>pred[t]===!res[t].pass).length;
+    const p=document.createElement("div"); p.className="match"; p.textContent=`Your prediction matched ${right} of 3.`;
+    host.append(p);
+  }
+}
+
+document.getElementById("run-base").onclick=async()=>{ restore(); renderResults(document.getElementById("res-base"), await runAll()); };
+
+document.querySelectorAll(".brk").forEach(row=>{
+  const k=row.dataset.break, boxes=[...row.querySelectorAll(".pred input")], out=row.querySelector(".out");
+  const s=load(); const saved=(s.pred||{})[k]||{};
+  boxes.forEach(b=>{ b.checked=!!saved[b.dataset.t]; b.addEventListener("change",()=>{
+    const all=load().pred||{}; all[k]=Object.fromEntries(boxes.map(x=>[x.dataset.t,x.checked])); store({pred:all}); }); });
+  if((s.runs||{})[k]) renderResults(out, s.runs[k].res, s.runs[k].pred);
+  document.getElementById("run-"+k).onclick=async()=>{
+    const pred=Object.fromEntries(boxes.map(x=>[x.dataset.t,x.checked]));
+    let res; BREAKS[k].plant(); try{ res=await runAll(); } finally { restore(); }
+    renderResults(out,res,pred);
+    const runs=load().runs||{}; runs[k]={pred,res}; store({runs});
+  };
+});
+
+/* ---------- Answers ---------- */
+const fields=["a1","a2","a3"];
+const saved=load(); fields.forEach(id=>{ const el=document.getElementById(id); if(saved[id]) el.value=saved[id]; el.addEventListener("input",()=>store({[id]:el.value})); });
+
+/* ---------- Check my work ---------- */
+const GRADER_URL="https://shrill-wood-3253.acowan.workers.dev/grade";
+const PUZZLE_ID="s7-three-tests";
+const LABELS=["Which test told you most","Why C got past two","One test on every push"];
+const codeEl=document.getElementById("code"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
+try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
+function collect(){
+  const s=load(), v=id=>document.getElementById(id).value.trim(), runs=s.runs||{};
+  const summary=Object.fromEntries(Object.entries(runs).map(([k,r])=>[k,{
+    predicted_to_fail:Object.keys(r.pred).filter(t=>r.pred[t]),
+    actually_failed:Object.keys(r.res).filter(t=>!r.res[t].pass) }]));
+  return { page_check:{ changes_run:Object.keys(runs).sort(), results:summary },
+           items:[ {label:LABELS[0], answer:v("a1")}, {label:LABELS[1], answer:v("a2")}, {label:LABELS[2], answer:v("a3")} ] };
+}
+document.getElementById("grade").onclick=async()=>{
+  const code=codeEl.value.trim(); if(!code){ codeEl.focus(); return; }
+  try{ localStorage.setItem("cwg-code",code); }catch(e){}
+  statusEl.hidden=false; statusEl.textContent="Reading your answers…"; fb.innerHTML="";
+  try{
+    const r=await fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:PUZZLE_ID,code,answers:collect()})});
+    const d=await r.json();
+    if(!r.ok){ statusEl.textContent=d.error||("Error "+r.status); return; }
+    statusEl.hidden=true;
+    const res=d.results||[], ok=res.filter(x=>x.verdict==="ok").length, ran=Object.keys(load().runs||{}).length;
+    const sc=document.createElement("div"); sc.className="score"; sc.textContent=`${ok} of ${res.length}`;
+    const sub=document.createElement("div"); sub.className="muted"; sub.textContent=`Changes run: ${ran} of 3 · answers: ${ok} of ${res.length} hold up`;
+    fb.append(sc,sub);
+    const list=document.createElement("div"); list.style.marginTop="8px";
+    res.forEach(x=>{ const el=document.createElement("div"); el.className="fbrow";
+      el.innerHTML=`<div class="fbhead"><b class="${x.verdict==="ok"?"ok":"thin"}">${x.verdict==="ok"?"OK":"THIN"}</b><span class="fblabel"></span></div><div></div>`;
+      el.querySelector(".fblabel").textContent=x.label; el.lastElementChild.textContent=x.note||""; list.append(el); });
+    fb.append(list);
+    if(d.summary){ const s=document.createElement("p"); s.className="muted"; s.style.marginTop="8px"; s.textContent=d.summary; fb.append(s); }
+  }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
+};
+</script>
+<script src="pipeline.js"></script>
+</body></html>
