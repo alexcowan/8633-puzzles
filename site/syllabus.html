@@ -1,0 +1,182 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coding with GPT · Syllabus</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&display=swap">
+<link rel="stylesheet" href="ws.css">
+<style>
+body{max-width:820px;margin:40px auto;padding:0 18px}
+h1,h2,h3{font-family:var(--serif);color:var(--head);font-weight:400}
+h1{font-size:34px;margin:0 0 4px}
+h2{font-size:24px;margin:40px 0 8px;border-bottom:1px solid var(--line-soft);padding-bottom:4px}
+h3{font-size:19px;margin:0}
+a{color:var(--head)}
+.sub{color:var(--muted);margin:0 0 20px}
+.toc{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:15px;margin:0 0 8px}
+.part{font-family:var(--serif);color:var(--accent);font-size:15px;letter-spacing:.08em;text-transform:uppercase;margin:34px 0 4px}
+.part + p{margin-top:0}
+.s{background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:14px 18px;margin:12px 0}
+.s-top{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.s-date{color:var(--muted);font-size:15px;white-space:nowrap}
+.s-q{font-style:italic;color:var(--muted);margin:2px 0 8px}
+.s dl{display:grid;grid-template-columns:92px 1fr;gap:4px 12px;margin:8px 0 0}
+.s dt{color:var(--muted);font-size:14px;letter-spacing:.04em;text-transform:uppercase;padding-top:2px}
+.s dd{margin:0}
+.s ol{margin:0;padding-left:20px}
+.s ul{margin:0;padding-left:18px}
+.soon{color:var(--muted)}
+table{border-collapse:collapse;width:100%;margin:8px 0}
+td,th{border-bottom:1px solid var(--line-soft);padding:6px 8px;text-align:left;vertical-align:top}
+th{font-family:var(--serif);font-weight:400;color:var(--head)}
+@media (max-width:560px){.s dl{grid-template-columns:1fr}.s dt{padding-top:6px}}
+</style></head><body>
+
+<h1>Coding with GPT</h1>
+<p class="sub">GBUS 8633 · UVA Darden School of Business · Alex Cowan · Q2 2026–27</p>
+<nav class="toc"><a href="#about">About</a><a href="#how">How it works</a><a href="#p1">Part 1</a><a href="#p2">Part 2</a><a href="#p3">Part 3</a><a href="#components">Coursework</a><a href="index.html">Puzzles</a><a href="terms.html">Terms</a></nav>
+
+<h2 id="about">About the course</h2>
+<p>AI now does most of the typing in software development. It doesn't decide what's worth building, how to tell whether it works, or what the team should and shouldn't hand to a machine. This course is about those decisions, and about having enough hands-on fluency with code to make them well.</p>
+<p>It's for MBAs and other non-engineers, including people with no programming experience. Most students won't spend their careers coding. They'll manage engineers, fund and prioritize development, or lead an organization through rebuilding how it works around AI. The course covers both what teams code and how they code it, since AI is changing both.</p>
+<p>The aim is to remove the fear of tinkering with software and to build the habits that make AI-assisted development productive: stating design intent so it can be tested, reading a plan before reading code, choosing between alternatives on their economics, and debugging analytically instead of by trial and error.</p>
+
+<h2 id="how">How it works</h2>
+<p><b>Three parts.</b> Part 1, <i>The Fundamentals</i>, covers the big picture, four repeatable steps for going from design to working software, and the jobs and economics of each layer of an application (UIs, algorithms, data models). Part 2, <i>The Systems</i>, covers stack choices, the product pipeline, observability, and building AI into an application. Part 3, <i>The Pipeline</i>, closes the loop with behavioral observation, A/B tests and evals, and presenting the work.</p>
+<p><b>The four steps.</b> However the tools change, the work of going from design to code comes down to: (1) focusing and communicating design intent, (2) unpacking it into codable steps, (3) effectuating between alternatives, and (4) testing and debugging. They apply across the product pipeline, not just to the application itself.</p>
+<p><b>A running example.</b> The tech notes and puzzles share one example: HVAC in a Hurry (HinH), a fictional regional HVAC service firm building tools for its field technicians.</p>
+<p><b>Tech notes, puzzles, and caselets.</b> Each session has a tech note for reading. Most also have short coding puzzles: a warm-up for class prep and micro puzzles worked in class. Puzzles check themselves by running the code and are assessed by AI against a rubric students can see while they work. Caselets apply the session to the students' own team projects.</p>
+<p><b>Tools.</b> Students use real tools: an AI coding agent (most use Codex, which UVA provides), GitHub for version control, and the browser's developer tools. Teams pick their own development platform early, with one rule: it has to go through version control. Reworking those choices later is part of the learning.</p>
+
+<p class="part" id="p1">Part 1 · The Fundamentals</p>
+
+<div class="s"><div class="s-top"><h3>1. Storytelling with Code</h3><span class="s-date">Mon Oct 19</span></div>
+<p class="s-q">What is this class about? Is it going to help me?</p>
+<dl><dt>Reading</dt><dd>Tech note: <i>Storytelling with Vibe Code</i></dd>
+<dt>Puzzles</dt><dd><a href="s1-warmup.html">Punch card: predict, then run</a> · <a href="s1-predict-then-run.html">Predict, then run</a></dd>
+<dt>Objectives</dt><dd><ol>
+<li>Explain where in the development pipeline AI should operate agentically vs. where it is merely assistive.</li>
+<li>Regardless of titles or terms, explain how a product pipeline operates and where it needs particular attention from human talent.</li>
+<li>Frame a UX design intention for intentional, observable, testable implementation with user stories and behavior-driven development (BDD).</li></ol></dd></dl></div>
+
+<div class="s"><div class="s-top"><h3>2. Vibe Coding for MBAs</h3><span class="s-date">Tue Oct 20</span></div>
+<p class="s-q">I thought AI had already made coding easy. But this seems hard.</p>
+<dl><dt>Reading</dt><dd>Tech note: <i>Vibe Coding for MBAs</i></dd>
+<dt>Caselet</dt><dd>It's a Team Sport: Setting Up Version Control for Your Team</dd>
+<dt>Puzzles</dt><dd><a href="s2-read-the-plan.html">Read the plan before the code</a> · <a href="s2-pick-help.html">Pick a way to get help</a> · <a href="s2-github-setup.html">Set up for Class 3</a></dd>
+<dt>Objectives</dt><dd><ol>
+<li>Explain how coding practice has evolved from its beginnings to the present, and continues to.</li>
+<li>Frame development activity across the pipeline in terms of four repeatable steps.</li>
+<li>Anchor your code in version control for collaboration and manageability.</li></ol></dd></dl></div>
+
+<div class="s"><div class="s-top"><h3>3. The Jobs &amp; Economics of UIs</h3><span class="s-date">Mon Oct 26</span></div>
+<p class="s-q">OK, I get the idea of how to get going. Where do I start?</p>
+<dl><dt>Reading</dt><dd>Tech note: <i>The Jobs &amp; Economics of UIs</i></dd>
+<dt>Puzzles</dt><dd><a href="s3-whose-rule.html">Whose rule is it?</a> · <a href="s3-phone.html">Breaks at the phone</a></dd>
+<dt>Objectives</dt><dd><ol>
+<li>Frame the UI (View) components of a given UX for responsive implementation using the box model.</li>
+<li>Explain the relationship between Views and Controllers.</li>
+<li>Explain the relationship between user views and machine views (APIs, MCP).</li>
+<li>Explain the core building blocks of graphical UIs and evaluate a UI's code against DRY, separation of concerns, dependency direction, and readability.</li></ol></dd></dl></div>
+
+<div class="s"><div class="s-top"><h3>4. The Jobs &amp; Economics of Algorithms</h3><span class="s-date">Tue Oct 27</span></div>
+<p class="s-q">I get the front end, but how do we make it actually do stuff?</p>
+<dl><dt>Reading</dt><dd>Tech note: <i>The Jobs &amp; Economics of Algorithms</i></dd>
+<dt>Puzzles</dt><dd><a href="s4-checkbox.html">The checkbox that does nothing</a> · <a href="s4-interface.html">Where the fix goes</a> · <a href="s4-price.html">Under a hundred dollars</a></dd>
+<dt>Objectives</dt><dd><ol>
+<li>Unpack user stories into deterministic algorithms.</li>
+<li>Analyze, debug, and create bindings between UIs and algorithms.</li>
+<li>Explain the relationship between machine views and the client and server algorithms that interact with them.</li>
+<li>Explain the core approach to engineering algorithms relative to DRY, separation of concerns, dependency direction, readability, and determinism.</li></ol></dd></dl></div>
+
+<div class="s"><div class="s-top"><h3>5. The Jobs &amp; Economics of Models</h3><span class="s-date">Mon Nov 2</span></div>
+<p class="s-q">And what about the data? And what about the AI's data?</p>
+<dl><dt>Reading</dt><dd>Tech note: <i>The Jobs &amp; Economics of Models</i></dd>
+<dt>Caselet</dt><dd>Mapping your product's data model in a spreadsheet</dd>
+<dt>Puzzles</dt><dd><a href="s5-price.html">The price that wouldn't update</a> · <a href="s5-map.html">Map it from the story</a> · <a href="s5-cost.html">Who can see the cost?</a> · <a href="s5-context.html">What does the AI get to see?</a></dd>
+<dt>Objectives</dt><dd><ol>
+<li>Intentionally map real-world entities to structured model relationships.</li>
+<li>Analyze the coherence of a schema with normalization.</li>
+<li>Secure data with least-privileged access by role.</li>
+<li>Explain the data architecture behind using proprietary data with public AI models.</li></ol></dd></dl></div>
+
+<p class="part" id="p2">Part 2 · The Systems</p>
+
+<div class="s"><div class="s-top"><h3>6. The Economics of Your Stack</h3><span class="s-date">Mon Nov 9</span></div>
+<p class="s-q">How do I build out my app? Should it be a Squarespace site or a fully custom application on AWS? What's the "real" version, and can I even do that?</p>
+<dl><dt>Reading</dt><dd>Tech note: <i>Diagnosing the Economics of Your Code</i></dd>
+<dt>Individual</dt><dd>Your First PR (pull request)</dd>
+<dt>Objectives</dt><dd><ol>
+<li>Diagnose the current, future, and hypothetical needs of a given application.</li>
+<li>Evaluate prevailing stack alternatives relative to those needs.</li>
+<li>Analyze the key differences between database engines relative to a given design intention.</li>
+<li>Explain the distinction between stack decisions and pipeline decisions.</li></ol></dd></dl></div>
+
+<div class="s"><div class="s-top"><h3>7. The Economics of Your Pipeline</h3><span class="s-date">Tue Nov 10</span></div>
+<p class="s-q">What is the pipeline? (Oh, it's how I make changes, and I make more of those than I think.)</p>
+<dl><dt>Reading</dt><dd>Tech note: <i>Diagnosing the Economics of Your Product Pipeline</i></dd>
+<dt>Caselet</dt><dd>Test automation</dd>
+<dt>Objectives</dt><dd><ol>
+<li>Frame your application as a platform for experimentation vs. a finished good.</li>
+<li>Analyze the role of your version control implementation relative to other pipeline automation.</li>
+<li>Prioritize the need for test automation, and its implementation, relative to your stack choice.</li>
+<li>Prioritize the need for deploy automation, and its implementation.</li></ol></dd></dl></div>
+
+<div class="s"><div class="s-top"><h3>8. Observability Engineering for Uptime</h3><span class="s-date">Mon Nov 16</span></div>
+<p class="s-q">What do I do when it breaks?</p>
+<dl><dt>Reading</dt><dd>Tech note: <i>Observability by Design</i>, plus a reading on a well-known deploy failure <span class="soon">(coming soon)</span></dd>
+<dt>Caselet</dt><dd><span class="soon">Coming soon</span></dd>
+<dt>Objectives</dt><dd><ol>
+<li>Explain the role of observability engineering vs. passive monitoring.</li>
+<li>Retrospectively diagnose deploy failures in terms of observability engineering.</li>
+<li>Resolve issues through stepwise analytical debugging.</li></ol></dd></dl></div>
+
+<div class="s"><div class="s-top"><h3>9. Harness Development</h3><span class="s-date">Tue Nov 17</span></div>
+<p class="s-q">How do I add AI to the app?</p>
+<dl><dt>Reading</dt><dd>Tech note: <i>Developing Agentic UXs</i></dd>
+<dt>Objectives</dt><dd><ol>
+<li>Identify the components, or "code base," of an agentic UX.</li>
+<li>Frame and run evals for continuous improvement and safety.</li>
+<li>Handle orchestration tasks, including interfaces to external systems via MCP and similar AI-to-AI protocols.</li></ol></dd></dl></div>
+
+<div class="s"><div class="s-top"><h3>10. The Economics of Data</h3><span class="s-date">Mon Nov 23</span></div>
+<p class="s-q">How do I make my AI better than the other AIs?</p>
+<dl><dt>Reading</dt><dd>Tech note: <i>From Golden Cases to Data Treasure</i></dd>
+<dt>Objectives</dt><dd><ol>
+<li>Explain the relationship between foundation models and proprietary context.</li>
+<li>Explain the relationship between commercially available models and adaptive refinement from proprietary data.</li>
+<li>Design individual user journeys for useful, progressive data intake.</li></ol></dd></dl></div>
+
+<p class="part" id="p3">Part 3 · The Pipeline</p>
+
+<div class="s"><div class="s-top"><h3>11. Behavioral Observability</h3><span class="s-date">Tue Nov 24</span></div>
+<dl><dt>Reading</dt><dd>Tech note: <i>Making OECs Observable</i></dd>
+<dt>Caselet</dt><dd>Your OEC Dashboard</dd>
+<dt>Objectives</dt><dd><ol>
+<li>Explain the relationship between user stories, OECs (overall evaluation criteria), and user analytics.</li>
+<li>Implement focal observations in your product using an analytics suite.</li></ol></dd></dl></div>
+
+<div class="s"><div class="s-top"><h3>12. Running A/B Tests &amp; Evals</h3><span class="s-date">Mon Nov 30</span></div>
+<dl><dt>Reading</dt><dd>Tech note: <i>Running A/B Tests on Discrete UXs</i></dd>
+<dt>Caselet</dt><dd>Your First A/B Test</dd>
+<dt>Objectives</dt><dd><ol>
+<li>Explain the relationship between descriptive analytics and experiments.</li>
+<li>Instrument and run A/B tests, including subject segmentation and inference to actionability thresholds.</li></ol></dd></dl></div>
+
+<div class="s"><div class="s-top"><h3>13. Creating Your Dev Portfolio</h3><span class="s-date">Tue Dec 1</span></div>
+<dl><dt>Team</dt><dd>Portfolio entry</dd>
+<dt>Objectives</dt><dd><ol><li>Showcase your design and development work like a professional.</li></ol></dd></dl></div>
+
+<div class="s"><div class="s-top"><h3>14. Presenting Your Work</h3><span class="s-date">Mon Dec 7</span></div>
+<dl><dt>Team</dt><dd>Peer presentations</dd></dl></div>
+
+<h2 id="components">Coursework</h2>
+<table>
+<tr><th>Component</th><th>What it is</th></tr>
+<tr><td>Preparation &amp; participation</td><td>Reading, warm-up puzzles (scored on the page but not recorded; students should be ready to explain their solution), and in-class puzzles and discussion.</td></tr>
+<tr><td>Individual assignment</td><td>Your First PR: a pull request to a working codebase.</td></tr>
+<tr><td>Team project</td><td>Teams of 2–4 take a product from user stories to working, deployed, observable software, then write it up as a portfolio entry and present it.</td></tr>
+</table>
+<p class="soon">Grading weights: coming soon.</p>
+
+<h2>Instructor</h2>
+<p>Alex Cowan · <a href="mailto:acowan@alexandercowan.com">acowan@alexandercowan.com</a> · <a href="https://www.alexandercowan.com/">alexandercowan.com</a></p>
+<p class="sub">Earlier version: <a href="https://www.alexandercowan.com/software-development-class/">the previous syllabus on alexandercowan.com</a>.</p>
+</body></html>
