@@ -4,6 +4,7 @@
 `worker/` is the grader proxy on Cloudflare Workers. The API key and class code are Wrangler secrets.
 The worker deploys itself from GitHub Actions (`.github/workflows/deploy-worker.yml`) on every push to `worker/` once its tests pass.
 `site/ws.css` holds the worksheet styles every puzzle page shares (the S1 pages keep their own); put page-only rules in the page's `<style>`.
+`site/syllabus.html` is the course syllabus (linked from the index). Edit it directly; session dates and objectives come from the AY'27 outline sheet.
 `site/stats.html` (not linked from the index) shows the anonymous grading record: per puzzle, how often each item comes back ok.
 
 ## Add a puzzle

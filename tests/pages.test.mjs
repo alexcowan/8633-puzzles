@@ -15,7 +15,7 @@ const PORT = 8766, BASE = `http://localhost:${PORT}/`;
 const GRADER = /shrill-wood-3253\.acowan\.workers\.dev/;
 // Errors a puzzle shows on purpose: the S4 warm-up's broken checkbox is the bug students find.
 const PLANTED = { "s4-checkbox.html": /Cannot read properties of null \(reading 'addEventListener'\)/ };
-const NO_GRADER = new Set(["index.html", "s1-warmup.html", "s2-github-setup.html", "s2-read-the-plan.html", "s4-seam.html", "terms.html", "stats.html"]);
+const NO_GRADER = new Set(["index.html", "s1-warmup.html", "s2-github-setup.html", "s2-read-the-plan.html", "s4-seam.html", "terms.html", "stats.html", "syllabus.html"]);
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png", ".svg": "image/svg+xml", ".jpg": "image/jpeg" };
 
 let server, browser;
