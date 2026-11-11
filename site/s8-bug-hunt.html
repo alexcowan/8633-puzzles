@@ -167,7 +167,8 @@ const AVAIL_SRC = [
 "function availability(offer) {",
 "  if (!offer.inStock) return 'Not available';",
 "  const days = offer.leadDays || 3;  // some offers don't include a lead time; assume 3 days",
-"  return days === 0 ? 'Available today' : 'Ships in ' + days + ' days';",
+"  if (days === 0) return 'Available today';",
+"  return 'Ships in ' + days + ' days';",
 "}"].join("\n");
 const SRC = [
 "// The controller runs the steps in order. Steps 3 and 4 call functions defined below it.",
