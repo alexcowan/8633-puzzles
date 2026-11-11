@@ -101,7 +101,7 @@
         <p class="cl">Same as adding this after line <span data-after="  const lewyAnswer ="></span>: <code>console.log('A', hueyAnswer, lewyAnswer);</code></p>
         <div class="row"><input type="text" id="pred-a" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-a">Look</button></div></div>
       <div class="tap"><h3>B. What the adapters turned it into <span class="muted">(after step 3)</span></h3>
-        <p class="cl">Same as adding this after line <span data-after="  const offers ="></span>: <code>console.log('B', offers);</code></p>
+        <p class="cl">Same as adding this after line <span data-after="  const normalizedOffers ="></span>: <code>console.log('B', normalizedOffers);</code></p>
         <div class="row"><input type="text" id="pred-b" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-b">Look</button></div></div>
       <div class="tap"><h3>C. What the controller sends the View <span class="muted">(after step 4)</span></h3>
         <p class="cl">Same as adding this after line <span data-after="  }));"></span>, just before the return: <code>console.log('C', labeled);</code></p>
@@ -186,11 +186,11 @@ const SRC = [
 "  const hueyAnswer = askHuey(partNumber);",
 "  const lewyAnswer = askLewy(partNumber);",
 "  // Step 3. Translate each answer into HinH's format (fromHuey, fromLewy, below).",
-"  const offers = [fromHuey(hueyAnswer), fromLewy(lewyAnswer)];",
+"  const normalizedOffers = [fromHuey(hueyAnswer), fromLewy(lewyAnswer)];",
 "  // Step 4. Label each offer (availability, below).",
 "  // map goes through the offers one at a time, calling each one offer,",
 "  // and builds a new list from what the code after => returns for each.",
-"  const labeled = offers.map(offer => ({",
+"  const labeled = normalizedOffers.map(offer => ({",
 "    distributor: offer.distributor,",
 "    price: offer.price,",
 "    availability: availability(offer),",
