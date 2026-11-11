@@ -28,6 +28,8 @@
 .ws .taps{display:grid;gap:12px}
 .ws .tap{border-top:1px solid var(--line-soft);padding-top:12px}
 .ws .tap:first-child{border-top:0;padding-top:0}
+.ws .tap .cl{margin:2px 0 8px;font-size:14px;color:var(--muted,#666)}
+.ws .tap .cl code{font-family:var(--mono);font-size:13px}
 .ws .tap h3{font-family:var(--serif);font-weight:400;color:var(--head);font-size:17px;margin:0 0 4px}
 .ws .tap .row input{flex:1 1 280px}
 .ws .log{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
@@ -93,12 +95,16 @@
   <section class="ws panel">
     <h2>Look inside</h2>
     <p>You can look at three points along the path for the part in the search box. Before each look, write what you expect to see. The look goes in your log.</p>
+    <p>Each look shows what one <code>console.log</code> line would print at that point in the code. In your own app, you'd add that line, run the app, and read what it prints in the browser's console (in Chrome: View › Developer › JavaScript Console).</p>
     <div class="taps">
       <div class="tap"><h3>A. What the distributors sent <span class="muted">(after step 2)</span></h3>
+        <p class="cl">Same as adding this after line <span data-after="  const huey ="></span>: <code>console.log('A', huey, lewy);</code></p>
         <div class="row"><input type="text" id="pred-a" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-a">Look</button></div></div>
       <div class="tap"><h3>B. What the adapters turned it into <span class="muted">(after step 3)</span></h3>
+        <p class="cl">Same as adding this after line <span data-after="  const offers ="></span>: <code>console.log('B', offers);</code></p>
         <div class="row"><input type="text" id="pred-b" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-b">Look</button></div></div>
-      <div class="tap"><h3>C. What the controller sent the page <span class="muted">(after step 5)</span></h3>
+      <div class="tap"><h3>C. What the controller sends the View <span class="muted">(after step 4)</span></h3>
+        <p class="cl">Same as adding this after line <span data-after="  }));"></span>, just before the return: <code>console.log('C', labeled);</code></p>
         <div class="row"><input type="text" id="pred-c" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-c">Look</button></div></div>
     </div>
     <p class="muted" id="look-msg" hidden>Search for one part number first (for example HX-2201), then look.</p>
@@ -212,6 +218,9 @@ function build(availSrc){
 }
 const APP = build(AVAIL_SRC);
 
+/* Fill in where each look's console.log would go. */
+document.querySelectorAll("[data-after]").forEach(el=>{ el.textContent = SRC.split("\n").findIndex(l=>l.startsWith(el.dataset.after)) + 1; });
+
 /* Show the source with line numbers. */
 (function(){ const pre=document.getElementById("src");
   SRC.split("\n").forEach(l=>{ const s=document.createElement("span"); s.textContent=l||" "; if(/^\s*\/\//.test(l)) s.className="c"; pre.append(s); }); })();
@@ -242,7 +251,7 @@ function store(patch){ try{ localStorage.setItem(KEY, JSON.stringify(Object.assi
 const TAPS={
   a:{ name:"A. What the distributors sent", get:p=>({ Huey:HUEY[p], Lewy:LEWY[p] }) },
   b:{ name:"B. What the adapters turned it into", get:p=>[APP.fromHuey(HUEY[p]), APP.fromLewy(LEWY[p])] },
-  c:{ name:"C. What the controller sent the page", get:p=>APP.searchParts(p) },
+  c:{ name:"C. What the controller sends the View", get:p=>APP.searchParts(p) },
 };
 function drawLog(){
   const looks=load().looks||[], body=document.getElementById("log"); body.innerHTML="";
