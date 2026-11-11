@@ -277,4 +277,5 @@ wireGrader("s5-price", ()=>{ const s=load(); return { items: IDS.map((id,i)=>({l
   answer: id==="a2" ? ((s.tabs?tabsText(s.tabs):"(sheet not read yet)")+(val("a2")?"\nNote: "+val("a2"):"")) : val(id)})) }; });
 </script>
 <script src="pipeline.js"></script>
+<div class="site-version" style="position:fixed;right:6px;bottom:4px;font:10px/1 system-ui,sans-serif;color:#999;opacity:.7;pointer-events:none">__SITE_VERSION__</div>
 </body></html>

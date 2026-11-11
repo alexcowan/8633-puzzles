@@ -1472,4 +1472,5 @@ const startTerm = params.get("term");
 if (startTerm && deck.some(t => t.id === startTerm)) openTerm(startTerm);
 else setMode(params.get("mode") === "list" ? "list" : "surprise");
 </script>
+<div class="site-version" style="position:fixed;right:6px;bottom:4px;font:10px/1 system-ui,sans-serif;color:#999;opacity:.7;pointer-events:none">__SITE_VERSION__</div>
 </body></html>
