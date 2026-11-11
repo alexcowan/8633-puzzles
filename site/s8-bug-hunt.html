@@ -47,7 +47,7 @@
     <div data-pipeline></div>
     <p>The story: <em>As Trent the Technician, I want to find a part's price and availability so I can decide on next steps with the customer.</em></p>
     <p>To answer, the lookup asks two parts distributors, Huey and Lewy. For each part, a distributor reports a price, whether it's in stock, and a lead time: how many days until the technician can have it. A lead time of 0 means today.</p>
-    <p>A bug report just came in about HinH's parts lookup. There is one bug, and the code around it is sound. Your job is to find it the analytical way: say what you expect before each check, look, and let each look rule out part of the path. Hints are here if you get stuck, one at a time. Nothing is scored until you ask, and nothing is recorded.</p>
+    <p>A bug report just came in about HinH's parts lookup. Your job is to find the bug the analytical way: say what you expect before each check, look, and let each look rule out part of the path. Hints are here if you get stuck, one at a time. Nothing is scored until you ask, and nothing is recorded.</p>
   </header>
 
   <section class="ws panel ticket">
@@ -80,13 +80,13 @@
     <h2>The code</h2>
     <p>The request travels this path. The numbers match the comments in the code.</p>
     <ol class="steps">
-      <li>The page asks the controller for a part (<code>searchParts</code>).</li>
-      <li>The controller asks each distributor.</li>
+      <li>The View gets the part number and asks the controller to find it (<code>searchParts</code>).</li>
+      <li>The controller asks each distributor about the part (<code>askHuey</code>, <code>askLewy</code>).</li>
       <li>Each distributor's answer goes through its adapter (<code>fromHuey</code>, <code>fromLewy</code>).</li>
       <li>The controller labels each offer for Trent (<code>availability</code>).</li>
-      <li>The controller sends the offers to the page.</li>
+      <li>The controller sends the offers back to the View.</li>
     </ol>
-    <p class="muted">The code defines the pieces for steps 3 and 4 first, then the controller that runs steps 1 to 5 in order.</p>
+    <p class="muted">The controller comes first and runs the steps in order. Below it are the functions it calls in steps 2 to 4.</p>
     <pre class="src" id="src"></pre>
   </section>
 
@@ -170,8 +170,26 @@ const AVAIL_SRC = [
 "  return days === 0 ? 'Available today' : 'Ships in ' + days + ' days';",
 "}"].join("\n");
 const SRC = [
-"// Step 3. Adapters: each distributor answers in its own format.",
-"// These turn each answer into the one shape HinH uses everywhere.",
+"// The controller runs the steps in order. Steps 2 to 4 call functions defined below it.",
+"// Step 1. The View gets the part number and then asks this controller to find it.",
+"function searchParts(partNumber) {",
+"  // Step 2. Ask each distributor for the part (askHuey, askLewy, below).",
+"  const huey = askHuey(partNumber), lewy = askLewy(partNumber);",
+"  // Step 3. Put each answer through its adapter (fromHuey, fromLewy, below).",
+"  const offers = [fromHuey(huey), fromLewy(lewy)];",
+"  // Step 4. Label each offer for Trent (availability, below).",
+"  const labeled = offers.map(o =>",
+"    ({ distributor: o.distributor, price: o.price, availability: availability(o) }));",
+"  // Step 5. Send the offers back to the View.",
+"  return labeled;",
+"}",
+"",
+"// Step 2. Ask each distributor's system about the part. Each answers in its own format.",
+"// (The real app calls each distributor's API. Here they return sample answers.)",
+"function askHuey(partNumber) { return HUEY[partNumber]; }",
+"function askLewy(partNumber) { return LEWY[partNumber]; }",
+"",
+"// Step 3. Adapters turn each answer into the one shape HinH uses everywhere.",
 "function fromHuey(r) {",
 "  return { distributor: 'Huey', price: r.price, inStock: r.in_stock, leadDays: r.lead_days };",
 "}",
@@ -180,21 +198,8 @@ const SRC = [
 "}",
 "",
 "// Step 4. The rule: what Trent should see about availability.",
-AVAIL_SRC,
-"",
-"// The controller runs the steps in order.",
-"// Step 1. The page asks the controller for a part.",
-"function searchParts(partNumber) {",
-"  // Step 2. Ask each distributor.",
-"  const huey = HUEY[partNumber], lewy = LEWY[partNumber];",
-"  // Step 3. Put each answer through its adapter.",
-"  const offers = [fromHuey(huey), fromLewy(lewy)];",
-"  // Step 4. Label each offer for Trent.",
-"  const labeled = offers.map(o =>",
-"    ({ distributor: o.distributor, price: o.price, availability: availability(o) }));",
-"  // Step 5. Send the offers to the page.",
-"  return labeled;",
-"}"].join("\n");
+AVAIL_SRC].join("\n");
+const BUG_LINE = SRC.split("\n").findIndex(l => l.includes("offer.leadDays || 3")) + 1;
 
 function build(availSrc){
   const src = SRC.replace(AVAIL_SRC, availSrc);
@@ -261,7 +266,7 @@ drawLog();
 const HINTS=[
   "Halve the path. Compare look A with look C for HX-2201. If the distributor sent the right thing and the page got the wrong thing, the problem is somewhere between them, not in Huey's system and not in the page.",
   "Look B for HX-2201. If the adapter passes along leadDays: 0, the adapters are fine too. That leaves one function.",
-  "Line 13. Read it out loud with leadDays equal to 0. In JavaScript, 0 counts as false, so what does 0 || 3 give you? The fix needs to treat a missing lead time as 3 and a real 0 as 0."];
+  "Line "+BUG_LINE+". Read it out loud with leadDays equal to 0. In JavaScript, 0 counts as false, so what does 0 || 3 give you? The fix needs to treat a missing lead time as 3 and a real 0 as 0."];
 function drawHints(){
   const n=load().hints||0, host=document.getElementById("hints"); host.innerHTML="";
   for(let i=0;i<n;i++){ const d=document.createElement("div"); d.className="hint"; d.textContent="Hint "+(i+1)+": "+HINTS[i]; host.append(d); }
