@@ -22,6 +22,9 @@
 .offers{width:100%;border-collapse:collapse;font-size:15px}
 .offers th,.offers td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--hinh-rule)}
 .offers th{font-weight:600;color:var(--hinh-navy)}
+.steps{margin:6px 0 8px 1.3em;padding:0}.steps li{margin:2px 0}
+.offers td.pn{font-family:var(--mono);white-space:nowrap}
+.offers tr.first td{border-top:2px solid var(--hinh-rule)}
 .ws .taps{display:grid;gap:12px}
 .ws .tap{border-top:1px solid var(--line-soft);padding-top:12px}
 .ws .tap:first-child{border-top:0;padding-top:0}
@@ -43,6 +46,7 @@
     <h1>Never available today</h1>
     <div data-pipeline></div>
     <p>The story: <em>As Trent the Technician, I want to find a part's price and availability so I can decide on next steps with the customer.</em></p>
+    <p>To answer, the lookup asks two parts distributors, Huey and Lewy. For each part, a distributor reports a price, whether it's in stock, and a lead time: how many days until the technician can have it. A lead time of 0 means today.</p>
     <p>A bug report just came in about HinH's parts lookup. There is one bug, and the code around it is sound. Your job is to find it the analytical way: say what you expect before each check, look, and let each look rule out part of the path. Hints are here if you get stuck, one at a time. Nothing is scored until you ask, and nothing is recorded.</p>
   </header>
 
@@ -51,9 +55,9 @@
     <h2>Same-day parts show "Ships in 3 days"</h2>
     <dl>
       <dt>Reported by</dt><dd>Dispatch, after two technicians asked why nothing is ever available today.</dd>
-      <dt>Why it matters</dt><dd>Technicians are telling customers to wait, or ordering a pricier part that says it ships sooner, when the right part is sitting at a branch today.</dd>
-      <dt>Scenario</dt><dd class="gwt"><b>GIVEN</b> Huey has HX-2201 in stock at a branch that can hand it over today (a lead time of 0 days)<br><b>WHEN</b> Trent searches for HX-2201<br><b>THEN</b> Huey's offer shows "Available today"</dd>
-      <dt>What happens</dt><dd>Huey's offer for HX-2201 shows "Ships in 3 days." Lewy's offer for CP-0450, which Lewy says is ready today, shows the same thing.</dd>
+      <dt>Why it matters</dt><dd>Technicians are telling customers to wait, or ordering a pricier part that says it ships sooner, when the right part is available today.</dd>
+      <dt>Scenario</dt><dd class="gwt"><b>GIVEN</b> Huey has HX-2201 in stock with a lead time of 0 days<br><b>WHEN</b> Trent searches for HX-2201<br><b>THEN</b> Huey's offer shows "Available today"</dd>
+      <dt>What happens</dt><dd>Huey's offer for HX-2201 shows "Ships in 3 days." Lewy's offer for CP-0450, also a lead time of 0, shows the same thing.</dd>
       <dt>What's fine</dt><dd>Parts with a lead time of 2 days show "Ships in 2 days." Parts a distributor doesn't have show "Not available."</dd>
       <dt>To reproduce</dt><dd>Search for HX-2201. Look at Huey's row.</dd>
     </dl>
@@ -64,17 +68,25 @@
     <div class="hinh-bar">HinH Parts Lookup</div>
     <div class="hinh-body">
       <div class="search">
-        <input id="part-number" type="text" placeholder="Part number (try HX-2201, CP-0450, TH-7710)" autocomplete="off" aria-label="Part number" value="HX-2201">
+        <input id="part-number" type="text" placeholder="Part number (leave blank to see every part)" autocomplete="off" aria-label="Part number" value="HX-2201">
         <button id="search-button" type="button">Search</button>
       </div>
-      <table class="offers"><thead><tr><th>Distributor</th><th>Price</th><th>Availability</th></tr></thead><tbody id="offers"></tbody></table>
+      <table class="offers"><thead><tr><th>Part number</th><th>Name</th><th>Distributor</th><th>Price</th><th>Availability</th></tr></thead><tbody id="offers"></tbody></table>
     </div>
   </div>
   <!-- =================================================== -->
 
   <section class="ws panel">
     <h2>The code</h2>
-    <p>The request travels this path: the page asks the controller; the controller asks each distributor; each distributor's answer goes through its adapter; the controller labels each offer and sends the offers to the page.</p>
+    <p>The request travels this path. The numbers match the comments in the code.</p>
+    <ol class="steps">
+      <li>The page asks the controller for a part (<code>searchParts</code>).</li>
+      <li>The controller asks each distributor.</li>
+      <li>Each distributor's answer goes through its adapter (<code>fromHuey</code>, <code>fromLewy</code>).</li>
+      <li>The controller labels each offer for Trent (<code>availability</code>).</li>
+      <li>The controller sends the offers to the page.</li>
+    </ol>
+    <p class="muted">The code defines the pieces for steps 3 and 4 first, then the controller that runs steps 1 to 5 in order.</p>
     <pre class="src" id="src"></pre>
   </section>
 
@@ -82,13 +94,14 @@
     <h2>Look inside</h2>
     <p>You can look at three points along the path for the part in the search box. Before each look, write what you expect to see. The look goes in your log.</p>
     <div class="taps">
-      <div class="tap"><h3>A. What the distributors sent</h3>
+      <div class="tap"><h3>A. What the distributors sent <span class="muted">(after step 2)</span></h3>
         <div class="row"><input type="text" id="pred-a" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-a">Look</button></div></div>
-      <div class="tap"><h3>B. What the adapters turned it into</h3>
+      <div class="tap"><h3>B. What the adapters turned it into <span class="muted">(after step 3)</span></h3>
         <div class="row"><input type="text" id="pred-b" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-b">Look</button></div></div>
-      <div class="tap"><h3>C. What the controller sent the page</h3>
+      <div class="tap"><h3>C. What the controller sent the page <span class="muted">(after step 5)</span></h3>
         <div class="row"><input type="text" id="pred-c" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-c">Look</button></div></div>
     </div>
+    <p class="muted" id="look-msg" hidden>Search for one part number first (for example HX-2201), then look.</p>
     <h2 style="margin-top:18px">Your log</h2>
     <table class="log"><thead><tr><th>#</th><th>What you checked</th><th>What you predicted</th><th>What you saw</th><th>What it ruled out</th></tr></thead><tbody id="log"></tbody></table>
     <p class="muted" id="log-empty" style="margin-top:8px">No looks yet.</p>
@@ -153,11 +166,11 @@ const LEWY = {
 const AVAIL_SRC = [
 "function availability(offer) {",
 "  if (!offer.inStock) return 'Not available';",
-"  const days = offer.leadDays || 3;  // some branches don't report a lead time; assume 3 days",
+"  const days = offer.leadDays || 3;  // some offers don't include a lead time; assume 3 days",
 "  return days === 0 ? 'Available today' : 'Ships in ' + days + ' days';",
 "}"].join("\n");
 const SRC = [
-"// Adapters: each distributor answers in its own format.",
+"// Step 3. Adapters: each distributor answers in its own format.",
 "// These turn each answer into the one shape HinH uses everywhere.",
 "function fromHuey(r) {",
 "  return { distributor: 'Huey', price: r.price, inStock: r.in_stock, leadDays: r.lead_days };",
@@ -166,13 +179,21 @@ const SRC = [
 "  return { distributor: 'Lewy', price: r.unitPrice, inStock: r.inStock, leadDays: r.leadDays };",
 "}",
 "",
-"// The rule: what Trent should see about availability.",
+"// Step 4. The rule: what Trent should see about availability.",
 AVAIL_SRC,
 "",
-"// The controller: asks each distributor, adapts the answers, labels each offer for the page.",
+"// The controller runs the steps in order.",
+"// Step 1. The page asks the controller for a part.",
 "function searchParts(partNumber) {",
-"  const offers = [fromHuey(HUEY[partNumber]), fromLewy(LEWY[partNumber])];",
-"  return offers.map(o => ({ distributor: o.distributor, price: o.price, availability: availability(o) }));",
+"  // Step 2. Ask each distributor.",
+"  const huey = HUEY[partNumber], lewy = LEWY[partNumber];",
+"  // Step 3. Put each answer through its adapter.",
+"  const offers = [fromHuey(huey), fromLewy(lewy)];",
+"  // Step 4. Label each offer for Trent.",
+"  const labeled = offers.map(o =>",
+"    ({ distributor: o.distributor, price: o.price, availability: availability(o) }));",
+"  // Step 5. Send the offers to the page.",
+"  return labeled;",
 "}"].join("\n");
 
 function build(availSrc){
@@ -187,12 +208,16 @@ const APP = build(AVAIL_SRC);
 
 /* The page: render whatever the controller sends. */
 const money=n=>"$"+Number(n).toFixed(2);
-function partNow(){ return document.getElementById("part-number").value.trim().toUpperCase(); }
+const CATALOG = { "HX-2201": "Blower motor, 1/2 HP", "CP-0450": "Run capacitor, 45 µF", "TH-7710": "Thermostat, programmable" };
+function queryNow(){ return document.getElementById("part-number").value.trim().toUpperCase(); }
+function matches(q){ return Object.keys(CATALOG).filter(pn => pn.startsWith(q)); }
+/* The looks need one part: the one the search box names, or the only part it matches. */
+function partNow(){ const q=queryNow(); if(CATALOG[q]) return q; const m=matches(q); return m.length===1 ? m[0] : null; }
 function render(){
-  const body=document.getElementById("offers"); body.innerHTML=""; const p=partNow();
-  if(!HUEY[p]){ const tr=document.createElement("tr"); const td=document.createElement("td"); td.colSpan=3; td.textContent="No parts found for "+(p||"(blank)")+"."; tr.append(td); body.append(tr); return; }
-  APP.searchParts(p).forEach(o=>{ const tr=document.createElement("tr");
-    [o.distributor, money(o.price), o.availability].forEach(v=>{ const td=document.createElement("td"); td.textContent=v; tr.append(td); }); body.append(tr); });
+  const body=document.getElementById("offers"); body.innerHTML=""; const q=queryNow(), found=matches(q);
+  if(!found.length){ const tr=document.createElement("tr"); const td=document.createElement("td"); td.colSpan=5; td.textContent="No parts found for "+q+"."; tr.append(td); body.append(tr); return; }
+  found.forEach(pn=>{ APP.searchParts(pn).forEach((o,i)=>{ const tr=document.createElement("tr"); if(i===0) tr.className="first";
+    [i===0?pn:"", i===0?CATALOG[pn]:"", o.distributor, money(o.price), o.availability].forEach((v,j)=>{ const td=document.createElement("td"); td.textContent=v; if(j===0) td.className="pn"; tr.append(td); }); body.append(tr); }); });
 }
 document.getElementById("search-button").addEventListener("click", render);
 document.getElementById("part-number").addEventListener("keydown", e=>{ if(e.key==="Enter") render(); });
@@ -223,7 +248,8 @@ Object.keys(TAPS).forEach(k=>{
   const pred=document.getElementById("pred-"+k);
   document.getElementById("run-look-"+k).onclick=()=>{
     if(!pred.value.trim()){ pred.focus(); pred.placeholder="Write what you expect first…"; return; }
-    const p=partNow(); if(!HUEY[p]){ document.getElementById("part-number").focus(); return; }
+    const p=partNow(); if(!p){ const box=document.getElementById("part-number"); box.focus(); box.select(); document.getElementById("look-msg").hidden=false; return; }
+    document.getElementById("look-msg").hidden=true;
     const saw=JSON.stringify(TAPS[k].get(p),null,1).replace(/\n\s*/g," ");
     const looks=load().looks||[]; looks.push({tap:k, where:TAPS[k].name, part:p, pred:pred.value.trim(), saw}); store({looks});
     pred.value=""; drawLog();
