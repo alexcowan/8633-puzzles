@@ -107,12 +107,6 @@
     <p class="muted" id="log-empty" style="margin-top:8px">No looks yet.</p>
   </section>
 
-  <section class="ws panel">
-    <h2>Stuck?</h2>
-    <p class="muted">Each hint gives a little more away. Try a look first.</p>
-    <div class="row"><button type="button" class="ghost" id="hint-next">Show hint 1 of 3</button></div>
-    <div id="hints"></div>
-  </section>
 
   <section class="ws panel">
     <h2>Fix it</h2>
@@ -123,7 +117,14 @@
   </section>
 
   <section class="ws panel">
-    <h2>Your answers</h2>
+    <h2>Stuck?</h2>
+    <p class="muted">Each hint gives a little more away. Try a look first.</p>
+    <div class="row"><button type="button" class="ghost" id="hint-next">Show hint 1 of 3</button></div>
+    <div id="hints"></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Reflect on your debugging process</h2>
     <p class="muted">Saved in this browser as you type, so reloading won't lose them.</p>
     <div class="q"><label for="a1">1. Your path. Where did you look first, and why there? What did each look rule out?</label><textarea id="a1"></textarea></div>
     <div class="q"><label for="a2">2. The test that would have caught it. Write it as Given-When-Then, and say whether it's a unit, integration, or system test.</label><textarea id="a2"></textarea></div>
