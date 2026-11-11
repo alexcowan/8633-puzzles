@@ -103,7 +103,7 @@
     </div>
     <p class="muted" id="look-msg" hidden>Search for one part number first (for example HX-2201), then look.</p>
     <h2 style="margin-top:18px">Your log</h2>
-    <table class="log"><thead><tr><th>#</th><th>What you checked</th><th>What you predicted</th><th>What you saw</th><th>What it ruled out</th></tr></thead><tbody id="log"></tbody></table>
+    <table class="log"><thead><tr><th>#</th><th>What you checked</th><th>What you predicted</th><th>What you saw</th><th>What that tells you</th></tr></thead><tbody id="log"></tbody></table>
     <p class="muted" id="log-empty" style="margin-top:8px">No looks yet.</p>
   </section>
 
@@ -249,7 +249,7 @@ function drawLog(){
   looks.forEach((l,i)=>{ const tr=document.createElement("tr");
     const c=[String(i+1), l.where+" ("+l.part+")", l.pred, l.saw];
     c.forEach((v,j)=>{ const td=document.createElement("td"); td.textContent=v; if(j===3) td.className="saw"; tr.append(td); });
-    const td=document.createElement("td"); const ta=document.createElement("textarea"); ta.value=l.ruled||""; ta.setAttribute("aria-label","What look "+(i+1)+" ruled out");
+    const td=document.createElement("td"); const ta=document.createElement("textarea"); ta.value=l.ruled||""; ta.setAttribute("aria-label","What look "+(i+1)+" tells you");
     ta.addEventListener("input",()=>{ const all=load().looks||[]; if(all[i]){ all[i].ruled=ta.value; store({looks:all}); } });
     td.append(ta); tr.append(td); body.append(tr); });
 }
