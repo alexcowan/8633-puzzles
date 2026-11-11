@@ -85,7 +85,7 @@
       <li>The View gets the part number and asks the controller to find it (<code>searchParts</code>).</li>
       <li>The controller asks each distributor about the part (<code>askHuey</code>, <code>askLewy</code>).</li>
       <li>Each distributor's answer goes through its adapter to normalize the data (<code>fromHuey</code>, <code>fromLewy</code>).</li>
-      <li>The controller labels each offer for Trent (<code>availability</code>).</li>
+      <li>The controller labels each offer with its availability (<code>availability</code>).</li>
       <li>The controller sends the offers back to the View.</li>
     </ol>
     <p class="muted">The controller comes first and runs the steps in order. Below it are the functions it calls in steps 3 and 4. The distributors' systems (step 2) are outside HinH's code, so they aren't shown; look A shows what they send.</p>
@@ -187,7 +187,7 @@ const SRC = [
 "  const lewyAnswer = askLewy(partNumber);",
 "  // Step 3. Translate each answer into HinH's format (fromHuey, fromLewy, below).",
 "  const offers = [fromHuey(hueyAnswer), fromLewy(lewyAnswer)];",
-"  // Step 4. Label each offer for Trent (availability, below).",
+"  // Step 4. Label each offer (availability, below).",
 "  // map goes through the offers one at a time, calling each one offer,",
 "  // and builds a new list from what the code after => returns for each.",
 "  const labeled = offers.map(offer => ({",
@@ -209,7 +209,7 @@ const SRC = [
 "           inStock: answer.inStock, leadDays: answer.leadDays };",
 "}",
 "",
-"// Step 4. The rule: what Trent should see about availability.",
+"// Step 4. The rule: how each offer's availability is labeled.",
 AVAIL_SRC].join("\n");
 const BUG_LINE = SRC.split("\n").findIndex(l => l.includes("offer.leadDays || 3")) + 1;
 
