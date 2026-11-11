@@ -178,6 +178,8 @@ const SRC = [
 "  // Step 3. Translate each answer into HinH's format (fromHuey, fromLewy, below).",
 "  const offers = [fromHuey(huey), fromLewy(lewy)];",
 "  // Step 4. Label each offer for Trent (availability, below).",
+"  // map goes through the offers one at a time, calling each one o,",
+"  // and builds a new list from what the code after => returns for each.",
 "  const labeled = offers.map(o =>",
 "    ({ distributor: o.distributor, price: o.price, availability: availability(o) }));",
 "  // Step 5. Send the offers back to the View.",
