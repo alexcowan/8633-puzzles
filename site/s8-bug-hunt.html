@@ -98,7 +98,7 @@
     <p>Each look shows what one <code>console.log</code> line would print at that point in the code. In your own app, you'd add that line, run the app, and read what it prints in the browser's console (in Chrome: View › Developer › JavaScript Console).</p>
     <div class="taps">
       <div class="tap"><h3>A. What the distributors sent <span class="muted">(after step 2)</span></h3>
-        <p class="cl">Same as adding this after line <span data-after="  const huey ="></span>: <code>console.log('A', huey, lewy);</code></p>
+        <p class="cl">Same as adding this after line <span data-after="  const lewyAnswer ="></span>: <code>console.log('A', hueyAnswer, lewyAnswer);</code></p>
         <div class="row"><input type="text" id="pred-a" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-a">Look</button></div></div>
       <div class="tap"><h3>B. What the adapters turned it into <span class="muted">(after step 3)</span></h3>
         <p class="cl">Same as adding this after line <span data-after="  const offers ="></span>: <code>console.log('B', offers);</code></p>
@@ -181,10 +181,12 @@ const SRC = [
 "// The controller runs the steps in order. Steps 3 and 4 call functions defined below it.",
 "// Step 1. The View gets the part number and then asks this controller to find it.",
 "function searchParts(partNumber) {",
-"  // Step 2. Ask each distributor's system for the part. Each answers in its own format.",
-"  const huey = askHuey(partNumber), lewy = askLewy(partNumber);",
+"  // Step 2. Ask each distributor's system for the part.",
+"  // askHuey and askLewy call each distributor's API (not shown).",
+"  const hueyAnswer = askHuey(partNumber);",
+"  const lewyAnswer = askLewy(partNumber);",
 "  // Step 3. Translate each answer into HinH's format (fromHuey, fromLewy, below).",
-"  const offers = [fromHuey(huey), fromLewy(lewy)];",
+"  const offers = [fromHuey(hueyAnswer), fromLewy(lewyAnswer)];",
 "  // Step 4. Label each offer for Trent (availability, below).",
 "  // map goes through the offers one at a time, calling each one offer,",
 "  // and builds a new list from what the code after => returns for each.",
