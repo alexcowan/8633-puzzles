@@ -86,7 +86,7 @@
       <li>The controller labels each offer for Trent (<code>availability</code>).</li>
       <li>The controller sends the offers back to the View.</li>
     </ol>
-    <p class="muted">The controller comes first and runs the steps in order. Below it are the functions it calls in steps 2 to 4.</p>
+    <p class="muted">The controller comes first and runs the steps in order. Below it are the functions it calls in steps 3 and 4. The distributors' systems (step 2) are outside HinH's code, so they aren't shown; look A shows what they send.</p>
     <pre class="src" id="src"></pre>
   </section>
 
@@ -170,10 +170,10 @@ const AVAIL_SRC = [
 "  return days === 0 ? 'Available today' : 'Ships in ' + days + ' days';",
 "}"].join("\n");
 const SRC = [
-"// The controller runs the steps in order. Steps 2 to 4 call functions defined below it.",
+"// The controller runs the steps in order. Steps 3 and 4 call functions defined below it.",
 "// Step 1. The View gets the part number and then asks this controller to find it.",
 "function searchParts(partNumber) {",
-"  // Step 2. Ask each distributor for the part (askHuey, askLewy, below).",
+"  // Step 2. Ask each distributor's system for the part. Their systems aren't shown here.",
 "  const huey = askHuey(partNumber), lewy = askLewy(partNumber);",
 "  // Step 3. Put each answer through its adapter (fromHuey, fromLewy, below).",
 "  const offers = [fromHuey(huey), fromLewy(lewy)];",
@@ -183,11 +183,6 @@ const SRC = [
 "  // Step 5. Send the offers back to the View.",
 "  return labeled;",
 "}",
-"",
-"// Step 2. Ask each distributor's system about the part. Each answers in its own format.",
-"// (The real app calls each distributor's API. Here they return sample answers.)",
-"function askHuey(partNumber) { return HUEY[partNumber]; }",
-"function askLewy(partNumber) { return LEWY[partNumber]; }",
 "",
 "// Step 3. Adapters turn each answer into the one shape HinH uses everywhere.",
 "function fromHuey(r) {",
@@ -203,7 +198,8 @@ const BUG_LINE = SRC.split("\n").findIndex(l => l.includes("offer.leadDays || 3"
 
 function build(availSrc){
   const src = SRC.replace(AVAIL_SRC, availSrc);
-  return new Function("HUEY","LEWY", src+"\nreturn {fromHuey,fromLewy,availability,searchParts};")(HUEY,LEWY);
+  const askHuey = p => HUEY[p], askLewy = p => LEWY[p];  // stand-ins for the distributors' systems
+  return new Function("askHuey","askLewy", src+"\nreturn {fromHuey,fromLewy,availability,searchParts};")(askHuey,askLewy);
 }
 const APP = build(AVAIL_SRC);
 
