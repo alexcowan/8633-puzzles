@@ -179,7 +179,7 @@ const AVAIL_SRC = [
 "}"].join("\n");
 const SRC = [
 "// The controller runs the steps in order. Steps 3 and 4 call functions defined below it.",
-"// Step 1. The View gets the part number and then asks this controller to find it.",
+"// Step 1. A function in the View reads the part number and calls searchParts with it.",
 "function searchParts(partNumber) {",
 "  // Step 2. Ask each distributor's system for the part.",
 "  // askHuey and askLewy call each distributor's API (not shown).",
