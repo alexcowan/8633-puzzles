@@ -84,7 +84,7 @@
     <ol class="steps">
       <li>The View gets the part number and asks the controller to find it (<code>searchParts</code>).</li>
       <li>The controller asks each distributor about the part (<code>askHuey</code>, <code>askLewy</code>).</li>
-      <li>Each distributor's answer goes through its adapter to normalize the data (<code>fromHuey</code>, <code>fromLewy</code>).</li>
+      <li>Each distributor's answer goes through its adapter to normalize the data (<code>normalizeHuey</code>, <code>normalizeLewy</code>).</li>
       <li>The controller labels each offer with its availability (<code>availability</code>).</li>
       <li>The controller sends the offers back to the View.</li>
     </ol>
@@ -185,8 +185,8 @@ const SRC = [
 "  // askHuey and askLewy call each distributor's API (not shown).",
 "  const hueyAnswer = askHuey(partNumber);",
 "  const lewyAnswer = askLewy(partNumber);",
-"  // Step 3. Translate each answer into HinH's format (fromHuey, fromLewy, below).",
-"  const normalizedOffers = [fromHuey(hueyAnswer), fromLewy(lewyAnswer)];",
+"  // Step 3. Translate each answer into HinH's format (normalizeHuey, normalizeLewy, below).",
+"  const normalizedOffers = [normalizeHuey(hueyAnswer), normalizeLewy(lewyAnswer)];",
 "  // Step 4. Label each offer (availability, below).",
 "  // map goes through the offers one at a time, calling each one offer,",
 "  // and builds a new list from what the code after => returns for each.",
@@ -200,11 +200,11 @@ const SRC = [
 "}",
 "",
 "// Step 3. Adapters turn each answer into the one shape HinH uses everywhere.",
-"function fromHuey(answer) {",
+"function normalizeHuey(answer) {",
 "  return { distributor: 'Huey', price: answer.price,",
 "           inStock: answer.in_stock, leadDays: answer.lead_days };",
 "}",
-"function fromLewy(answer) {",
+"function normalizeLewy(answer) {",
 "  return { distributor: 'Lewy', price: answer.unitPrice,",
 "           inStock: answer.inStock, leadDays: answer.leadDays };",
 "}",
@@ -216,7 +216,7 @@ const BUG_LINE = SRC.split("\n").findIndex(l => l.includes("offer.leadDays || 3"
 function build(availSrc){
   const src = SRC.replace(AVAIL_SRC, availSrc);
   const askHuey = p => HUEY[p], askLewy = p => LEWY[p];  // stand-ins for the distributors' systems
-  return new Function("askHuey","askLewy", src+"\nreturn {fromHuey,fromLewy,availability,searchParts};")(askHuey,askLewy);
+  return new Function("askHuey","askLewy", src+"\nreturn {normalizeHuey,normalizeLewy,availability,searchParts};")(askHuey,askLewy);
 }
 const APP = build(AVAIL_SRC);
 
@@ -252,7 +252,7 @@ function store(patch){ try{ localStorage.setItem(KEY, JSON.stringify(Object.assi
 /* ---------- Look inside ---------- */
 const TAPS={
   a:{ name:"A. What the distributors sent", get:p=>({ Huey:HUEY[p], Lewy:LEWY[p] }) },
-  b:{ name:"B. What the adapters turned it into", get:p=>[APP.fromHuey(HUEY[p]), APP.fromLewy(LEWY[p])] },
+  b:{ name:"B. What the adapters turned it into", get:p=>[APP.normalizeHuey(HUEY[p]), APP.normalizeLewy(LEWY[p])] },
   c:{ name:"C. What the controller sends the View", get:p=>APP.searchParts(p) },
 };
 function drawLog(){
@@ -320,7 +320,7 @@ function drawFix(r){
   out.append(v);
 }
 document.getElementById("run-fix").onclick=()=>{ const r=runFix(); drawFix(r); store({fixRun:{passed:r.passed,changed:r.changed,res:r.res}});
-  if(r.passed){ const fixed=build(fixEl.value); APP.searchParts=fixed.searchParts; APP.availability=fixed.availability; APP.fromHuey=fixed.fromHuey; APP.fromLewy=fixed.fromLewy; render(); } };
+  if(r.passed){ const fixed=build(fixEl.value); APP.searchParts=fixed.searchParts; APP.availability=fixed.availability; APP.normalizeHuey=fixed.normalizeHuey; APP.normalizeLewy=fixed.normalizeLewy; render(); } };
 if(load().fixRun) drawFix(load().fixRun);
 
 /* ---------- Answers ---------- */
