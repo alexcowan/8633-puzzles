@@ -1,0 +1,320 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><script>/* Instructor reset: add ?reset to any puzzle URL to clear saved work on every puzzle (keeps the class code). */(function(){try{if(!/[?&]reset\b/.test(location.search))return;Object.keys(localStorage).forEach(function(k){if(k!=="cwg-code"&&(/^cwg-s\d/.test(k)||/^(ptr|pick|stf)-draft$/.test(k)||k==="gh-setup"))localStorage.removeItem(k);});location.replace(location.pathname);}catch(e){}})();</script><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Never Available Today</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!-- The app's own styles. -->
+<link rel="stylesheet" href="s4-price/parts.css">
+<link rel="stylesheet" href="ws.css">
+<style>
+.page{max-width:860px;margin:0 auto;display:grid;gap:28px}
+.page>*{min-width:0}
+.ws p{margin:0 0 10px;max-width:68ch}
+.ws pre{font-family:var(--mono);font-size:13px;line-height:1.5;background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:10px 12px;overflow-x:auto;margin:6px 0 14px;color:var(--fg)}
+.ws .src{counter-reset:ln;padding-left:0}
+.ws .src span{display:block;padding-left:44px;position:relative;white-space:pre}
+.ws .src span::before{counter-increment:ln;content:counter(ln);position:absolute;left:0;width:32px;text-align:right;color:var(--muted)}
+.ws .src span.c{color:var(--muted)}
+.ticket{border-left:4px solid var(--accent)}
+.ticket dl{display:grid;grid-template-columns:150px minmax(0,1fr);gap:6px 14px;margin:0}
+.ticket dt{color:var(--head);font-family:var(--serif)}
+.ticket dd{margin:0}
+.ticket .gwt b{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--head)}
+@media (max-width:620px){.ticket dl{grid-template-columns:1fr}}
+.offers{width:100%;border-collapse:collapse;font-size:15px}
+.offers th,.offers td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--hinh-rule)}
+.offers th{font-weight:600;color:var(--hinh-navy)}
+.ws .taps{display:grid;gap:12px}
+.ws .tap{border-top:1px solid var(--line-soft);padding-top:12px}
+.ws .tap:first-child{border-top:0;padding-top:0}
+.ws .tap h3{font-family:var(--serif);font-weight:400;color:var(--head);font-size:17px;margin:0 0 4px}
+.ws .tap .row input{flex:1 1 280px}
+.ws .log{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+.ws .log th,.ws .log td{text-align:left;vertical-align:top;padding:6px;border-bottom:1px solid var(--line-soft)}
+.ws .log th{font-family:var(--serif);font-weight:400;color:var(--head)}
+.ws .log td.saw{font-family:var(--mono);font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;max-width:280px}
+.ws .log textarea{min-height:44px}
+.ws .hint{margin-top:8px;padding:10px 12px;border-radius:4px;background:var(--bg);border-left:3px solid var(--punch)}
+.ws #fix{font-family:var(--mono);font-size:13px;min-height:120px;white-space:pre}
+</style></head><body>
+
+<main class="page">
+  <nav aria-label="Puzzles" style="font-size:14px;letter-spacing:.02em"><a href="index.html" style="color:var(--head);text-underline-offset:3px">← All puzzles</a></nav>
+  <header class="ws">
+    <div class="eyebrow">Coding with GPT · Session 8 · Class prep</div>
+    <h1>Never available today</h1>
+    <div data-pipeline></div>
+    <p>The story: <em>As Trent the Technician, I want to find a part's price and availability so I can decide on next steps with the customer.</em></p>
+    <p>A bug report just came in about HinH's parts lookup. There is one bug, and the code around it is sound. Your job is to find it the analytical way: say what you expect before each check, look, and let each look rule out part of the path. Hints are here if you get stuck, one at a time. Nothing is scored until you ask, and nothing is recorded.</p>
+  </header>
+
+  <section class="ws panel ticket">
+    <div class="eyebrow">Bug report · HINH-482 · Severity: high</div>
+    <h2>Same-day parts show "Ships in 3 days"</h2>
+    <dl>
+      <dt>Reported by</dt><dd>Dispatch, after two technicians asked why nothing is ever available today.</dd>
+      <dt>Why it matters</dt><dd>Technicians are telling customers to wait, or ordering a pricier part that says it ships sooner, when the right part is sitting at a branch today.</dd>
+      <dt>Scenario</dt><dd class="gwt"><b>GIVEN</b> Huey has HX-2201 in stock at a branch that can hand it over today (a lead time of 0 days)<br><b>WHEN</b> Trent searches for HX-2201<br><b>THEN</b> Huey's offer shows "Available today"</dd>
+      <dt>What happens</dt><dd>Huey's offer for HX-2201 shows "Ships in 3 days." Lewy's offer for CP-0450, which Lewy says is ready today, shows the same thing.</dd>
+      <dt>What's fine</dt><dd>Parts with a lead time of 2 days show "Ships in 2 days." Parts a distributor doesn't have show "Not available."</dd>
+      <dt>To reproduce</dt><dd>Search for HX-2201. Look at Huey's row.</dd>
+    </dl>
+  </section>
+
+  <!-- ===================== The app ===================== -->
+  <div class="hinh" id="app">
+    <div class="hinh-bar">HinH Parts Lookup</div>
+    <div class="hinh-body">
+      <div class="search">
+        <input id="part-number" type="text" placeholder="Part number (try HX-2201, CP-0450, TH-7710)" autocomplete="off" aria-label="Part number" value="HX-2201">
+        <button id="search-button" type="button">Search</button>
+      </div>
+      <table class="offers"><thead><tr><th>Distributor</th><th>Price</th><th>Availability</th></tr></thead><tbody id="offers"></tbody></table>
+    </div>
+  </div>
+  <!-- =================================================== -->
+
+  <section class="ws panel">
+    <h2>The code</h2>
+    <p>The request travels this path: the page asks the controller; the controller asks each distributor; each distributor's answer goes through its adapter; the controller labels each offer and sends the offers to the page.</p>
+    <pre class="src" id="src"></pre>
+  </section>
+
+  <section class="ws panel">
+    <h2>Look inside</h2>
+    <p>You can look at three points along the path for the part in the search box. Before each look, write what you expect to see. The look goes in your log.</p>
+    <div class="taps">
+      <div class="tap"><h3>A. What the distributors sent</h3>
+        <div class="row"><input type="text" id="pred-a" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-a">Look</button></div></div>
+      <div class="tap"><h3>B. What the adapters turned it into</h3>
+        <div class="row"><input type="text" id="pred-b" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-b">Look</button></div></div>
+      <div class="tap"><h3>C. What the controller sent the page</h3>
+        <div class="row"><input type="text" id="pred-c" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-c">Look</button></div></div>
+    </div>
+    <h2 style="margin-top:18px">Your log</h2>
+    <table class="log"><thead><tr><th>#</th><th>What you checked</th><th>What you predicted</th><th>What you saw</th><th>What it ruled out</th></tr></thead><tbody id="log"></tbody></table>
+    <p class="muted" id="log-empty" style="margin-top:8px">No looks yet.</p>
+  </section>
+
+  <section class="ws panel">
+    <h2>Stuck?</h2>
+    <p class="muted">Each hint gives a little more away. Try a look first.</p>
+    <div class="row"><button type="button" class="ghost" id="hint-next">Show hint 1 of 3</button></div>
+    <div id="hints"></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Fix it</h2>
+    <p>Once you've found it, change one line in this function and run the report's scenario, plus the cases that already work. The fix has to keep those working too.</p>
+    <textarea id="fix" spellcheck="false" aria-label="The availability function"></textarea>
+    <div class="row" style="margin-top:8px"><button type="button" id="run-fix">Run the checks</button><button type="button" class="ghost" id="fix-reset">Put the original back</button></div>
+    <div class="checks" id="fix-out"></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Your answers</h2>
+    <p class="muted">Saved in this browser as you type, so reloading won't lose them.</p>
+    <div class="q"><label for="a1">1. Your path. Where did you look first, and why there? What did each look rule out?</label><textarea id="a1"></textarea></div>
+    <div class="q"><label for="a2">2. The test that would have caught it. Write it as Given-When-Then, and say whether it's a unit, integration, or system test.</label><textarea id="a2"></textarea></div>
+    <div class="q"><label for="a3">3. After release. Nothing crashed and every page loaded. What one signal in production would have told HinH about this before a dispatcher did?<span class="pl-tag">Delivery</span></label><textarea id="a3"></textarea></div>
+  </section>
+
+  <section class="ws rubric">
+    <div class="eyebrow">Be ready to explain</div>
+    <ol>
+      <li>Where you looked first, and how each look narrowed where the bug could be.</li>
+      <li>Why the bug only shows up for some parts, and why the fix keeps the other cases working.</li>
+      <li>The test you'd add, and the production signal that would have caught it.</li>
+    </ol>
+  </section>
+
+  <section class="ws panel">
+    <h2>Check my work</h2>
+    <p class="muted">An AI reads your three answers, your log, and your fix against the list above and tells you which answers hold up. Your score shows here and isn't recorded. Class code is on the Canvas page.</p>
+    <div class="row">
+      <input id="code" type="text" placeholder="Class code" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
+      <button type="button" id="grade">Check my answers</button>
+      <span class="muted" id="status" hidden></span>
+    </div>
+    <div id="feedback" style="margin-top:12px"></div>
+  </section>
+</main>
+
+<script>
+/* ---------- The app: one source, shown on the page and run by it ---------- */
+const HUEY = {
+  "HX-2201": { part: "HX-2201", price: 184.00, in_stock: true,  lead_days: 0 },
+  "CP-0450": { part: "CP-0450", price: 22.50,  in_stock: true,  lead_days: 2 },
+  "TH-7710": { part: "TH-7710", price: 99.00,  in_stock: false, lead_days: null },
+};
+const LEWY = {
+  "HX-2201": { sku: "HX-2201", unitPrice: 171.00, inStock: true, leadDays: 2 },
+  "CP-0450": { sku: "CP-0450", unitPrice: 19.80,  inStock: true, leadDays: 0 },
+  "TH-7710": { sku: "TH-7710", unitPrice: 96.00,  inStock: true },
+};
+const AVAIL_SRC = [
+"function availability(offer) {",
+"  if (!offer.inStock) return 'Not available';",
+"  const days = offer.leadDays || 3;  // some branches don't report a lead time; assume 3 days",
+"  return days === 0 ? 'Available today' : 'Ships in ' + days + ' days';",
+"}"].join("\n");
+const SRC = [
+"// Adapters: each distributor answers in its own format.",
+"// These turn each answer into the one shape HinH uses everywhere.",
+"function fromHuey(r) {",
+"  return { distributor: 'Huey', price: r.price, inStock: r.in_stock, leadDays: r.lead_days };",
+"}",
+"function fromLewy(r) {",
+"  return { distributor: 'Lewy', price: r.unitPrice, inStock: r.inStock, leadDays: r.leadDays };",
+"}",
+"",
+"// The rule: what Trent should see about availability.",
+AVAIL_SRC,
+"",
+"// The controller: asks each distributor, adapts the answers, labels each offer for the page.",
+"function searchParts(partNumber) {",
+"  const offers = [fromHuey(HUEY[partNumber]), fromLewy(LEWY[partNumber])];",
+"  return offers.map(o => ({ distributor: o.distributor, price: o.price, availability: availability(o) }));",
+"}"].join("\n");
+
+function build(availSrc){
+  const src = SRC.replace(AVAIL_SRC, availSrc);
+  return new Function("HUEY","LEWY", src+"\nreturn {fromHuey,fromLewy,availability,searchParts};")(HUEY,LEWY);
+}
+const APP = build(AVAIL_SRC);
+
+/* Show the source with line numbers. */
+(function(){ const pre=document.getElementById("src");
+  SRC.split("\n").forEach(l=>{ const s=document.createElement("span"); s.textContent=l||" "; if(/^\s*\/\//.test(l)) s.className="c"; pre.append(s); }); })();
+
+/* The page: render whatever the controller sends. */
+const money=n=>"$"+Number(n).toFixed(2);
+function partNow(){ return document.getElementById("part-number").value.trim().toUpperCase(); }
+function render(){
+  const body=document.getElementById("offers"); body.innerHTML=""; const p=partNow();
+  if(!HUEY[p]){ const tr=document.createElement("tr"); const td=document.createElement("td"); td.colSpan=3; td.textContent="No parts found for "+(p||"(blank)")+"."; tr.append(td); body.append(tr); return; }
+  APP.searchParts(p).forEach(o=>{ const tr=document.createElement("tr");
+    [o.distributor, money(o.price), o.availability].forEach(v=>{ const td=document.createElement("td"); td.textContent=v; tr.append(td); }); body.append(tr); });
+}
+document.getElementById("search-button").addEventListener("click", render);
+document.getElementById("part-number").addEventListener("keydown", e=>{ if(e.key==="Enter") render(); });
+render();
+
+/* ---------- Saved state ---------- */
+const KEY="cwg-s8-bug-hunt";
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
+function store(patch){ try{ localStorage.setItem(KEY, JSON.stringify(Object.assign(load(),patch))); }catch(e){} }
+
+/* ---------- Look inside ---------- */
+const TAPS={
+  a:{ name:"A. What the distributors sent", get:p=>({ Huey:HUEY[p], Lewy:LEWY[p] }) },
+  b:{ name:"B. What the adapters turned it into", get:p=>[APP.fromHuey(HUEY[p]), APP.fromLewy(LEWY[p])] },
+  c:{ name:"C. What the controller sent the page", get:p=>APP.searchParts(p) },
+};
+function drawLog(){
+  const looks=load().looks||[], body=document.getElementById("log"); body.innerHTML="";
+  document.getElementById("log-empty").hidden=looks.length>0;
+  looks.forEach((l,i)=>{ const tr=document.createElement("tr");
+    const c=[String(i+1), l.where+" ("+l.part+")", l.pred, l.saw];
+    c.forEach((v,j)=>{ const td=document.createElement("td"); td.textContent=v; if(j===3) td.className="saw"; tr.append(td); });
+    const td=document.createElement("td"); const ta=document.createElement("textarea"); ta.value=l.ruled||""; ta.setAttribute("aria-label","What look "+(i+1)+" ruled out");
+    ta.addEventListener("input",()=>{ const all=load().looks||[]; if(all[i]){ all[i].ruled=ta.value; store({looks:all}); } });
+    td.append(ta); tr.append(td); body.append(tr); });
+}
+Object.keys(TAPS).forEach(k=>{
+  const pred=document.getElementById("pred-"+k);
+  document.getElementById("run-look-"+k).onclick=()=>{
+    if(!pred.value.trim()){ pred.focus(); pred.placeholder="Write what you expect first…"; return; }
+    const p=partNow(); if(!HUEY[p]){ document.getElementById("part-number").focus(); return; }
+    const saw=JSON.stringify(TAPS[k].get(p),null,1).replace(/\n\s*/g," ");
+    const looks=load().looks||[]; looks.push({tap:k, where:TAPS[k].name, part:p, pred:pred.value.trim(), saw}); store({looks});
+    pred.value=""; drawLog();
+  };
+});
+drawLog();
+
+/* ---------- Hints ---------- */
+const HINTS=[
+  "Halve the path. Compare look A with look C for HX-2201. If the distributor sent the right thing and the page got the wrong thing, the problem is somewhere between them, not in Huey's system and not in the page.",
+  "Look B for HX-2201. If the adapter passes along leadDays: 0, the adapters are fine too. That leaves one function.",
+  "Line 13. Read it out loud with leadDays equal to 0. In JavaScript, 0 counts as false, so what does 0 || 3 give you? The fix needs to treat a missing lead time as 3 and a real 0 as 0."];
+function drawHints(){
+  const n=load().hints||0, host=document.getElementById("hints"); host.innerHTML="";
+  for(let i=0;i<n;i++){ const d=document.createElement("div"); d.className="hint"; d.textContent="Hint "+(i+1)+": "+HINTS[i]; host.append(d); }
+  const b=document.getElementById("hint-next"); b.hidden=n>=HINTS.length; b.textContent="Show hint "+(n+1)+" of "+HINTS.length;
+}
+document.getElementById("hint-next").onclick=()=>{ store({hints:Math.min((load().hints||0)+1,HINTS.length)}); drawHints(); };
+drawHints();
+
+/* ---------- Fix it: runs the student's function against the scenarios ---------- */
+const fixEl=document.getElementById("fix");
+fixEl.value=load().fix||AVAIL_SRC;
+fixEl.addEventListener("input",()=>store({fix:fixEl.value}));
+document.getElementById("fix-reset").onclick=()=>{ fixEl.value=AVAIL_SRC; store({fix:AVAIL_SRC}); };
+const CASES=[
+  {label:"The report's scenario: Huey, HX-2201, lead time 0", part:"HX-2201", d:"Huey", want:"Available today"},
+  {label:"Lewy, CP-0450, lead time 0", part:"CP-0450", d:"Lewy", want:"Available today"},
+  {label:"Huey, CP-0450, lead time 2", part:"CP-0450", d:"Huey", want:"Ships in 2 days"},
+  {label:"Lewy, TH-7710, no lead time reported", part:"TH-7710", d:"Lewy", want:"Ships in 3 days"},
+  {label:"Huey, TH-7710, not in stock", part:"TH-7710", d:"Huey", want:"Not available"},
+];
+function runFix(){
+  let app, err=""; try{ app=build(fixEl.value); }catch(e){ err=e.message; }
+  const res=CASES.map(c=>{ let got; try{ got=app?app.searchParts(c.part).find(o=>o.distributor===c.d).availability:("didn't run: "+err); }catch(e){ got="threw: "+e.message; }
+    return {label:c.label, want:c.want, got:String(got), ok:got===c.want}; });
+  const changed=fixEl.value.split("\n").filter((l,i)=>l.trim()!==(AVAIL_SRC.split("\n")[i]||"").trim());
+  return {res, changed:changed.length, passed:res.every(r=>r.ok)};
+}
+function drawFix(r){
+  const out=document.getElementById("fix-out"); out.innerHTML="";
+  r.res.forEach(x=>{ const d=document.createElement("div"); d.className="chk";
+    const b=document.createElement("b"); b.className=x.ok?"ok":"no"; b.textContent=x.ok?"PASS ":"FAIL ";
+    d.append(b, document.createTextNode(x.label+": expected “"+x.want+"”, got “"+x.got+"”.")); out.append(d); });
+  const v=document.createElement("div"); v.className="verdict"+(r.passed?"":" no");
+  v.textContent = r.passed ? (r.changed<=1 ? "All five pass, with a one-line change. The page above now runs your fix." : "All five pass. You changed "+r.changed+" lines; the bug only needs one.") : "Not yet. Read the failing line against your change.";
+  out.append(v);
+}
+document.getElementById("run-fix").onclick=()=>{ const r=runFix(); drawFix(r); store({fixRun:{passed:r.passed,changed:r.changed,res:r.res}});
+  if(r.passed){ const fixed=build(fixEl.value); APP.searchParts=fixed.searchParts; APP.availability=fixed.availability; APP.fromHuey=fixed.fromHuey; APP.fromLewy=fixed.fromLewy; render(); } };
+if(load().fixRun) drawFix(load().fixRun);
+
+/* ---------- Answers ---------- */
+const fields=["a1","a2","a3"];
+const saved=load(); fields.forEach(id=>{ const el=document.getElementById(id); if(saved[id]) el.value=saved[id]; el.addEventListener("input",()=>store({[id]:el.value})); });
+
+/* ---------- Check my work ---------- */
+const GRADER_URL="https://shrill-wood-3253.acowan.workers.dev/grade";
+const PUZZLE_ID="s8-bug-hunt";
+const LABELS=["Your path","The test that would have caught it","The signal in production"];
+const codeEl=document.getElementById("code"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
+try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
+function collect(){
+  const s=load(), v=id=>document.getElementById(id).value.trim();
+  return { page_check:{
+             looks:(s.looks||[]).map(l=>({where:l.where, part:l.part, predicted:l.pred, saw:l.saw, ruled_out:l.ruled||""})),
+             hints_used:s.hints||0,
+             fix:{ text:fixEl.value, passed_all:!!(s.fixRun&&s.fixRun.passed), lines_changed:s.fixRun?s.fixRun.changed:null } },
+           items:[ {label:LABELS[0], answer:v("a1")}, {label:LABELS[1], answer:v("a2")}, {label:LABELS[2], answer:v("a3")} ] };
+}
+document.getElementById("grade").onclick=async()=>{
+  const code=codeEl.value.trim(); if(!code){ codeEl.focus(); return; }
+  try{ localStorage.setItem("cwg-code",code); }catch(e){}
+  statusEl.hidden=false; statusEl.textContent="Reading your answers…"; fb.innerHTML="";
+  try{
+    const r=await fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:PUZZLE_ID,code,answers:collect()})});
+    const d=await r.json();
+    if(!r.ok){ statusEl.textContent=d.error||("Error "+r.status); return; }
+    statusEl.hidden=true;
+    const s=load(), res=d.results||[], ok=res.filter(x=>x.verdict==="ok").length;
+    const sc=document.createElement("div"); sc.className="score"; sc.textContent=`${ok} of ${res.length}`;
+    const sub=document.createElement("div"); sub.className="muted"; sub.textContent=`Looks: ${(s.looks||[]).length} · hints: ${s.hints||0} of 3 · fix: ${s.fixRun&&s.fixRun.passed?"passes":"not yet"} · answers: ${ok} of ${res.length} hold up`;
+    fb.append(sc,sub);
+    const list=document.createElement("div"); list.style.marginTop="8px";
+    res.forEach(x=>{ const el=document.createElement("div"); el.className="fbrow";
+      el.innerHTML=`<div class="fbhead"><b class="${x.verdict==="ok"?"ok":"thin"}">${x.verdict==="ok"?"OK":"THIN"}</b><span class="fblabel"></span></div><div></div>`;
+      el.querySelector(".fblabel").textContent=x.label; el.lastElementChild.textContent=x.note||""; list.append(el); });
+    fb.append(list);
+    if(d.summary){ const p=document.createElement("p"); p.className="muted"; p.style.marginTop="8px"; p.textContent=d.summary; fb.append(p); }
+  }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
+};
+</script>
+<script src="pipeline.js"></script>
+</body></html>
