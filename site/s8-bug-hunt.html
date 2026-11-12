@@ -85,7 +85,7 @@
       <li>The View gets the part number and asks the controller to find it (<code>searchParts</code>).</li>
       <li>The controller asks each distributor about the part (<code>askHuey</code>, <code>askLewy</code>).</li>
       <li>Each distributor's answer goes through its adapter to normalize the data (<code>normalizeHuey</code>, <code>normalizeLewy</code>).</li>
-      <li>The controller labels each offer with its availability (<code>availability</code>).</li>
+      <li>The controller labels each offer with its availability (<code>describeAvailability</code>).</li>
       <li>The controller sends the offers back to the View.</li>
     </ol>
     <p class="muted">The controller comes first and runs the steps in order. Below it are the functions it calls in steps 3 and 4. The distributors' systems (step 2) are outside HinH's code, so they aren't shown; look A shows what they send.</p>
@@ -117,7 +117,7 @@
   <section class="ws panel">
     <h2>Fix it</h2>
     <p>Once you've found it, change one line in this function and run the report's scenario, plus the cases that already work. The fix has to keep those working too.</p>
-    <textarea id="fix" spellcheck="false" aria-label="The availability function"></textarea>
+    <textarea id="fix" spellcheck="false" aria-label="The describeAvailability function"></textarea>
     <div class="row" style="margin-top:8px"><button type="button" id="run-fix">Run the checks</button><button type="button" class="ghost" id="fix-reset">Put the original back</button></div>
     <div class="checks" id="fix-out"></div>
   </section>
@@ -171,7 +171,7 @@ const LEWY = {
   "TH-7710": { sku: "TH-7710", unitPrice: 96.00,  inStock: true },
 };
 const AVAIL_SRC = [
-"function availability(offer) {",
+"function describeAvailability(offer) {",
 "  if (!offer.inStock) return 'Not available';",
 "  const days = offer.leadDays || 3;  // some offers don't include a lead time; assume 3 days",
 "  if (days === 0) return 'Available today';",
@@ -187,13 +187,13 @@ const SRC = [
 "  const lewyAnswer = askLewy(partNumber);",
 "  // Step 3. Translate each answer into HinH's format. Both adapter functions are below.",
 "  const normalizedOffers = [normalizeHuey(hueyAnswer), normalizeLewy(lewyAnswer)];",
-"  // Step 4. Label each offer. The availability function is below.",
+"  // Step 4. Label each offer. The describeAvailability function is below.",
 "  // map goes through the offers one at a time, calling each one offer,",
 "  // and builds a new list from what the code after => returns for each.",
 "  const offersForView = normalizedOffers.map(offer => ({",
 "    distributor: offer.distributor,",
 "    price: offer.price,",
-"    availability: availability(offer),",
+"    availability: describeAvailability(offer),",
 "  }));",
 "  // Step 5. Send the offers back to the View.",
 "  return offersForView;",
@@ -216,7 +216,7 @@ const BUG_LINE = SRC.split("\n").findIndex(l => l.includes("offer.leadDays || 3"
 function build(availSrc){
   const src = SRC.replace(AVAIL_SRC, availSrc);
   const askHuey = p => HUEY[p], askLewy = p => LEWY[p];  // stand-ins for the distributors' systems
-  return new Function("askHuey","askLewy", src+"\nreturn {normalizeHuey,normalizeLewy,availability,searchParts};")(askHuey,askLewy);
+  return new Function("askHuey","askLewy", src+"\nreturn {normalizeHuey,normalizeLewy,describeAvailability,searchParts};")(askHuey,askLewy);
 }
 const APP = build(AVAIL_SRC);
 
@@ -320,7 +320,7 @@ function drawFix(r){
   out.append(v);
 }
 document.getElementById("run-fix").onclick=()=>{ const r=runFix(); drawFix(r); store({fixRun:{passed:r.passed,changed:r.changed,res:r.res}});
-  if(r.passed){ const fixed=build(fixEl.value); APP.searchParts=fixed.searchParts; APP.availability=fixed.availability; APP.normalizeHuey=fixed.normalizeHuey; APP.normalizeLewy=fixed.normalizeLewy; render(); } };
+  if(r.passed){ const fixed=build(fixEl.value); APP.searchParts=fixed.searchParts; APP.describeAvailability=fixed.describeAvailability; APP.normalizeHuey=fixed.normalizeHuey; APP.normalizeLewy=fixed.normalizeLewy; render(); } };
 if(load().fixRun) drawFix(load().fixRun);
 
 /* ---------- Answers ---------- */
