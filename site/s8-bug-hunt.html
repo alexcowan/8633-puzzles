@@ -29,7 +29,7 @@
 .ws .tap{border-top:1px solid var(--line-soft);padding-top:12px}
 .ws .tap:first-child{border-top:0;padding-top:0}
 .ws .tap .cl{margin:2px 0 8px;font-size:14px;color:var(--muted,#666)}
-.ws .tap .cl code{font-family:var(--mono);font-size:13px}
+.ws .tap .cl code{font-family:var(--mono);font-size:13px;white-space:nowrap}
 .ws .tap h3{font-family:var(--serif);font-weight:400;color:var(--head);font-size:17px;margin:0 0 4px}
 .ws .tap .row input{flex:1 1 280px}
 .ws .log{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
@@ -107,6 +107,9 @@
       <div class="tap"><h3>C. What the controller sends the View <span class="muted">(after step 4)</span></h3>
         <p class="cl">Same as adding this after line <span data-after="  }));"></span>, just before the return: <code>console.log('C', offersForView);</code></p>
         <div class="row"><input type="text" id="pred-c" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-c">Look</button></div></div>
+      <div class="tap"><h3>D. Inside describeAvailability <span class="muted">(during step 4)</span></h3>
+        <p class="cl">Same as adding this after line <span data-after="  const days ="></span>: <code>console.log('D', offer.leadDays, days);</code></p>
+        <div class="row"><input type="text" id="pred-d" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-d">Look</button></div></div>
     </div>
     <p class="muted" id="look-msg" hidden>Search for one part number first (for example HX-2201), then look.</p>
     <h2 style="margin-top:18px">Your log</h2>
@@ -256,7 +259,21 @@ const TAPS={
   a:{ name:"A. What the distributors sent", get:p=>({ Huey:HUEY[p], Lewy:LEWY[p] }) },
   b:{ name:"B. What the adapters turned it into", get:p=>[APP.normalizeHuey(HUEY[p]), APP.normalizeLewy(LEWY[p])] },
   c:{ name:"C. What the controller sends the View", get:p=>APP.searchParts(p) },
+  d:{ name:"D. Inside describeAvailability", get:p=>[APP.normalizeHuey(HUEY[p]), APP.normalizeLewy(LEWY[p])].map(offerSeen) },
 };
+/* Look D: rerun the current describeAvailability (the original, or the student's fix once it passes)
+   with a capture right after the line that sets days. */
+let availNow = AVAIL_SRC;
+function offerSeen(offer){
+  const lines = availNow.split("\n"), i = lines.findIndex(l => /\bconst\s+days\b|\blet\s+days\b/.test(l));
+  if (i < 0) return { distributor: offer.distributor, days: "(no days line to watch)" };
+  lines.splice(i + 1, 0, "  __seen.days = days;");
+  const seen = {};
+  try { new Function("__seen", lines.join("\n") + "\nreturn describeAvailability;")(seen)(offer); } catch(e) { seen.days = "threw: " + e.message; }
+  return { distributor: offer.distributor,
+           leadDays: offer.leadDays === undefined ? "(missing)" : offer.leadDays,
+           days: "days" in seen ? seen.days : "(line not reached)" };
+}
 function drawLog(){
   const looks=load().looks||[], body=document.getElementById("log"); body.innerHTML="";
   document.getElementById("log-empty").hidden=looks.length>0;
@@ -283,7 +300,7 @@ drawLog();
 /* ---------- Hints ---------- */
 const HINTS=[
   "Halve the path. Compare look A with look C for HX-2201. If the distributor sent the right thing and the page got the wrong thing, the problem is somewhere between them, not in Huey's system and not in the page.",
-  "Look B for HX-2201. If the adapter passes along leadDays: 0, the adapters are fine too. That leaves one function. Which line in it could turn a 0 into a 3?",
+  "Look B for HX-2201. If the adapter passes along leadDays: 0, the adapters are fine too. That leaves one function. Which line in it could turn a 0 into a 3? Look D shows you.",
   "Line "+BUG_LINE+". Read it out loud with leadDays equal to 0. In JavaScript, 0 counts as false, so what does 0 || 3 give you? The fix needs to treat a missing lead time as 3 and a real 0 as 0."];
 function drawHints(){
   const n=load().hints||0, host=document.getElementById("hints"); host.innerHTML="";
@@ -322,7 +339,7 @@ function drawFix(r){
   out.append(v);
 }
 document.getElementById("run-fix").onclick=()=>{ const r=runFix(); drawFix(r); store({fixRun:{passed:r.passed,changed:r.changed,res:r.res}});
-  if(r.passed){ const fixed=build(fixEl.value); APP.searchParts=fixed.searchParts; APP.describeAvailability=fixed.describeAvailability; APP.normalizeHuey=fixed.normalizeHuey; APP.normalizeLewy=fixed.normalizeLewy; render(); } };
+  if(r.passed){ const fixed=build(fixEl.value); APP.searchParts=fixed.searchParts; APP.describeAvailability=fixed.describeAvailability; APP.normalizeHuey=fixed.normalizeHuey; APP.normalizeLewy=fixed.normalizeLewy; availNow=fixEl.value; render(); } };
 if(load().fixRun) drawFix(load().fixRun);
 
 /* ---------- Answers ---------- */
