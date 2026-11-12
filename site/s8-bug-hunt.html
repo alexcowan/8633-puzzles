@@ -312,7 +312,7 @@ function offerSeen(offer){
 function drawLog(){
   const looks=load().looks||[], body=document.getElementById("log"); body.innerHTML="";
   document.getElementById("log-empty").hidden=looks.length>0;
-  looks.forEach((l,i)=>{ const tr=document.createElement("tr");
+  looks.map((l,i)=>[l,i]).reverse().forEach(([l,i])=>{ const tr=document.createElement("tr");  // newest first, numbers kept
     const c=[String(i+1), l.where+" ("+l.part+")", l.pred, l.saw];
     c.forEach((v,j)=>{ const td=document.createElement("td"); td.textContent=v; if(j===3) td.className="saw"; tr.append(td); });
     const td=document.createElement("td"); const ta=document.createElement("textarea"); ta.value=l.ruled||""; ta.setAttribute("aria-label","What look "+(i+1)+" tells you");
