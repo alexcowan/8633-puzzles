@@ -59,12 +59,12 @@
 
   <section class="ws panel ticket">
     <div class="eyebrow">Bug report · HINH-482 · Severity: high</div>
-    <h2>Same-day parts show "Ships in 3 days"</h2>
+    <h2>Same-day parts show "Ships in 0 days"</h2>
     <dl>
       <dt>Reported by</dt><dd>Dispatch, after two technicians asked why nothing is ever available today.</dd>
       <dt>Why it matters</dt><dd>Technicians are telling customers to wait, or ordering a pricier part that says it ships sooner, when the right part is available today.</dd>
       <dt>Scenario</dt><dd class="gwt"><b>GIVEN</b> Huey has HX-2201 in stock with a lead time of 0 days<br><b>WHEN</b> Trent searches for HX-2201<br><b>THEN</b> Huey's offer shows "Available today"</dd>
-      <dt>What happens</dt><dd>Huey's offer for HX-2201 shows "Ships in 3 days." Lewy's offer for CP-0450, also a lead time of 0, shows the same thing.</dd>
+      <dt>What happens</dt><dd>Huey's offer for HX-2201 shows "Ships in 0 days." Lewy's offer for CP-0450, also a lead time of 0, shows the same thing.</dd>
       <dt>What's fine</dt><dd>Parts with a lead time of 2 days show "Ships in 2 days." Parts a distributor doesn't have show "Not available."</dd>
       <dt>To reproduce</dt><dd>Search for HX-2201. Look at Huey's row.</dd>
     </dl>
@@ -123,7 +123,7 @@
         <div class="row"><input type="text" id="pred-c" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-c">Look</button></div>
         <div class="tap-out" id="out-c" hidden></div></div>
       <div class="tap"><h3>D. Inside describeAvailability <span class="muted">(during step 4)</span></h3>
-        <p class="cl">Same as adding this after line <span data-after="  const days ="></span>: <code>console.log('Lead time in, days out:', offer.leadDays, days);</code></p>
+        <p class="cl">Same as adding this after line <span data-after="  if (days === undefined)"></span>: <code>console.log('Lead time in, days out:', offer.leadDays, days);</code></p>
         <div class="row"><input type="text" id="pred-d" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-d">Look</button></div>
         <div class="tap-out" id="out-d" hidden></div></div>
     </div>
@@ -194,9 +194,10 @@ const LEWY = {
 const AVAIL_SRC = [
 "function describeAvailability(offer) {",
 "  if (!offer.inStock) return 'Not available';",
+"  let days = offer.leadDays;",
 "  // Some offers don't include a lead time; assume the worst case is 3 days.",
-"  const days = offer.leadDays || 3;",
-"  if (days === 0) return 'Available today';",
+"  if (days === undefined) days = 3;",
+"  if (days === 1) return 'Available today';",
 "  return 'Ships in ' + days + ' days';",
 "}"].join("\n");
 const SRC = [
@@ -233,7 +234,7 @@ const SRC = [
 "",
 "// Step 4. The rule: how each offer's availability is labeled.",
 AVAIL_SRC].join("\n");
-const BUG_LINE = SRC.split("\n").findIndex(l => l.includes("offer.leadDays || 3")) + 1;
+const BUG_LINE = SRC.split("\n").findIndex(l => l.includes("days === 1")) + 1;
 
 function build(availSrc){
   const src = SRC.replace(AVAIL_SRC, availSrc);
@@ -304,7 +305,8 @@ let availNow = AVAIL_SRC;
 function offerSeen(offer){
   const lines = availNow.split("\n"), i = lines.findIndex(l => /\bconst\s+days\b|\blet\s+days\b/.test(l));
   if (i < 0) return { distributor: offer.distributor, days: "(no days line to watch)" };
-  lines.splice(i + 1, 0, "  __seen.days = days;");
+  const j = lines.findIndex(l => l.includes("Available today"));
+  lines.splice(j > i ? j : i + 1, 0, "  __seen.days = days;");
   const seen = {};
   try { new Function("__seen", lines.join("\n") + "\nreturn describeAvailability;")(seen)(offer); } catch(e) { seen.days = "threw: " + e.message; }
   return { distributor: offer.distributor,
@@ -345,8 +347,8 @@ drawLog();
 /* ---------- Hints ---------- */
 const HINTS=[
   "Halve the path. Compare look A with look C for HX-2201. If the distributor sent the right thing and the page got the wrong thing, the problem is somewhere between them, not in Huey's system and not in the page.",
-  "Look B for HX-2201. If the adapter passes along leadDays: 0, the adapters are fine too. That leaves one function. Which line in it could turn a 0 into a 3? Look D shows you.",
-  "Line "+BUG_LINE+". Read it out loud with leadDays equal to 0. In JavaScript, 0 counts as false, so what does 0 || 3 give you? The fix needs to treat a missing lead time as 3 and a real 0 as 0."];
+  "Look B for HX-2201. If the adapter passes along leadDays: 0, the adapters are fine too. That leaves one function. Look D shows the lead time going in and the number of days the function works with. Is days what you'd expect? If so, the problem is in the lines after it.",
+  "Line "+BUG_LINE+". Read it out loud: it says 'Available today' only when days is 1. How many days away is a part that's available today?"];
 function drawHints(){
   const n=load().hints||0, host=document.getElementById("hints"); host.innerHTML="";
   for(let i=0;i<n;i++){ const d=document.createElement("div"); d.className="hint"; d.textContent="Hint "+(i+1)+": "+HINTS[i]; host.append(d); }
