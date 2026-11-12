@@ -173,7 +173,8 @@ const LEWY = {
 const AVAIL_SRC = [
 "function describeAvailability(offer) {",
 "  if (!offer.inStock) return 'Not available';",
-"  const days = offer.leadDays || 3;  // some offers don't include a lead time; assume 3 days",
+"  // Some offers don't include a lead time; assume the worst case is 3 days.",
+"  const days = offer.leadDays || 3;",
 "  if (days === 0) return 'Available today';",
 "  return 'Ships in ' + days + ' days';",
 "}"].join("\n");
