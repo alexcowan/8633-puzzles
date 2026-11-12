@@ -94,6 +94,7 @@
 
   <section class="ws panel">
     <h2>Look inside</h2>
+    <p>You don't need to understand every line of the code to find this bug. Follow the process below: each look narrows down where the problem can be, so you only have to read closely what's left.</p>
     <p>You can look at three points along the path for the part in the search box. Before each look, write what you expect to see. The look goes in your log.</p>
     <p>Each look shows what one <code>console.log</code> line would print at that point in the code. In your own app, you'd add that line, run the app, and read what it prints in the browser's console (in Chrome: View › Developer › JavaScript Console).</p>
     <div class="taps">
@@ -282,7 +283,7 @@ drawLog();
 /* ---------- Hints ---------- */
 const HINTS=[
   "Halve the path. Compare look A with look C for HX-2201. If the distributor sent the right thing and the page got the wrong thing, the problem is somewhere between them, not in Huey's system and not in the page.",
-  "Look B for HX-2201. If the adapter passes along leadDays: 0, the adapters are fine too. That leaves one function.",
+  "Look B for HX-2201. If the adapter passes along leadDays: 0, the adapters are fine too. That leaves one function. Which line in it could turn a 0 into a 3?",
   "Line "+BUG_LINE+". Read it out loud with leadDays equal to 0. In JavaScript, 0 counts as false, so what does 0 || 3 give you? The fix needs to treat a missing lead time as 3 and a real 0 as 0."];
 function drawHints(){
   const n=load().hints||0, host=document.getElementById("hints"); host.innerHTML="";
