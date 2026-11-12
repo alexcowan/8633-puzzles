@@ -359,6 +359,8 @@ drawHints();
 
 /* ---------- Fix it: runs the student's function against the scenarios ---------- */
 const fixEl=document.getElementById("fix");
+/* Saved work from the earlier version of this puzzle (the || bug) no longer applies. */
+if((load().fix||"").includes("leadDays ||")||(load().fix||"").includes("leadDays ??")) store({fix:AVAIL_SRC, fixRun:null});
 fixEl.value=load().fix||AVAIL_SRC;
 fixEl.addEventListener("input",()=>store({fix:fixEl.value}));
 document.getElementById("fix-reset").onclick=()=>{ fixEl.value=AVAIL_SRC; store({fix:AVAIL_SRC}); };
