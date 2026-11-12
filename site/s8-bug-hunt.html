@@ -28,6 +28,10 @@
 .ws .taps{display:grid;gap:12px}
 .ws .tap{border-top:1px solid var(--line-soft);padding-top:12px}
 .ws .tap:first-child{border-top:0;padding-top:0}
+.fiddle p{margin:8px 0 0}.fiddle button{font-size:13px;padding:3px 10px;margin:0 4px}
+.ws .tap-out{margin:8px 0 2px;padding:8px 10px;border-left:3px solid var(--hinh-navy,#123);background:rgba(0,0,0,.03)}
+.ws .tap-out pre{margin:4px 0;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:13px}
+.ws .tap-out-label,.ws .tap-out-note{font-size:13px;color:var(--muted,#666)}
 .ws .tap .cl{margin:2px 0 8px;font-size:14px;color:var(--muted,#666)}
 .ws .tap .cl code{font-family:var(--mono);font-size:13px;white-space:nowrap}
 .ws .tap h3{font-family:var(--serif);font-weight:400;color:var(--head);font-size:17px;margin:0 0 4px}
@@ -91,6 +95,12 @@
     <p class="muted">Note: The distributors' systems (step 2) are outside HinH's code, so they aren't shown. Look A, below, shows what they send.</p>
     <p>Skim the code below to get a basic understanding of the various functions, then go on to the next section to get some observability on how it's working.</p>
     <pre class="src" id="src"></pre>
+    <form id="fiddle" method="post" action="https://jsfiddle.net/api/post/library/pure/" target="_blank" class="fiddle">
+      <input type="hidden" name="title" value="HinH parts lookup: Never available today">
+      <input type="hidden" name="js" id="fiddle-js"><input type="hidden" name="html" id="fiddle-html">
+      <input type="hidden" name="wrap" value="b">
+      <p class="muted">Prefer to try the real code? <button type="submit">Open this code in JSFiddle</button> Add your own <code>console.log</code> lines, press Run, and see what they print. (Optional.)</p>
+    </form>
   </section>
 
   <section class="ws panel">
@@ -100,17 +110,21 @@
     <p>Each look shows what one <code>console.log</code> line would print at that point in the code. In your own app, you'd add that line, run the app, and read what it prints in the browser's console (in Chrome: View › Developer › JavaScript Console).</p>
     <div class="taps">
       <div class="tap"><h3>A. What the distributors sent <span class="muted">(after step 2)</span></h3>
-        <p class="cl">Same as adding this after line <span data-after="  const lewyAnswer ="></span>: <code>console.log('A', hueyAnswer, lewyAnswer);</code></p>
-        <div class="row"><input type="text" id="pred-a" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-a">Look</button></div></div>
+        <p class="cl">Same as adding this after line <span data-after="  const lewyAnswer ="></span>: <code>console.log('Distributors sent back:', hueyAnswer, lewyAnswer);</code></p>
+        <div class="row"><input type="text" id="pred-a" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-a">Look</button></div>
+        <div class="tap-out" id="out-a" hidden></div></div>
       <div class="tap"><h3>B. What the adapters turned it into <span class="muted">(after step 3)</span></h3>
-        <p class="cl">Same as adding this after line <span data-after="  const normalizedOffers ="></span>: <code>console.log('B', normalizedOffers);</code></p>
-        <div class="row"><input type="text" id="pred-b" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-b">Look</button></div></div>
+        <p class="cl">Same as adding this after line <span data-after="  const normalizedOffers ="></span>: <code>console.log('Adapters normalized them to:', normalizedOffers);</code></p>
+        <div class="row"><input type="text" id="pred-b" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-b">Look</button></div>
+        <div class="tap-out" id="out-b" hidden></div></div>
       <div class="tap"><h3>C. What the controller sends the View <span class="muted">(after step 4)</span></h3>
-        <p class="cl">Same as adding this after line <span data-after="  }));"></span>, just before the return: <code>console.log('C', offersForView);</code></p>
-        <div class="row"><input type="text" id="pred-c" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-c">Look</button></div></div>
+        <p class="cl">Same as adding this after line <span data-after="  }));"></span>, just before the return: <code>console.log('Controller sends the View:', offersForView);</code></p>
+        <div class="row"><input type="text" id="pred-c" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-c">Look</button></div>
+        <div class="tap-out" id="out-c" hidden></div></div>
       <div class="tap"><h3>D. Inside describeAvailability <span class="muted">(during step 4)</span></h3>
-        <p class="cl">Same as adding this after line <span data-after="  const days ="></span>: <code>console.log('D', offer.leadDays, days);</code></p>
-        <div class="row"><input type="text" id="pred-d" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-d">Look</button></div></div>
+        <p class="cl">Same as adding this after line <span data-after="  const days ="></span>: <code>console.log('Lead time in, days out:', offer.leadDays, days);</code></p>
+        <div class="row"><input type="text" id="pred-d" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-d">Look</button></div>
+        <div class="tap-out" id="out-d" hidden></div></div>
     </div>
     <p class="muted" id="look-msg" hidden>Search for one part number first (for example HX-2201), then look.</p>
     <h2 style="margin-top:18px">Your log</h2>
@@ -226,6 +240,26 @@ function build(availSrc){
 }
 const APP = build(AVAIL_SRC);
 
+/* JSFiddle: built from this page's own code at click time, so it can't drift. */
+document.getElementById("fiddle").addEventListener("submit",()=>{
+  document.getElementById("fiddle-js").value=[
+    "// Stand-ins for the distributors' systems. They aren't part of HinH's code.",
+    "const HUEY = "+JSON.stringify(HUEY,null,2)+";",
+    "const LEWY = "+JSON.stringify(LEWY,null,2)+";",
+    "function askHuey(partNumber) { return HUEY[partNumber]; }",
+    "function askLewy(partNumber) { return LEWY[partNumber]; }",
+    "",
+    "// HinH's code, the same as on the puzzle page.",
+    SRC,
+    "",
+    "// Try it. Add your own console.log lines above, then press Run.",
+    "console.log('Result:', searchParts('HX-2201'));"].join("\n");
+  document.getElementById("fiddle-html").value=
+    '<pre id="out" style="font:14px/1.4 monospace;white-space:pre-wrap"></pre>\n'+
+    '<script>/* Show console.log output on the page too. */\n'+
+    'const __log=console.log; console.log=(...a)=>{ __log(...a); document.getElementById("out").textContent += a.map(x=>typeof x==="string"?x:JSON.stringify(x,null,2)).join(" ")+"\\n"; };<\/script>';
+});
+
 /* Fill in where each look's console.log would go. */
 document.querySelectorAll("[data-after]").forEach(el=>{ el.textContent = SRC.split("\n").findIndex(l=>l.startsWith(el.dataset.after)) + 1; });
 
@@ -285,6 +319,14 @@ function drawLog(){
     ta.addEventListener("input",()=>{ const all=load().looks||[]; if(all[i]){ all[i].ruled=ta.value; store({looks:all}); } });
     td.append(ta); tr.append(td); body.append(tr); });
 }
+function showTapOut(k, n, saw){
+  const out=document.getElementById("out-"+k); out.innerHTML="";
+  const lab=document.createElement("div"); lab.className="tap-out-label"; lab.textContent="Look "+n+" printed:";
+  const label=(document.querySelector("#out-"+k).closest(".tap").querySelector(".cl code").textContent.match(/console\.log\('([^']*)'/)||[])[1]||"";
+  const pre=document.createElement("pre"); pre.textContent=(label?label+" ":"")+saw;
+  const note=document.createElement("div"); note.className="tap-out-note"; note.textContent="Saved as look "+n+" in Your log, below. Note there what it tells you.";
+  out.append(lab,pre,note); out.hidden=false;
+}
 Object.keys(TAPS).forEach(k=>{
   const pred=document.getElementById("pred-"+k);
   document.getElementById("run-look-"+k).onclick=()=>{
@@ -293,7 +335,7 @@ Object.keys(TAPS).forEach(k=>{
     document.getElementById("look-msg").hidden=true;
     const saw=JSON.stringify(TAPS[k].get(p),null,1).replace(/\n\s*/g," ");
     const looks=load().looks||[]; looks.push({tap:k, where:TAPS[k].name, part:p, pred:pred.value.trim(), saw}); store({looks});
-    pred.value=""; drawLog();
+    pred.value=""; drawLog(); showTapOut(k, looks.length, saw);
   };
 });
 drawLog();
