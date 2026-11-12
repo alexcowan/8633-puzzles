@@ -89,3 +89,46 @@ test("stats: the grading record counts checks, errors and ok rates, and nothing 
   const cols = Object.keys(rows[0].results[0]).sort();
   assert.deepEqual(cols, ["at", "error", "items", "ok", "puzzle", "verdicts"]);
 });
+
+// ---------------- Mid-quarter quiz ----------------
+import { QUIZ, gradeQuiz, isJustChecking } from "../worker/src/quiz.js";
+const BEST = { "p1-gwt": "b", "p1-steps": "b", "p1-mvc": "a", "p1-scenario": "a", "p1-data": "b", "p1-depdir": "a", "p1-ai": "a",
+  "p2-stackpipe": "a", "p2-pyramid": "a", "p2-f": "c", "p2-integration": "b", "p2-niche": "a", "p2-verify": "a" };
+const perfect = () => ({ ...Object.fromEntries(Object.entries(BEST).map(([k, v]) => [k, { pick: v }])),
+  "p1-devtools": { element: "span.price", winner: ".promo .price parts.css:110", loser: ".catalog-part .price" },
+  "p1-console": { predict: "b", paste: "184.00 string true" } });
+
+test("quiz key: every page option has an explanation, and the best answers score full marks", () => {
+  for (const q of QUIZ) if (q.type === "mc") for (const o of ["a", "b", "c", "d"]) assert.ok(q.explain[o], `${q.id} option ${o}`);
+  const r = gradeQuiz(perfect());
+  assert.equal(r.of, 15); assert.equal(r.score, 15);
+  assert.deepEqual(r.grid.map(g => g.part + g.level).sort(), ["1A", "1F", "1S", "2A", "2F", "2S"]);
+});
+test("quiz key: partial credit, and the hands-on items aren't fussy", () => {
+  const a = perfect();
+  a["p1-mvc"] = { pick: "b" };                                                           // reasonable alternative
+  a["p1-devtools"] = { element: "<span class=\"price\">", winner: "promo price", loser: "" }; // two of three
+  a["p1-console"] = { predict: "a", paste: "  '184.00'  'string' true  VM123:2" };        // wrong prediction, messy paste
+  const it = Object.fromEntries(gradeQuiz(a).items.map(i => [i.id, i]));
+  assert.equal(it["p1-mvc"].credit, 0.5);
+  assert.equal(it["p1-devtools"].credit, 0.67);
+  assert.equal(it["p1-console"].credit, 1); assert.equal(it["p1-console"].prediction, false);
+  assert.equal(gradeQuiz({ "p1-console": { paste: "184.00" } }).items.find(i => i.id === "p1-console").credit, 0);
+  assert.equal(gradeQuiz({ "p1-devtools": { loser: ".promo .price" } }).items.find(i => i.id === "p1-devtools").credit, 0);
+});
+test("quiz key: Just Checking", () => {
+  assert.ok(isJustChecking("Just", "Checking")); assert.ok(isJustChecking(" just ", "checking!"));
+  assert.ok(!isJustChecking("Justin", "Checkley"));
+});
+test("quiz: saves a named attempt and returns the grid; wrong code and missing name are refused", async () => {
+  assert.equal((await post("/quiz", { code: "nope", first: "A", last: "B", answers: {} })).status, 401);
+  assert.equal((await post("/quiz", { code: "class123", first: "A", last: "", answers: {} })).status, 400);
+  const r = await post("/quiz", { code: "class123", first: "Ada", last: "Lovelace", answers: perfect() });
+  assert.equal(r.status, 200);
+  const d = await r.json();
+  assert.equal(d.score, 15); assert.equal(d.justChecking, false); assert.ok(d.items.every(i => i.explain));
+  const jc = await (await post("/quiz", { code: "class123", first: "Just", last: "Checking", answers: {} })).json();
+  assert.equal(jc.justChecking, true); assert.equal(jc.score, 0);
+  const rows = JSON.parse(wr("d1", "execute", "cwg", "--local", "--json", "--command", "SELECT first, last, just_checking, score, of FROM quiz_attempts ORDER BY at"))[0].results;
+  assert.deepEqual(rows, [{ first: "Ada", last: "Lovelace", just_checking: 0, score: 15, of: 15 }, { first: "Just", last: "Checking", just_checking: 1, score: 0, of: 15 }]);
+});

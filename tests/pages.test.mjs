@@ -15,7 +15,7 @@ const PORT = 8766, BASE = `http://localhost:${PORT}/`;
 const GRADER = /shrill-wood-3253\.acowan\.workers\.dev/;
 // Errors a puzzle shows on purpose: the S4 warm-up's broken checkbox is the bug students find.
 const PLANTED = { "s4-checkbox.html": /Cannot read properties of null \(reading 'addEventListener'\)/ };
-const NO_GRADER = new Set(["index.html", "s1-warmup.html", "s2-github-setup.html", "s2-read-the-plan.html", "s4-seam.html", "terms.html", "stats.html", "syllabus.html"]);
+const NO_GRADER = new Set(["index.html", "s1-warmup.html", "s2-github-setup.html", "s2-read-the-plan.html", "s4-seam.html", "terms.html", "stats.html", "syllabus.html", "quiz.html"]);
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".png": "image/png", ".svg": "image/svg+xml", ".jpg": "image/jpeg" };
 
 let server, browser;
@@ -52,6 +52,9 @@ function fakeGrader(sent) {
         { name: "Jobs", rows: [["job", "date", "customer"], ["J-1041", "2026-10-02", "Alvarez"]] },
         { name: "Job_Parts", rows: [["job", "part_number", "price_charged"], ["J-1041", "HX-2201", "184"]] }] }) });
     }
+    if (url.includes("/quiz")) return route.fulfill({ headers: cors, body: JSON.stringify({ score: 1, of: 2, justChecking: false,
+      grid: [{ part: 1, level: "F", got: 1, of: 1 }, { part: 2, level: "S", got: 0, of: 1 }],
+      items: [{ id: "p1-gwt", part: 1, level: "F", credit: 1, explain: "FAKE-EXPLAIN right" }, { id: "p2-verify", part: 2, level: "S", credit: 0, explain: "FAKE-EXPLAIN wrong", practice: ["s7-three-tests.html"] }] }) });
     if (url.includes("/comments")) return route.fulfill({ headers: cors, body: JSON.stringify({ comments: [{ id: "abc12345", i: "AC", t: "FAKE-COMMENT", at: "2026-10-30T10:00:00Z" }] }) });
     return route.fulfill({ status: 404, headers: cors, body: "{}" });
   };
@@ -141,5 +144,32 @@ test("terms.html: comments load and a new comment posts", async () => {
   const posted = sent.filter(s => s.path === "/comments" && s.body).at(-1).body;
   assert.equal(posted.text, "A test comment"); assert.equal(posted.initials, "AC"); assert.equal(posted.check, "8633");
   transcript["terms.html"] = { sent: sent.map(s => s.body) };
+  await ctx.close();
+});
+
+test("quiz.html: sends name, code and every answer, then shows where the student stands", async () => {
+  const { ctx, page, sent } = await openPage("quiz.html");
+  await page.locator("#first").fill("Ada"); await page.locator("#last").fill("Lovelace");
+  await page.locator('input[name="p1-gwt"][value="b"]').check();
+  await page.locator('input[name="p1-console"][value="b"]').check();
+  await page.locator("#console-paste").fill("184.00 string true");
+  await page.locator("#dt-winner").fill(".promo .price parts.css:110");
+  // The real stylesheet makes IG-3300's price red and the others navy, and `.promo .price` is what does it.
+  const colors = await page.evaluate(() => [...document.querySelectorAll(".catalog-part .price")].map(e => getComputedStyle(e).color));
+  assert.equal(new Set(colors).size, 2, "one price is a different color");
+  assert.equal(colors[2], "rgb(192, 57, 43)");
+  await page.locator("#submit").click();
+  await page.getByText("FAKE-EXPLAIN wrong").waitFor({ timeout: 3000 });
+  const b = sent.filter(s => s.path === "/quiz").at(-1).body;
+  assert.equal(b.first, "Ada"); assert.equal(b.last, "Lovelace"); assert.equal(b.code, "class123");
+  assert.equal(b.answers["p1-gwt"].pick, "b");
+  assert.equal(b.answers["p1-console"].paste, "184.00 string true");
+  assert.match(b.answers["p1-devtools"].winner, /promo/);
+  assert.equal(Object.keys(b.answers).length, 15);
+  const shown = await page.locator("#results").innerText();
+  assert.match(shown, /Solid/); assert.match(shown, /More practice/);
+  assert.match(shown, /Which test catches it\?/, "links practice for what was missed");
+  // Reloading keeps the result on screen.
+  await page.reload(); await page.getByText("FAKE-EXPLAIN wrong").waitFor({ timeout: 3000 });
   await ctx.close();
 });

@@ -2,6 +2,8 @@
 // The API key, class code and answer keys live here, never in the pages.
 // Storage is D1 (binding DB): comments on the Terms page, and an anonymous record of each grading call.
 
+import { QUIZ_ID, gradeQuiz, isJustChecking } from "./quiz.js";
+
 const MODEL = "claude-haiku-5-5";
 const MAX_TOKENS = 1500;
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
@@ -158,7 +160,7 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     const path = new URL(request.url).pathname;
     const isComments = path === "/comments" || path === "/comments/delete";
-    if (!(request.method === "POST" && (path === "/grade" || path === "/sheet" || path === "/stats" || isComments)) && !(request.method === "GET" && path === "/comments")) {
+    if (!(request.method === "POST" && (path === "/grade" || path === "/sheet" || path === "/stats" || path === "/quiz" || isComments)) && !(request.method === "GET" && path === "/comments")) {
       return json({ error: "Not found" }, 404, cors);
     }
     if (!allowedOrigin(origin, env)) return json({ error: "Origin not allowed" }, 403, cors);
@@ -171,6 +173,7 @@ export default {
     if (isComments) return comments(request, env, path, cors);
     if (path === "/sheet") return readSheet(request, cors);
     if (path === "/stats") return stats(request, env, cors);
+    if (path === "/quiz") return quiz(request, env, cors);
 
     let body;
     try { body = await request.json(); } catch { return json({ error: "Bad JSON" }, 400, cors); }
@@ -325,6 +328,27 @@ async function stats(request, env, cors) {
   const puzzles = Object.values(by).sort((a, b) => a.puzzle.localeCompare(b.puzzle))
     .map(p => ({ ...p, items: Object.values(p.items) }));
   return json({ days, puzzles }, 200, cors);
+}
+
+// The mid-quarter quiz: graded here against the key in quiz.js (no AI call), saved with the student's name,
+// and returned to the page. Every attempt is kept; the results view counts each student's first one.
+async function quiz(request, env, cors) {
+  let b; try { b = await request.json(); } catch { return json({ error: "Bad JSON" }, 400, cors); }
+  if (!b.code || String(b.code).trim() !== env.CLASS_CODE) return json({ error: "Wrong class code." }, 401, cors);
+  const first = String(b.first || "").trim().slice(0, 40), last = String(b.last || "").trim().slice(0, 40);
+  if (!first || !last) return json({ error: "Put in your first and last name." }, 400, cors);
+  const answers = b.answers && typeof b.answers === "object" ? b.answers : {};
+  if (JSON.stringify(answers).length > 6000) return json({ error: "Submission too long." }, 413, cors);
+  const r = gradeQuiz(answers);
+  const jc = isJustChecking(first, last);
+  // It counts toward participation, so a submission that didn't save says so instead of looking done.
+  if (!env.DB) return json({ error: "The quiz isn't set up to save yet. Try again later." }, 503, cors);
+  const items = r.items.map(i => ({ id: i.id, credit: i.credit, answer: answers[i.id] || null }));
+  try {
+    await env.DB.prepare("INSERT INTO quiz_attempts (at, quiz, first, last, just_checking, score, of, grid, items) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+      .bind(new Date().toISOString(), QUIZ_ID, first, last, jc ? 1 : 0, r.score, r.of, JSON.stringify(r.grid), JSON.stringify(items)).run();
+  } catch { return json({ error: "Your answers didn't save. Try Submit again in a moment." }, 503, cors); }
+  return json({ ...r, justChecking: jc }, 200, cors);
 }
 
 function allowedOrigin(origin, env) {
