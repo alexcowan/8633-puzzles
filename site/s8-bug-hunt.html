@@ -29,6 +29,7 @@
 .ws .tap{border-top:1px solid var(--line-soft);padding-top:12px}
 .ws .tap:first-child{border-top:0;padding-top:0}
 .fiddle p{margin:8px 0 0}.fiddle button{font-size:13px;padding:3px 10px;margin:0 4px}
+.fix-log{margin:2px 0 8px 22px;padding:4px 8px;background:rgba(0,0,0,.04);font-family:var(--mono);font-size:12.5px;white-space:pre-wrap}
 .ws .tap-out{margin:8px 0 2px;padding:8px 10px;border-left:3px solid var(--hinh-navy,#123);background:rgba(0,0,0,.03)}
 .ws .tap-out pre{margin:4px 0;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:13px}
 .ws .tap-out-label,.ws .tap-out-note{font-size:13px;color:var(--muted,#666)}
@@ -136,6 +137,7 @@
   <section class="ws panel">
     <h2>Fix it</h2>
     <p>Once you've found it, change one line in this function and run the report's scenario, plus the cases that already work. The fix has to keep those working too.</p>
+    <p class="muted">You can also add your own <code>console.log</code> lines here, for example <code>console.log('days is', days);</code> after the line that sets <code>days</code>. What they print shows under each check, and they don't count as changes.</p>
     <textarea id="fix" spellcheck="false" aria-label="The describeAvailability function"></textarea>
     <div class="row" style="margin-top:8px"><button type="button" id="run-fix">Run the checks</button><button type="button" class="ghost" id="fix-reset">Put the original back</button></div>
     <div class="checks" id="fix-out"></div>
@@ -367,16 +369,25 @@ const CASES=[
 ];
 function runFix(){
   let app, err=""; try{ app=build(fixEl.value); }catch(e){ err=e.message; }
-  const res=CASES.map(c=>{ let got; try{ got=app?app.searchParts(c.part).find(o=>o.distributor===c.d).availability:("didn't run: "+err); }catch(e){ got="threw: "+e.message; }
-    return {label:c.label, want:c.want, got:String(got), ok:got===c.want}; });
-  const changed=fixEl.value.split("\n").filter((l,i)=>l.trim()!==(AVAIL_SRC.split("\n")[i]||"").trim());
+  const fmt=x=>typeof x==="string"?x:(x===undefined?"undefined":JSON.stringify(x));
+  const res=CASES.map(c=>{ let got; const logs=[], orig=console.log;
+    console.log=()=>{};   // the full lookup runs both distributors; keep its logs quiet
+    try{ got=app?app.searchParts(c.part).find(o=>o.distributor===c.d).availability:("didn't run: "+err); }catch(e){ got="threw: "+e.message; }
+    console.log=(...a)=>logs.push(a.map(fmt).join(" "));   // then catch the student's logs for just this offer
+    try{ if(app){ const offer=c.d==="Huey"?app.normalizeHuey(HUEY[c.part]):app.normalizeLewy(LEWY[c.part]); app.describeAvailability(offer); } }catch(e){}
+    finally{ console.log=orig; }
+    return {label:c.label, want:c.want, got:String(got), ok:got===c.want, logs}; });
+  /* console.log lines the student added don't count as changes. */
+  const isLog=l=>/^\s*console\.log\(.*\);?\s*$/.test(l);
+  const changed=fixEl.value.split("\n").filter(l=>!isLog(l)).filter((l,i)=>l.trim()!==(AVAIL_SRC.split("\n")[i]||"").trim());
   return {res, changed:changed.length, passed:res.every(r=>r.ok)};
 }
 function drawFix(r){
   const out=document.getElementById("fix-out"); out.innerHTML="";
   r.res.forEach(x=>{ const d=document.createElement("div"); d.className="chk";
     const b=document.createElement("b"); b.className=x.ok?"ok":"no"; b.textContent=x.ok?"PASS ":"FAIL ";
-    d.append(b, document.createTextNode(x.label+": expected “"+x.want+"”, got “"+x.got+"”.")); out.append(d); });
+    d.append(b, document.createTextNode(x.label+": expected “"+x.want+"”, got “"+x.got+"”.")); out.append(d);
+    if(x.logs&&x.logs.length){ const pre=document.createElement("pre"); pre.className="fix-log"; pre.textContent=x.logs.map(l=>"console: "+l).join("\n"); out.append(pre); } });
   const v=document.createElement("div"); v.className="verdict"+(r.passed?"":" no");
   v.textContent = r.passed ? (r.changed<=1 ? "All five pass, with a one-line change. The page above now runs your fix." : "All five pass. You changed "+r.changed+" lines; the bug only needs one.") : "Not yet. Read the failing line against your change.";
   out.append(v);
