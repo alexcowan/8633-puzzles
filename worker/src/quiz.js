@@ -70,20 +70,20 @@ export const QUIZ = [
     practice: ["s4-price.html", "s1-predict-then-run.html"] },
 
   { id: "p1-data", part: 1, level: "A", s: 5, type: "mc",
-    credit: { b: 1 },
+    credit: { d: 1 },
     explain: {
-      b: "Right. List price lives in Parts, once. What each customer was charged is a different fact, about the job, and it stays on the job.",
-      a: "Then last month's invoices would show this month's price. A lookup to the current price rewrites history.",
-      c: "The part name is a fact about the part: it belongs in Parts, one place, not on every job.",
-      d: "A nightly copy is the same fact in two places again, and it's stale by morning.",
+      d: "Right. A part's name is a fact about the part, so it lives in Parts, once. HX-2201's name is already written on two job rows; rename it and you're hunting down every copy.",
+      a: "The date is a fact about the job: each job happened on its own day. It stays in Jobs.",
+      b: "Who did the work is a fact about the job. It stays in Jobs.",
+      c: "Part # stays: it's how each job points to its part, the key that links the two tables. Move it and a job can't tell you which part it used.",
     },
     practice: ["s5-price.html", "terms.html?s=5"] },
 
   { id: "p1-depdir", part: 1, level: "S", s: 3, type: "mc",
-    credit: { a: 1, b: 1 },
+    credit: { a: 1, b: 0.5 },
     explain: {
       a: "Right. The promo page changes this month; the design system changes a few times a year. The page depends on the design system, not the other way around.",
-      b: "Also right, if sale prices will show up on more than one page: then it's a design-system component, named for what it is (sale), not for one page.",
+      b: "Reasonable if sale prices turn out to be a pattern, and half right: then it's a design-system component, named for what it is (sale). But nothing here says they will. For a one-month promo, adding to the design system is designing ahead (YAGNI). Start on the page; promote it to parts.css if it comes up again.",
       c: "One stylesheet isn't DRYer if it carries a rule for one page: now the design system depends on the page, and the next person can't tell it's safe to remove.",
       d: "An in-line style outranks every rule and is the hardest thing to find and undo.",
     },

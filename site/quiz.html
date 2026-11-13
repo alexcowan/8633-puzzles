@@ -131,7 +131,7 @@ console.log(card.dataset.price, typeof card.dataset.price, card.dataset.price &l
     </div>
 
     <div class="q" data-q="p1-scenario">
-      <div class="stem"><span class="lvl A">Applied</span>6. The story and its first scenario are below. Which scenario would you add next?</div>
+      <div class="stem"><span class="lvl A">Applied</span>6. The story and its first scenario are below. A good next scenario checks something the story promises that the first scenario doesn't. Which one does that?</div>
       <div class="scenario">As Trent the Technician, I want to see only the parts at or under the price the customer gave me, so I can offer a repair they'll say yes to.<br><b>Given</b> a price limit of $50, <b>when</b> Trent searches, <b>then</b> the $22.50 run capacitor and the $14.25 filter appear and the $184 blower motor does not.</div>
       <div class="opts">
         <label><input type="radio" name="p1-scenario" value="a">Given a price limit of $22.50, when Trent searches, then the $22.50 run capacitor appears.</label>
@@ -142,12 +142,18 @@ console.log(card.dataset.price, typeof card.dataset.price, card.dataset.price &l
     </div>
 
     <div class="q" data-q="p1-data">
-      <div class="stem"><span class="lvl A">Applied</span>7. HinH's jobs sheet stores the price on every job row, so a price change means hunting down every copy. You move list price into a Parts table, one row per part. What should the Jobs table still keep about price?</div>
+      <div class="stem"><span class="lvl A">Applied</span>7. Here's part of HinH's Jobs sheet, one row per job. HinH is adding a Parts table, one row per part. Which column should move from Jobs to Parts?</div>
+      <div class="tw" style="overflow-x:auto;margin:6px 0 8px"><table style="font-size:14.5px">
+        <tr><th>Job</th><th>Date</th><th>Technician</th><th>Part #</th><th>Part name</th></tr>
+        <tr><td>J-1041</td><td>Nov 3</td><td>Trent</td><td>HX-2201</td><td>Blower motor, 1/2 HP</td></tr>
+        <tr><td>J-1042</td><td>Nov 4</td><td>Dana</td><td>CP-0450</td><td>Run capacitor, 45 µF</td></tr>
+        <tr><td>J-1047</td><td>Nov 6</td><td>Trent</td><td>HX-2201</td><td>Blower motor, 1/2 HP</td></tr>
+      </table></div>
       <div class="opts">
-        <label><input type="radio" name="p1-data" value="a">Nothing: look the price up in Parts whenever you need it.</label>
-        <label><input type="radio" name="p1-data" value="b">What the customer was charged on that job.</label>
-        <label><input type="radio" name="p1-data" value="c">The part's name and price, so the jobs tab reads on its own.</label>
-        <label><input type="radio" name="p1-data" value="d">A copy of the current price, refreshed every night.</label>
+        <label><input type="radio" name="p1-data" value="a">Date</label>
+        <label><input type="radio" name="p1-data" value="b">Technician</label>
+        <label><input type="radio" name="p1-data" value="c">Part #</label>
+        <label><input type="radio" name="p1-data" value="d">Part name</label>
       </div>
     </div>
 
