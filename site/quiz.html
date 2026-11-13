@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><script>/* Instructor reset: add ?reset to any puzzle URL to clear saved work on every puzzle (keeps the class code). */(function(){try{if(!/[?&]reset\b/.test(location.search))return;Object.keys(localStorage).forEach(function(k){if(k!=="cwg-code"&&(/^cwg-s\d/.test(k)||/^cwg-quiz/.test(k)||/^(ptr|pick|stf)-draft$/.test(k)||k==="gh-setup"))localStorage.removeItem(k);});location.replace(location.pathname);}catch(e){}})();</script><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mid-Quarter Check-In · Coding with GPT</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <!-- HinH's design system, for the developer-tools question. -->
@@ -42,7 +42,7 @@
     <p>Fifteen questions on Sessions 1 through 7, in two parts, and about twenty minutes. Each question is marked:</p>
     <p><span class="lvl F">Foundational</span>the ideas and terms.<br><span class="lvl A">Applied</span>using them on HinH's code, including two you do in the browser's developer tools.<br><span class="lvl S">Stretch</span>a judgment call between alternatives.</p>
     <p>When you submit, I'll show you where you stand by part and level, something like “solid on the basics in Part 1, more practice on the Stretch questions in Part 2,” with what to practice next.</p>
-    <p class="note"><b>Please don't use AI for this one.</b> It's a check on where <em>you</em> are, and it only works if it's your own answers. Your first submission under your name is the one that counts. If you want to go back afterward and work a question with AI, take it again with the name <b>Just Checking</b>; those attempts don't count.</p>
+    <p class="note"><b>Please don't use AI.</b> This is a check on where <em>you</em> are, and it only works if it's your own answers. Your first submission under your name is the one that counts. If you want to go back afterward and work a question with AI, take it again with the name <b>Just Checking</b>; those attempts don't count.</p>
   </header>
 
   <section class="ws panel">
@@ -232,7 +232,7 @@ console.log(card.dataset.price, typeof card.dataset.price, card.dataset.price &l
     <div class="q" data-q="p2-niche">
       <div class="stem"><span class="lvl S">Stretch</span>14. Your team built on a niche framework. Features the AI writes keep failing or taking several tries. What's the best read?</div>
       <div class="opts">
-        <label><input type="radio" name="p2-niche" value="a">It's a tax on every feature the team ships. Keep the framework only for a deliberate reason, like performance, security, or what the team knows.</label>
+        <label><input type="radio" name="p2-niche" value="a">It's a tax on every feature the team ships. Keep the framework only for a deliberate reason, like performance, security, or what the team knows; otherwise, move to something more conventional, with broad community and third-party support.</label>
         <label><input type="radio" name="p2-niche" value="b">Switch to whatever the AI picks by default; it knows best.</label>
         <label><input type="radio" name="p2-niche" value="c">It's a pipeline problem: add more tests.</label>
         <label><input type="radio" name="p2-niche" value="d">It mostly means users will want these features less.</label>

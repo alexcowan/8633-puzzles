@@ -143,7 +143,7 @@ export const QUIZ = [
   { id: "p2-niche", part: 2, level: "S", s: 6, type: "mc",
     credit: { a: 1 },
     explain: {
-      a: "Right. AI writes much better code for popular stacks, so a niche one charges a tax on every feature the team ships. It can still be the right call, but it should be a deliberate one.",
+      a: "Right. AI writes much better code for popular stacks, so a niche one charges a tax on every feature the team ships. It can still be the right call, but it should be a deliberate one; without a reason, the conventional choice is cheaper to build, staff, and get help with.",
       b: "The popular choice is often right, but the AI doesn't know your scale, security exposure, or what your team knows. “The AI picked it” is how you got a stack, not whether to keep it.",
       c: "More tests catch the failures. They don't make the AI any better at writing for the stack.",
       d: "Nothing here says users want the features any less. The cost shows up in what the team can ship.",
