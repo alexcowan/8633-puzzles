@@ -39,7 +39,7 @@ export const QUIZ = [
 
   { id: "p1-devtools", part: 1, level: "A", s: 3, type: "devtools",
     // In site/quiz/parts.css: `.catalog-part .price` (line 88) sets the navy; `.promo .price` (line 110) wins.
-    winner: { must: ["promo", "price"], line: 110 }, loser: { must: ["catalog-part", "price"] }, element: { must: ["price"] },
+    winner: { must: ["promo", "price"], line: 110 }, loser: { must: ["catalog-part", "price"] }, element: { must: ["span", "price"] },
     explain: {
       ok: "Right: the price is a span with class price; `.promo .price` (parts.css, line 110) sets the red, and `.catalog-part .price` (line 88) is crossed out. Both are one class plus one class, equally specific, so the later one wins.",
       element: "The element is the price itself: a span with class price. Right-click the price, not the card, and choose Inspect.",

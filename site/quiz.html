@@ -93,7 +93,12 @@
 
     <div class="q" data-q="p1-devtools">
       <div class="stem"><span class="lvl A">Applied</span>4. In the developer tools: IG-3300's price below is red, and the others are navy. Right-click that price and choose <b>Inspect</b> (or <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>I</kbd> on a Mac, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> on Windows). In the Elements panel and its Styles pane, find:</div>
-      <div class="hinh" id="app" style="margin:8px 0">
+      <div class="fields">
+        <label for="dt-element">The element (its tag and its assigned CSS class)</label><input id="dt-element" type="text" spellcheck="false" placeholder="e.g. &lt;div class=&quot;something&quot;&gt;">
+        <label for="dt-winner">The rule that makes it red (its full selector, file, and line)</label><input id="dt-winner" type="text" spellcheck="false">
+        <label for="dt-loser">A color rule that's crossed out (selector)</label><input id="dt-loser" type="text" spellcheck="false">
+      </div>
+      <div class="hinh" id="app" style="margin:14px 0 4px">
         <div class="hinh-bar">HinH Parts Lookup</div>
         <div class="hinh-body">
           <div class="parts-grid">
@@ -103,11 +108,6 @@
             <div class="catalog-part backordered" data-part="FL-1620" data-price="14.25"><span class="num">FL-1620</span><span class="name">Filter, 16×20 pleated</span><span class="price">$14.25</span><span class="stock">Backordered</span></div>
           </div>
         </div>
-      </div>
-      <div class="fields">
-        <label for="dt-element">The element (its tag and class)</label><input id="dt-element" type="text" spellcheck="false" placeholder="e.g. div.something">
-        <label for="dt-winner">The rule that makes it red (selector, file, line)</label><input id="dt-winner" type="text" spellcheck="false">
-        <label for="dt-loser">A color rule that's crossed out (selector)</label><input id="dt-loser" type="text" spellcheck="false">
       </div>
     </div>
 
