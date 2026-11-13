@@ -113,9 +113,10 @@
     </div>
 
     <div class="q" data-q="p1-console">
-      <div class="stem"><span class="lvl A">Applied</span>5. In the Console: this reads HX-2201's price off its card above and compares it to a $50 limit, the way the page reads both from the HTML. <b>First predict</b> what it prints, then open the Console (the Console tab, next to Elements), paste it in, press Enter, and paste what it printed below.</div>
-      <pre>const card = document.querySelector('[data-part="HX-2201"]');
+      <div class="stem"><span class="lvl A">Applied</span>5. In the Console: HX-2201's price is stored on its card in the HTML, as <code>data-price="184.00"</code>. The JavaScript below reads that price and checks whether it's at or under $50. <b>First predict</b> what it prints. Then copy <b>both lines</b> (the button grabs them), paste them into the Console (the tab next to Elements) together, press Enter, and paste what it printed below.</div>
+      <pre id="console-code">const card = document.querySelector('[data-part="HX-2201"]');
 console.log(card.dataset.price, typeof card.dataset.price, card.dataset.price &lt;= "50");</pre>
+      <div class="row" style="margin:-2px 0 8px"><button type="button" class="ghost" id="copy-code">Copy both lines</button><span class="muted" id="copy-status" role="status"></span></div>
       <div class="sub">Your prediction:</div>
       <div class="opts">
         <label><input type="radio" name="p1-console" value="a"><code>184.00 number false</code></label>
@@ -375,6 +376,10 @@ async function submit(){
 
 document.addEventListener("input",save); document.addEventListener("change",save);
 $("submit").addEventListener("click",submit);
+$("copy-code").addEventListener("click",async()=>{
+  try{ await navigator.clipboard.writeText($("console-code").textContent); $("copy-status").textContent="Copied both lines. Paste them into the Console and press Enter."; }
+  catch(e){ $("copy-status").textContent="Your browser blocked the copy: select both lines and copy them by hand."; }
+});
 $("again").addEventListener("click",()=>{
   try{ localStorage.removeItem(KEY); }catch(e){}
   document.querySelectorAll("input[type=radio]").forEach(r=>r.checked=false);
