@@ -93,7 +93,7 @@ test("stats: the grading record counts checks, errors and ok rates, and nothing 
 // ---------------- Mid-quarter quiz ----------------
 import { QUIZ, gradeQuiz, isJustChecking } from "../worker/src/quiz.js";
 const BEST = { "p1-gwt": "b", "p1-steps": "b", "p1-mvc": "a", "p1-scenario": "a", "p1-data": "d", "p1-depdir": "a", "p1-ai": "a",
-  "p2-stackpipe": "a", "p2-pyramid": "a", "p2-f": "c", "p2-integration": "b", "p2-niche": "a", "p2-verify": "a" };
+  "p2-stackpipe": "a", "p2-pyramid": "a", "p2-f": "c", "p2-integration": "a", "p2-niche": "a", "p2-verify": "a" };
 const perfect = () => ({ ...Object.fromEntries(Object.entries(BEST).map(([k, v]) => [k, { pick: v }])),
   "p1-devtools": { element: "span.price", winner: ".promo .price parts.css:110", loser: ".catalog-part .price" },
   "p1-console": { predict: "b", paste: "112.00 string true" } });

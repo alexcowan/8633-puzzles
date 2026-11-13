@@ -131,12 +131,12 @@ export const QUIZ = [
     practice: [] },
 
   { id: "p2-integration", part: 2, level: "A", s: 7, type: "mc",
-    credit: { b: 1 },
+    credit: { a: 1, b: 0.5 },
     explain: {
-      b: "Right. The integration test used its own copy of the page, which still said max-price. A copy kept with the tests can drift from the real page, and only a test against the real page sees that.",
-      a: "That's why the unit test passed. The integration test does run the filter code against a page, just not the real one.",
-      c: "The tests are deterministic. They passed because neither looked at the real page's HTML.",
-      d: "The system test caught it, so the rename did break something a technician would see.",
+      a: "Right. The unit test exercises one function with nothing else running, so when it fails, the bug is in that function. That precision is why unit tests sit at the bottom of the pyramid, and why they're the cheapest place to keep a bug fixed.",
+      b: "Closer, and half right: it tells you which part misbehaved. But you still have to work back from the part to the function that's wrong.",
+      c: "The system test is the most realistic, but it only tells you something broke somewhere, not what.",
+      d: "A failing test is only as useful as how precisely it points at the problem, and these differ a lot. The same bug can take minutes or an afternoon to find depending on which failure you start from.",
     },
     practice: ["s7-three-tests.html"] },
 

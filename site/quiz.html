@@ -82,7 +82,7 @@
     </div>
 
     <div class="q" data-q="p1-mvc">
-      <div class="stem"><span class="lvl F">Foundational</span>3. Backordered parts should show their stock status in orange. In MVC terms, where does the orange belong?</div>
+      <div class="stem"><span class="lvl F">Foundational</span>3. Backordered parts should show their stock status in orange. In MVC terms, where does the orange live?</div>
       <div class="opts">
         <label><input type="radio" name="p1-mvc" value="a">The view</label>
         <label><input type="radio" name="p1-mvc" value="b">The controller</label>
@@ -92,10 +92,10 @@
     </div>
 
     <div class="q" data-q="p1-devtools">
-      <div class="stem"><span class="lvl A">Applied</span>4. In the developer tools: IG-3300's price below is red, and the others are navy. Right-click that price and choose <b>Inspect</b> (or <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>I</kbd> on a Mac, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> on Windows). In the Elements panel and its Styles pane, find:</div>
+      <div class="stem"><span class="lvl A">Applied</span>4. In the developer tools: IG-3300's price below is red, and the others are navy. Right-click that price, choose <b>Inspect</b>, and make sure you've ended up on the right item in the Elements panel (or adjust). In the Elements panel and its Styles pane, find:</div>
       <div class="fields">
         <label for="dt-element">The element (its tag and its assigned CSS class)</label><input id="dt-element" type="text" spellcheck="false" placeholder="e.g. &lt;div class=&quot;something&quot;&gt;">
-        <label for="dt-winner">The rule that makes it red (selector and declaration, file and line)</label><input id="dt-winner" type="text" spellcheck="false" placeholder="e.g. .card .title { font-size: 15px; }  styles.css, line 12">
+        <label for="dt-winner">The CSS rule that makes it red (selector and declaration, file and line)</label><input id="dt-winner" type="text" spellcheck="false" placeholder="e.g. .card .title { font-size: 15px; }  styles.css, line 12">
         <label for="dt-loser">Bonus (optional, not scored): a color rule that's crossed out (selector)*</label><input id="dt-loser" type="text" spellcheck="false">
       </div>
       <p class="muted" style="font-size:14.5px;margin:6px 0 0">* In this case, CSS precedence is doing an override: more than one rule sets this price's color, and only one of them wins.</p>
@@ -113,7 +113,8 @@
     </div>
 
     <div class="q" data-q="p1-console">
-      <div class="stem"><span class="lvl A">Applied</span>5. In the Console: IG-3300's price is stored on its card in the HTML, as <code>data-price="112.00"</code>. The JavaScript below reads that price and checks whether it's at or under $50. <b>First predict</b> what it prints. Then copy <b>all of it</b> (the button grabs it), paste it into the Console (the tab next to Elements), press Enter, and paste what it printed below.</div>
+      <div class="stem"><span class="lvl A">Applied</span>5. Part IG-3300's price is stored on its card in the HTML, as <code>data-price="112.00"</code>. The JavaScript below reads that price and checks whether it's at or under $50.</div>
+      <div class="stem" style="margin-top:8px">Predict what the Console statement in the third line prints. Then copy the whole code snippet and paste it into the Console (the tab next to Elements), press Enter, and paste what it printed below.</div>
       <pre id="console-code">const card = document.querySelector('[data-part="IG-3300"]');
 // typeof says what kind of value something is: "number", "string", and so on
 console.log(card.dataset.price, typeof card.dataset.price, card.dataset.price &lt;= "50");</pre>
@@ -214,18 +215,18 @@ console.log(card.dataset.price, typeof card.dataset.price, card.dataset.price &l
     </div>
 
     <div class="q" data-q="p2-integration">
-      <div class="stem"><span class="lvl A">Applied</span>13. HinH's parts page has three automated tests for its price filter:</div>
+      <div class="stem"><span class="lvl A">Applied</span>13. HinH's price filter has three automated tests:</div>
       <ul class="sub" style="margin:4px 0 6px;padding-left:22px">
         <li>a <b>unit</b> test that calls the price rule, <code>isAffordable()</code>, with fixed inputs;</li>
-        <li>an <b>integration</b> test that runs the filter code against a copy of the page's HTML that's kept with the tests;</li>
+        <li>an <b>integration</b> test that runs the filter code on a test page with a few sample parts;</li>
         <li>a <b>system</b> test that opens the real page in a browser and types a price into the price box.</li>
       </ul>
-      <div class="stem">A designer renamed the real page's price box from <code>max-price</code> to <code>price-limit</code>. The unit and integration tests passed, and only the system test failed. Why did the integration test pass?</div>
+      <div class="stem">A bug slips in: the price rule compares prices as text, so the $112.00 igniter shows up under a $50 limit. All three tests fail. Which failure tells you most directly where the bug is?</div>
       <div class="opts">
-        <label><input type="radio" name="p2-integration" value="a">It only checks the price rule, which didn't change.</label>
-        <label><input type="radio" name="p2-integration" value="b">Its copy of the page, kept with the tests, still says max-price.</label>
-        <label><input type="radio" name="p2-integration" value="c">Tests like that are flaky; it would fail if you ran it again.</label>
-        <label><input type="radio" name="p2-integration" value="d">Nothing a technician using the page would see was broken.</label>
+        <label><input type="radio" name="p2-integration" value="a">The unit test: its failure names the price rule, <code>isAffordable()</code>.</label>
+        <label><input type="radio" name="p2-integration" value="b">The integration test: it names the part that showed up when it shouldn't have.</label>
+        <label><input type="radio" name="p2-integration" value="c">The system test: it shows exactly what a user would see.</label>
+        <label><input type="radio" name="p2-integration" value="d">They're equally useful, since all three failed.</label>
       </div>
     </div>
 
