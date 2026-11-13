@@ -1,0 +1,368 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mid-Quarter Check-In · Coding with GPT</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!-- HinH's design system, for the developer-tools question. -->
+<link rel="stylesheet" href="quiz/parts.css">
+<link rel="stylesheet" href="ws.css">
+<style>
+.page{max-width:820px;margin:0 auto;display:grid;gap:28px}
+.ws p{margin:0 0 10px;max-width:68ch}
+.ws .lvl{display:inline-block;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;border-radius:3px;padding:1px 7px;margin-right:8px;vertical-align:2px;border:1px solid var(--second);color:var(--head)}
+.ws .lvl.A{background:var(--second);color:#fff}
+.ws .lvl.S{background:var(--head);border-color:var(--head);color:var(--bg)}
+.ws .opts{display:grid;gap:6px;margin-top:4px}
+.ws .opts label{font-family:var(--sans);color:var(--fg);display:flex;gap:8px;align-items:baseline;cursor:pointer}
+.ws .opts input{margin-top:3px}
+.ws .q .stem{font-family:var(--serif);color:var(--head)}
+.ws .q .sub{font-family:var(--sans);color:var(--fg)}
+.ws pre{font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:10px 12px;overflow-x:auto;margin:6px 0;white-space:pre-wrap}
+.ws .scenario{border-left:3px solid var(--second);padding:4px 12px;margin:4px 0 6px;background:var(--bg)}
+.ws .fields{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center}
+.ws .fields label{font-family:var(--sans);color:var(--fg)}
+.ws table{border-collapse:collapse;width:100%}
+.ws th,.ws td{text-align:left;padding:8px;border-top:1px solid var(--line-soft);vertical-align:top}
+.ws th{font-family:var(--serif);font-weight:400;color:var(--head)}
+.ws .cell b{font-family:var(--serif);font-weight:400}
+.ws .cell.solid b{color:var(--ok)} .ws .cell.mid b{color:var(--head)} .ws .cell.low b{color:var(--bad)}
+.ws .cell small{display:block;color:var(--muted);font-family:var(--mono);font-size:12px}
+.ws .item-fb{padding:10px 0;border-top:1px solid var(--line-soft)}
+.ws .item-fb .mark{font-family:var(--mono);font-size:12px;letter-spacing:.06em;margin-right:8px}
+.ws .item-fb .mark.ok{color:var(--ok)} .ws .item-fb .mark.part{color:var(--head)} .ws .item-fb .mark.no{color:var(--bad)}
+.ws .item-fb .more{font-size:14.5px}
+.ws .err{color:var(--bad)}
+.ws .note{background:var(--mark);border-radius:4px;padding:10px 12px}
+.hinh{max-width:620px}
+</style></head><body>
+
+<main class="page">
+  <nav aria-label="Puzzles" style="font-size:14px;letter-spacing:.02em"><a href="index.html" style="color:var(--head);text-underline-offset:3px">← All puzzles</a></nav>
+  <header class="ws">
+    <div class="eyebrow">Coding with GPT · Optional · Counts toward participation</div>
+    <h1>Mid-quarter check-in</h1>
+    <p>Fifteen questions on Sessions 1 through 7, in two parts, and about twenty minutes. Each question is marked:</p>
+    <p><span class="lvl F">Foundational</span>the ideas and terms.<br><span class="lvl A">Applied</span>using them on HinH's code, including two you do in the browser's developer tools.<br><span class="lvl S">Stretch</span>a judgment call between alternatives.</p>
+    <p>When you submit, I'll show you where you stand by part and level, something like “solid on the basics in Part 1, more practice on the Stretch questions in Part 2,” with what to practice next.</p>
+    <p class="note"><b>Please don't use AI for this one.</b> It's a check on where <em>you</em> are, and it only works if it's your own answers. Your first submission under your name is the one that counts. If you want to go back afterward and work a question with AI, take it again with the name <b>Just Checking</b>; those attempts don't count.</p>
+  </header>
+
+  <section class="ws panel">
+    <h2>You</h2>
+    <div class="fields">
+      <label for="first">First name</label><input id="first" type="text" autocomplete="given-name">
+      <label for="last">Last name</label><input id="last" type="text" autocomplete="family-name">
+      <label for="code">Class code</label><input id="code" type="text" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
+    </div>
+    <p class="muted" style="margin-top:10px">The class code is on the Canvas page. Your answers save in this browser as you go, so reloading won't lose them.</p>
+  </section>
+
+  <!-- ===================== Part 1 ===================== -->
+  <section class="ws panel" id="part1">
+    <div class="eyebrow">Sessions 1–5</div>
+    <h2>Part 1 · The Fundamentals</h2>
+
+    <div class="q" data-q="p1-gwt">
+      <div class="stem"><span class="lvl F">Foundational</span>1. Here's a scenario for Trent's part lookup, with the Then left blank. Which Then is best?</div>
+      <div class="scenario"><b>Given</b> HX-2201 is in the catalog, <b>when</b> Trent searches for “HX-2201”, <b>then</b> …</div>
+      <div class="opts">
+        <label><input type="radio" name="p1-gwt" value="a">the results div re-renders with the matching part card.</label>
+        <label><input type="radio" name="p1-gwt" value="b">he sees HX-2201, the blower motor, at $184.00, in stock.</label>
+        <label><input type="radio" name="p1-gwt" value="c">the search works.</label>
+        <label><input type="radio" name="p1-gwt" value="d">the page calls the catalog API with HX-2201.</label>
+      </div>
+    </div>
+
+    <div class="q" data-q="p1-steps">
+      <div class="stem"><span class="lvl F">Foundational</span>2. Before your AI writes any code, you ask it for a plain-language list of the steps it's going to take. Which of the four steps is that?</div>
+      <div class="opts">
+        <label><input type="radio" name="p1-steps" value="a">1 · Focusing and communicating design intent</label>
+        <label><input type="radio" name="p1-steps" value="b">2 · Unpacking what you want into codable steps</label>
+        <label><input type="radio" name="p1-steps" value="c">3 · Effectuating between alternatives</label>
+        <label><input type="radio" name="p1-steps" value="d">4 · Testing and debugging</label>
+      </div>
+    </div>
+
+    <div class="q" data-q="p1-mvc">
+      <div class="stem"><span class="lvl F">Foundational</span>3. Backordered parts should show their stock status in orange. In MVC terms, where does the orange belong?</div>
+      <div class="opts">
+        <label><input type="radio" name="p1-mvc" value="a">The view</label>
+        <label><input type="radio" name="p1-mvc" value="b">The controller</label>
+        <label><input type="radio" name="p1-mvc" value="c">The model</label>
+        <label><input type="radio" name="p1-mvc" value="d">None in particular</label>
+      </div>
+    </div>
+
+    <div class="q" data-q="p1-devtools">
+      <div class="stem"><span class="lvl A">Applied</span>4. In the developer tools: IG-3300's price below is red, and the others are navy. Right-click that price and choose <b>Inspect</b> (or <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>I</kbd> on a Mac, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> on Windows). In the Elements panel and its Styles pane, find:</div>
+      <div class="hinh" id="app" style="margin:8px 0">
+        <div class="hinh-bar">HinH Parts Lookup</div>
+        <div class="hinh-body">
+          <div class="parts-grid">
+            <div class="catalog-part" data-part="HX-2201" data-price="184.00"><span class="num">HX-2201</span><span class="name">Blower motor, 1/2 HP</span><span class="price">$184.00</span><span class="stock">In stock</span></div>
+            <div class="catalog-part" data-part="CP-0450" data-price="22.50"><span class="num">CP-0450</span><span class="name">Run capacitor, 45 µF</span><span class="price">$22.50</span><span class="stock">In stock</span></div>
+            <div class="catalog-part promo" data-part="IG-3300" data-price="61.00"><span class="num">IG-3300</span><span class="name">Hot surface igniter</span><span class="price">$61.00</span><span class="stock">In stock</span></div>
+            <div class="catalog-part backordered" data-part="FL-1620" data-price="14.25"><span class="num">FL-1620</span><span class="name">Filter, 16×20 pleated</span><span class="price">$14.25</span><span class="stock">Backordered</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="fields">
+        <label for="dt-element">The element (its tag and class)</label><input id="dt-element" type="text" spellcheck="false" placeholder="e.g. div.something">
+        <label for="dt-winner">The rule that makes it red (selector, file, line)</label><input id="dt-winner" type="text" spellcheck="false">
+        <label for="dt-loser">A color rule that's crossed out (selector)</label><input id="dt-loser" type="text" spellcheck="false">
+      </div>
+    </div>
+
+    <div class="q" data-q="p1-console">
+      <div class="stem"><span class="lvl A">Applied</span>5. In the Console: this reads HX-2201's price off its card above and compares it to a $50 limit, the way the page reads both from the HTML. <b>First predict</b> what it prints, then open the Console (the Console tab, next to Elements), paste it in, press Enter, and paste what it printed below.</div>
+      <pre>const card = document.querySelector('[data-part="HX-2201"]');
+console.log(card.dataset.price, typeof card.dataset.price, card.dataset.price &lt;= "50");</pre>
+      <div class="sub">Your prediction:</div>
+      <div class="opts">
+        <label><input type="radio" name="p1-console" value="a"><code>184.00 number false</code></label>
+        <label><input type="radio" name="p1-console" value="b"><code>184.00 string true</code></label>
+        <label><input type="radio" name="p1-console" value="c"><code>184 number false</code></label>
+        <label><input type="radio" name="p1-console" value="d"><code>184.00 string false</code></label>
+      </div>
+      <label class="sub" for="console-paste" style="margin-top:6px">What the Console printed:</label>
+      <input id="console-paste" type="text" spellcheck="false" style="font-family:var(--mono)">
+    </div>
+
+    <div class="q" data-q="p1-scenario">
+      <div class="stem"><span class="lvl A">Applied</span>6. The story and its first scenario are below. Which scenario would you add next?</div>
+      <div class="scenario">As Trent the Technician, I want to see only the parts at or under the price the customer gave me, so I can offer a repair they'll say yes to.<br><b>Given</b> a price limit of $50, <b>when</b> Trent searches, <b>then</b> the $22.50 run capacitor and the $14.25 filter appear and the $184 blower motor does not.</div>
+      <div class="opts">
+        <label><input type="radio" name="p1-scenario" value="a">Given a price limit of $22.50, when Trent searches, then the $22.50 run capacitor appears.</label>
+        <label><input type="radio" name="p1-scenario" value="b">Given no price limit, when Trent searches, then every matching part appears.</label>
+        <label><input type="radio" name="p1-scenario" value="c">Given a price limit of $50, when Trent searches, then the parts are sorted from cheapest to most expensive.</label>
+        <label><input type="radio" name="p1-scenario" value="d">Given a price limit of $50, when Trent searches, then the parts show in a two-column grid.</label>
+      </div>
+    </div>
+
+    <div class="q" data-q="p1-data">
+      <div class="stem"><span class="lvl A">Applied</span>7. HinH's jobs sheet stores the price on every job row, so a price change means hunting down every copy. You move list price into a Parts table, one row per part. What should the Jobs table still keep about price?</div>
+      <div class="opts">
+        <label><input type="radio" name="p1-data" value="a">Nothing: look the price up in Parts whenever you need it.</label>
+        <label><input type="radio" name="p1-data" value="b">What the customer was charged on that job.</label>
+        <label><input type="radio" name="p1-data" value="c">The part's name and price, so the jobs tab reads on its own.</label>
+        <label><input type="radio" name="p1-data" value="d">A copy of the current price, refreshed every night.</label>
+      </div>
+    </div>
+
+    <div class="q" data-q="p1-depdir">
+      <div class="stem"><span class="lvl S">Stretch</span>8. Marketing wants IG-3300's price in red on a promo page that runs for one month. A teammate proposes adding <code>.ig3300-promo-page .price { color: red; }</code> to <code>parts.css</code>, HinH's design system. What's your call?</div>
+      <div class="opts">
+        <label><input type="radio" name="p1-depdir" value="a">Put that rule in the promo page's own stylesheet.</label>
+        <label><input type="radio" name="p1-depdir" value="b">If sale prices will come up again, add a general sale style to parts.css and have the page use it.</label>
+        <label><input type="radio" name="p1-depdir" value="c">Keep it in parts.css: one stylesheet for everything is DRYer.</label>
+        <label><input type="radio" name="p1-depdir" value="d">Put <code>style="color: red"</code> on that one price.</label>
+      </div>
+    </div>
+
+    <div class="q" data-q="p1-ai">
+      <div class="stem"><span class="lvl S">Stretch</span>9. Some distributors leave a part's lead time blank. HinH wants an AI to estimate the missing ones. Where does that go?</div>
+      <div class="opts">
+        <label><input type="radio" name="p1-ai" value="a">Behind the interface, in the adapter, with a check on what the AI returns before showParts sees it.</label>
+        <label><input type="radio" name="p1-ai" value="b">Inside showParts, so the logic is all in one place.</label>
+        <label><input type="radio" name="p1-ai" value="c">Nowhere: an AI can't be part of an application.</label>
+        <label><input type="radio" name="p1-ai" value="d">Behind the interface, and change the scenario's Then to “about right.”</label>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== Part 2 ===================== -->
+  <section class="ws panel" id="part2">
+    <div class="eyebrow">Sessions 6–7</div>
+    <h2>Part 2 · The Systems (so far)</h2>
+
+    <div class="q" data-q="p2-stackpipe">
+      <div class="stem"><span class="lvl F">Foundational</span>10. Every HinH release means a day of someone clicking around to make sure nothing broke. Is that a stack problem or a pipeline problem?</div>
+      <div class="opts">
+        <label><input type="radio" name="p2-stackpipe" value="a">Pipeline</label>
+        <label><input type="radio" name="p2-stackpipe" value="b">Stack</label>
+        <label><input type="radio" name="p2-stackpipe" value="c">How the code is organized</label>
+        <label><input type="radio" name="p2-stackpipe" value="d">Can't tell without reading the code</label>
+      </div>
+    </div>
+
+    <div class="q" data-q="p2-pyramid">
+      <div class="stem"><span class="lvl F">Foundational</span>11. A test calls <code>isAffordable("184.00", "50")</code> directly and expects <code>false</code>. Nothing else runs. What kind of test is it?</div>
+      <div class="opts">
+        <label><input type="radio" name="p2-pyramid" value="a">Unit</label>
+        <label><input type="radio" name="p2-pyramid" value="b">Integration</label>
+        <label><input type="radio" name="p2-pyramid" value="c">System</label>
+        <label><input type="radio" name="p2-pyramid" value="d">Feature flag</label>
+      </div>
+    </div>
+
+    <div class="q" data-q="p2-f">
+      <div class="stem"><span class="lvl A">Applied</span>12. Two teams each spend $5,000 to build a feature. Team A's features succeed 10% of the time; Team B's, 50%. What does a <em>successful</em> feature cost each team?</div>
+      <div class="opts">
+        <label><input type="radio" name="p2-f" value="a">$5,000 each</label>
+        <label><input type="radio" name="p2-f" value="b">A: $10,000 · B: $50,000</label>
+        <label><input type="radio" name="p2-f" value="c">A: $50,000 · B: $10,000</label>
+        <label><input type="radio" name="p2-f" value="d">A: $500 · B: $2,500</label>
+      </div>
+    </div>
+
+    <div class="q" data-q="p2-integration">
+      <div class="stem"><span class="lvl A">Applied</span>13. In <a href="s7-three-tests.html">Which test catches it?</a>, a designer renamed the real page's price box from <code>max-price</code> to <code>price-limit</code>. The unit and integration tests passed, and only the system test failed. Why did the integration test pass?</div>
+      <div class="opts">
+        <label><input type="radio" name="p2-integration" value="a">It only checks the rule, isAffordable, which didn't change.</label>
+        <label><input type="radio" name="p2-integration" value="b">It runs against its own test copy of the page, which still says max-price.</label>
+        <label><input type="radio" name="p2-integration" value="c">Tests like that are flaky; it would fail if you ran it again.</label>
+        <label><input type="radio" name="p2-integration" value="d">Nothing Trent sees was broken.</label>
+      </div>
+    </div>
+
+    <div class="q" data-q="p2-niche">
+      <div class="stem"><span class="lvl S">Stretch</span>14. Your team built on a niche framework. Features the AI writes keep failing or taking several tries. What's the best read?</div>
+      <div class="opts">
+        <label><input type="radio" name="p2-niche" value="a">It's a tax on every feature (on <i>f<sub>e</sub></i>). Keep the framework only for a deliberate reason, like performance, security, or what the team knows.</label>
+        <label><input type="radio" name="p2-niche" value="b">Switch to whatever the AI picks by default; it knows best.</label>
+        <label><input type="radio" name="p2-niche" value="c">It's a pipeline problem: add more tests.</label>
+        <label><input type="radio" name="p2-niche" value="d">It mostly hurts <i>s<sub>d</sub></i>: users will want these features less.</label>
+      </div>
+    </div>
+
+    <div class="q" data-q="p2-verify">
+      <div class="stem"><span class="lvl S">Stretch</span>15. After the team adopts an AI coding agent, it generates three times as many changes, and the change fail rate climbs. What's the best move?</div>
+      <div class="opts">
+        <label><input type="radio" name="p2-verify" value="a">Grow test and deploy automation at least as fast as the changes coming in, and spend the time the AI saved on verification.</label>
+        <label><input type="radio" name="p2-verify" value="b">Slow the AI down to what the team can review.</label>
+        <label><input type="radio" name="p2-verify" value="c">Find out who merged the changes that failed.</label>
+        <label><input type="radio" name="p2-verify" value="d">Add a review meeting before every release.</label>
+      </div>
+    </div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Submit</h2>
+    <p class="muted" id="left"></p>
+    <div class="row">
+      <button type="button" id="submit">Submit and see where I stand</button>
+      <span class="muted" id="status" role="status"></span>
+    </div>
+  </section>
+
+  <section class="ws panel" id="results" hidden>
+    <div class="eyebrow">Your results</div>
+    <h2 id="r-head">Where you stand</h2>
+    <p id="r-summary"></p>
+    <table id="r-grid"></table>
+    <h2 style="margin-top:22px">Question by question</h2>
+    <div id="r-items"></div>
+    <div class="row" style="margin-top:14px"><button type="button" class="ghost" id="again">Clear my answers</button></div>
+  </section>
+</main>
+
+<script>
+const QUIZ_URL="https://shrill-wood-3253.acowan.workers.dev/quiz";
+const KEY="cwg-quiz-midq";
+const LEVELS={F:"Foundational",A:"Applied",S:"Stretch"};
+const PARTS={1:"Part 1 · The Fundamentals",2:"Part 2 · The Systems (so far)"};
+const TITLES={"s1-predict-then-run.html":"Predict, then run","s2-read-the-plan.html":"Read the plan before the code","s3-whose-rule.html":"Whose rule is it?",
+  "s3-phone.html":"Breaks at the phone","s4-price.html":"Under a hundred dollars","s4-interface.html":"Where the fix goes","s5-price.html":"The price that wouldn't update",
+  "s7-three-tests.html":"Which test catches it?","syllabus.html":"the Session 6 tech note (syllabus)","terms.html":"Terms, Terms, Terms"};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const QS=[...document.querySelectorAll("[data-q]")].map(el=>el.dataset.q);
+const TEXT_IDS=["first","last","dt-element","dt-winner","dt-loser","console-paste"];
+
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
+function save(){
+  const d={}; TEXT_IDS.forEach(id=>d[id]=$(id).value);
+  document.querySelectorAll("input[type=radio]:checked").forEach(r=>d["r:"+r.name]=r.value);
+  try{ localStorage.setItem(KEY,JSON.stringify(Object.assign(load(),{draft:d}))); }catch(e){}
+  left();
+}
+function restore(){
+  const s=load(), d=s.draft||{};
+  TEXT_IDS.forEach(id=>{ if(d[id]) $(id).value=d[id]; });
+  Object.entries(d).forEach(([k,v])=>{ if(k.startsWith("r:")){ const r=document.querySelector(`input[name="${k.slice(2)}"][value="${v}"]`); if(r) r.checked=true; } });
+  try{ $("code").value=localStorage.getItem("cwg-code")||""; }catch(e){}
+  if(s.result) show(s.result);
+  left();
+}
+const pick=n=>{ const r=document.querySelector(`input[name="${n}"]:checked`); return r?r.value:""; };
+function answers(){
+  const a={};
+  QS.forEach(q=>{ a[q]={pick:pick(q)}; });
+  a["p1-devtools"]={element:$("dt-element").value,winner:$("dt-winner").value,loser:$("dt-loser").value};
+  a["p1-console"]={predict:pick("p1-console"),paste:$("console-paste").value};
+  return a;
+}
+function unanswered(){
+  const a=answers(), n=[];
+  QS.forEach((q,i)=>{
+    const x=a[q];
+    const blank = q==="p1-devtools" ? !(x.element||x.winner||x.loser) : q==="p1-console" ? !(x.predict||x.paste) : !x.pick;
+    if(blank) n.push(i+1);
+  });
+  return n;
+}
+function left(){ const n=unanswered(); $("left").textContent = n.length ? `Not answered yet: ${n.join(", ")}. You can submit anyway.` : "Every question has an answer."; }
+
+function label(got,of){ const p=of?got/of:0; return p>=0.8?["solid","Solid"]:p>=0.5?["mid","Getting there"]:["low","More practice"]; }
+function show(r){
+  $("results").hidden=false;
+  const cells={}; r.grid.forEach(g=>cells[g.part+g.level]=g);
+  let h="<tr><th></th>"+Object.values(LEVELS).map(l=>`<th>${l}</th>`).join("")+"</tr>";
+  const strong={1:[],2:[]}, practice={1:[],2:[]};
+  [1,2].forEach(p=>{
+    h+=`<tr><th>${PARTS[p]}</th>`;
+    Object.keys(LEVELS).forEach(l=>{
+      const g=cells[p+l]; if(!g){ h+="<td></td>"; return; }
+      const [cls,txt]=label(g.got,g.of);
+      if(cls==="solid") strong[p].push(LEVELS[l]); if(cls==="low") practice[p].push(LEVELS[l]);
+      h+=`<td class="cell ${cls}"><b>${txt}</b><small>${+g.got.toFixed(2)} of ${g.of}</small></td>`;
+    });
+    h+="</tr>";
+  });
+  $("r-grid").innerHTML=h;
+  let sum = r.justChecking ? "This attempt is marked Just Checking, so it doesn't count. " : "Saved. Thanks for taking it. ";
+  const list=a=>a.length>1?a.slice(0,-1).join(", ")+" and "+a.at(-1):a[0];
+  [1,2].forEach(p=>{
+    const bits=[];
+    if(strong[p].length) bits.push(`solid on ${list(strong[p])}`);
+    if(practice[p].length) bits.push(`more practice on ${list(practice[p])}`);
+    if(!bits.length) bits.push("getting there");
+    sum+=`Part ${p}: ${bits.join("; ")}. `;
+  });
+  sum += (practice[1].length||practice[2].length) ? "The questions below link to the puzzles and terms that cover what to practice." : "The notes below say what to tighten up.";
+  $("r-summary").textContent=sum;
+  const n={}; QS.forEach((q,i)=>n[q]=i+1);
+  $("r-items").innerHTML=r.items.map(it=>{
+    const [cls,mk]=it.credit>=1?["ok","RIGHT"]:it.credit>0?["part","PARTLY"]:["no","NOT QUITE"];
+    const links=(it.credit<1&&it.practice?it.practice:[]).map(p=>`<a href="${esc(p)}">${esc(TITLES[p.split("?")[0]]||p)}${p.includes("?s=")?" (through Session "+p.split("=")[1]+")":""}</a>`).join(" · ");
+    return `<div class="item-fb"><span class="mark ${cls}">${mk}</span><b>${n[it.id]}.</b> <span class="muted">${LEVELS[it.level]}</span><div>${esc(it.explain).replace(/`([^`]+)`/g,"<code>$1</code>")}</div>${links?`<div class="more">Practice: ${links}</div>`:""}</div>`;
+  }).join("");
+}
+
+async function submit(){
+  const first=$("first").value.trim(), last=$("last").value.trim(), code=$("code").value.trim();
+  if(!first||!last){ $("status").textContent="Put in your first and last name first."; $("first").focus(); return; }
+  if(!code){ $("status").textContent="Put in the class code (it's on the Canvas page)."; $("code").focus(); return; }
+  try{ localStorage.setItem("cwg-code",code); }catch(e){}
+  $("submit").disabled=true; $("status").textContent="Submitting…";
+  try{
+    const res=await fetch(QUIZ_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({code,first,last,answers:answers()})});
+    const d=await res.json().catch(()=>({}));
+    if(!res.ok){ $("status").innerHTML=`<span class="err">${esc(d.error||("Something went wrong ("+res.status+")."))}</span>`; return; }
+    try{ localStorage.setItem(KEY,JSON.stringify(Object.assign(load(),{result:d}))); }catch(e){}
+    $("status").textContent=d.justChecking?"Submitted as Just Checking.":"Submitted.";
+    show(d); $("results").scrollIntoView({behavior:"smooth",block:"start"});
+  }catch(e){ $("status").innerHTML='<span class="err">Couldn\'t reach the server. Check your connection and try again; your answers are still here.</span>'; }
+  finally{ $("submit").disabled=false; }
+}
+
+document.addEventListener("input",save); document.addEventListener("change",save);
+$("submit").addEventListener("click",submit);
+$("again").addEventListener("click",()=>{
+  try{ localStorage.removeItem(KEY); }catch(e){}
+  document.querySelectorAll("input[type=radio]").forEach(r=>r.checked=false);
+  TEXT_IDS.filter(id=>!/first|last/.test(id)).forEach(id=>$(id).value="");
+  $("results").hidden=true; $("status").textContent=""; save(); window.scrollTo(0,0);
+});
+restore();
+</script>
+<div class="site-version" style="position:fixed;right:6px;bottom:4px;font:10px/1 system-ui,sans-serif;color:#999;opacity:.7;pointer-events:none">__SITE_VERSION__</div>
+</body></html>
