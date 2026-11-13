@@ -96,7 +96,7 @@ const BEST = { "p1-gwt": "b", "p1-steps": "b", "p1-mvc": "a", "p1-scenario": "a"
   "p2-stackpipe": "a", "p2-pyramid": "a", "p2-f": "c", "p2-integration": "b", "p2-niche": "a", "p2-verify": "a" };
 const perfect = () => ({ ...Object.fromEntries(Object.entries(BEST).map(([k, v]) => [k, { pick: v }])),
   "p1-devtools": { element: "span.price", winner: ".promo .price parts.css:110", loser: ".catalog-part .price" },
-  "p1-console": { predict: "b", paste: "184.00 string true" } });
+  "p1-console": { predict: "b", paste: "112.00 string true" } });
 
 test("quiz key: every page option has an explanation, and the best answers score full marks", () => {
   for (const q of QUIZ) if (q.type === "mc") for (const o of ["a", "b", "c", "d"]) assert.ok(q.explain[o], `${q.id} option ${o}`);
@@ -108,12 +108,12 @@ test("quiz key: partial credit, and the hands-on items aren't fussy", () => {
   const a = perfect();
   a["p1-mvc"] = { pick: "b" };                                                           // reasonable alternative
   a["p1-devtools"] = { element: "<span class=\"price\">", winner: "", loser: ".catalog-part .price" }; // one of two scored; bonus doesn't count
-  a["p1-console"] = { predict: "a", paste: "  '184.00'  'string' true  VM123:2" };        // wrong prediction, messy paste
+  a["p1-console"] = { predict: "a", paste: "  '112.00'  'string' true  VM123:2" };        // wrong prediction, messy paste
   const it = Object.fromEntries(gradeQuiz(a).items.map(i => [i.id, i]));
   assert.equal(it["p1-mvc"].credit, 0.5);
   assert.equal(it["p1-devtools"].credit, 0.5); assert.match(it["p1-devtools"].explain, /Bonus: right/);
   assert.equal(it["p1-console"].credit, 1); assert.equal(it["p1-console"].prediction, false);
-  assert.equal(gradeQuiz({ "p1-console": { paste: "184.00" } }).items.find(i => i.id === "p1-console").credit, 0);
+  assert.equal(gradeQuiz({ "p1-console": { paste: "112.00" } }).items.find(i => i.id === "p1-console").credit, 0);
   assert.equal(gradeQuiz({ "p1-devtools": { loser: ".promo .price" } }).items.find(i => i.id === "p1-devtools").credit, 0);
 });
 test("quiz key: Just Checking", () => {

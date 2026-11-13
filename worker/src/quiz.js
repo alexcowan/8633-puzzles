@@ -52,7 +52,7 @@ export const QUIZ = [
   { id: "p1-console", part: 1, level: "A", s: 4, type: "console",
     predictRight: "b",
     explain: {
-      ok: "You ran it. It prints 184.00 string true: a data attribute is always text, and text compares character by character, so '1' before '5' makes \"184.00\" <= \"50\" true.",
+      ok: "You ran it. It prints 112.00 string true: a data attribute is always text, and text compares character by character, so '1' before '5' makes \"112.00\" <= \"50\" true.",
       predictRight: "And your prediction was right.",
       predictWrong: "Your prediction was different, which is the useful part: the value is text, not a number, so the comparison goes alphabetically. Number(...) at the edge fixes it.",
       paste: "I couldn't find the output in what you pasted. Paste the line the Console prints after you press Enter (it should have three values on it).",

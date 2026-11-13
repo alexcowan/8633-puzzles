@@ -105,7 +105,7 @@
           <div class="parts-grid">
             <div class="catalog-part" data-part="HX-2201" data-price="184.00"><span class="num">HX-2201</span><span class="name">Blower motor, 1/2 HP</span><span class="price">$184.00</span><span class="stock">In stock</span></div>
             <div class="catalog-part" data-part="CP-0450" data-price="22.50"><span class="num">CP-0450</span><span class="name">Run capacitor, 45 µF</span><span class="price">$22.50</span><span class="stock">In stock</span></div>
-            <div class="catalog-part promo" data-part="IG-3300" data-price="61.00"><span class="num">IG-3300</span><span class="name">Hot surface igniter</span><span class="price">$61.00</span><span class="stock">In stock</span></div>
+            <div class="catalog-part promo" data-part="IG-3300" data-price="112.00"><span class="num">IG-3300</span><span class="name">Hot surface igniter</span><span class="price">$112.00</span><span class="stock">In stock</span></div>
             <div class="catalog-part backordered" data-part="FL-1620" data-price="14.25"><span class="num">FL-1620</span><span class="name">Filter, 16×20 pleated</span><span class="price">$14.25</span><span class="stock">Backordered</span></div>
           </div>
         </div>
@@ -113,16 +113,18 @@
     </div>
 
     <div class="q" data-q="p1-console">
-      <div class="stem"><span class="lvl A">Applied</span>5. In the Console: HX-2201's price is stored on its card in the HTML, as <code>data-price="184.00"</code>. The JavaScript below reads that price and checks whether it's at or under $50. <b>First predict</b> what it prints. Then copy <b>both lines</b> (the button grabs them), paste them into the Console (the tab next to Elements) together, press Enter, and paste what it printed below.</div>
-      <pre id="console-code">const card = document.querySelector('[data-part="HX-2201"]');
+      <div class="stem"><span class="lvl A">Applied</span>5. In the Console: IG-3300's price is stored on its card in the HTML, as <code>data-price="112.00"</code>. The JavaScript below reads that price and checks whether it's at or under $50. <b>First predict</b> what it prints. Then copy <b>all of it</b> (the button grabs it), paste it into the Console (the tab next to Elements), press Enter, and paste what it printed below.</div>
+      <pre id="console-code">const card = document.querySelector('[data-part="IG-3300"]');
+// typeof says what kind of value something is: "number", "string", and so on
 console.log(card.dataset.price, typeof card.dataset.price, card.dataset.price &lt;= "50");</pre>
-      <div class="row" style="margin:-2px 0 8px"><button type="button" class="ghost" id="copy-code">Copy both lines</button><span class="muted" id="copy-status" role="status"></span></div>
+      <div class="row" style="margin:-2px 0 8px"><button type="button" class="ghost" id="copy-code">Copy the code</button><span class="muted" id="copy-status" role="status"></span></div>
+      <p class="muted" style="font-size:14.5px;margin:0 0 8px">Why this works: the Console runs JavaScript right inside this page, so code you paste there can read the same HTML you inspected in question 4, including IG-3300's card. Nothing is installed or saved; it just runs once.</p>
       <div class="sub">Your prediction:</div>
       <div class="opts">
-        <label><input type="radio" name="p1-console" value="a"><code>184.00 number false</code></label>
-        <label><input type="radio" name="p1-console" value="b"><code>184.00 string true</code></label>
-        <label><input type="radio" name="p1-console" value="c"><code>184 number false</code></label>
-        <label><input type="radio" name="p1-console" value="d"><code>184.00 string false</code></label>
+        <label><input type="radio" name="p1-console" value="a"><code>112.00 number false</code></label>
+        <label><input type="radio" name="p1-console" value="b"><code>112.00 string true</code></label>
+        <label><input type="radio" name="p1-console" value="c"><code>112 number false</code></label>
+        <label><input type="radio" name="p1-console" value="d"><code>112.00 string false</code></label>
       </div>
       <label class="sub" for="console-paste" style="margin-top:6px">What the Console printed:</label>
       <input id="console-paste" type="text" spellcheck="false" style="font-family:var(--mono)">
@@ -377,8 +379,8 @@ async function submit(){
 document.addEventListener("input",save); document.addEventListener("change",save);
 $("submit").addEventListener("click",submit);
 $("copy-code").addEventListener("click",async()=>{
-  try{ await navigator.clipboard.writeText($("console-code").textContent); $("copy-status").textContent="Copied both lines. Paste them into the Console and press Enter."; }
-  catch(e){ $("copy-status").textContent="Your browser blocked the copy: select both lines and copy them by hand."; }
+  try{ await navigator.clipboard.writeText($("console-code").textContent); $("copy-status").textContent="Copied. Paste it into the Console and press Enter."; }
+  catch(e){ $("copy-status").textContent="Your browser blocked the copy: select all of it and copy it by hand."; }
 });
 $("again").addEventListener("click",()=>{
   try{ localStorage.removeItem(KEY); }catch(e){}

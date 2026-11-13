@@ -152,7 +152,7 @@ test("quiz.html: sends name, code and every answer, then shows where the student
   await page.locator("#first").fill("Ada"); await page.locator("#last").fill("Lovelace");
   await page.locator('input[name="p1-gwt"][value="b"]').check();
   await page.locator('input[name="p1-console"][value="b"]').check();
-  await page.locator("#console-paste").fill("184.00 string true");
+  await page.locator("#console-paste").fill("112.00 string true");
   await page.locator("#dt-winner").fill(".promo .price parts.css:110");
   // The real stylesheet makes IG-3300's price red and the others navy, and `.promo .price` is what does it.
   const colors = await page.evaluate(() => [...document.querySelectorAll(".catalog-part .price")].map(e => getComputedStyle(e).color));
@@ -163,7 +163,7 @@ test("quiz.html: sends name, code and every answer, then shows where the student
   const b = sent.filter(s => s.path === "/quiz").at(-1).body;
   assert.equal(b.first, "Ada"); assert.equal(b.last, "Lovelace"); assert.equal(b.code, "class123");
   assert.equal(b.answers["p1-gwt"].pick, "b");
-  assert.equal(b.answers["p1-console"].paste, "184.00 string true");
+  assert.equal(b.answers["p1-console"].paste, "112.00 string true");
   assert.match(b.answers["p1-devtools"].winner, /promo/);
   assert.equal(Object.keys(b.answers).length, 15);
   const shown = await page.locator("#results").innerText();
