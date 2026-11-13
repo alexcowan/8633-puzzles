@@ -92,10 +92,10 @@ export const QUIZ = [
   { id: "p1-ai", part: 1, level: "S", s: 4, type: "mc",
     credit: { a: 1 },
     explain: {
-      a: "Right. The AI goes behind the interface, and the adapter checks what comes back, so showParts still gets the same Then for the same Given. One side of an interface can be probabilistic only if the other side isn't.",
-      b: "Then the story's implementation knows about the AI, and its Then changes run to run. You can't write a test for that.",
+      a: "Right. The AI goes behind the adapter, and the adapter checks what comes back, so the page's code still gets a sensible value in the shape it expects. One side of an interface can be probabilistic only if the other side isn't.",
+      b: "Then the page's code has to know about the AI, and the same search can come back different each time. You can't write a dependable test for that.",
       c: "An AI can absolutely be part of an application. It just can't be the part you need to be deterministic.",
-      d: "“About right” isn't a Then you can check. Write the check into the adapter instead.",
+      d: "“About right” isn't something a test can check. Put the check in the adapter instead, and keep the page's tests exact.",
     },
     practice: ["s4-interface.html", "terms.html?s=4"] },
 
@@ -115,7 +115,7 @@ export const QUIZ = [
     explain: {
       a: "Right. One function, fixed inputs, nothing else running: a unit test. When it fails, it names the function.",
       b: "An integration test runs pieces together, like the controller against a copy of the page.",
-      c: "A system test drives the real page the way Trent would.",
+      c: "A system test drives the real page the way a user would.",
       d: "A feature flag runs in production on live users. This runs in seconds on every commit.",
     },
     practice: ["s7-three-tests.html"] },
@@ -133,17 +133,17 @@ export const QUIZ = [
   { id: "p2-integration", part: 2, level: "A", s: 7, type: "mc",
     credit: { b: 1 },
     explain: {
-      b: "Right. The integration test used its own copy of the page, which still said max-price. Test copies of the page can drift from the real one, and only a test against the real page sees that.",
-      a: "The unit test passed for that reason. The integration test does run the controller against a page, just not the real one.",
+      b: "Right. The integration test used its own copy of the page, which still said max-price. A copy kept with the tests can drift from the real page, and only a test against the real page sees that.",
+      a: "That's why the unit test passed. The integration test does run the filter code against a page, just not the real one.",
       c: "The tests are deterministic. They passed because neither looked at the real page's HTML.",
-      d: "The system test caught it, so the change did break something Trent would see.",
+      d: "The system test caught it, so the rename did break something a technician would see.",
     },
     practice: ["s7-three-tests.html"] },
 
   { id: "p2-niche", part: 2, level: "S", s: 6, type: "mc",
     credit: { a: 1 },
     explain: {
-      a: "Right. AI writes much better code for popular stacks, so a niche one charges a tax on every feature, in f-e. It can still be the right call, but it should be a deliberate one.",
+      a: "Right. AI writes much better code for popular stacks, so a niche one charges a tax on every feature the team ships. It can still be the right call, but it should be a deliberate one.",
       b: "The popular choice is often right, but the AI doesn't know your scale, security exposure, or what your team knows. “The AI picked it” is how you got a stack, not whether to keep it.",
       c: "More tests catch the failures. They don't make the AI any better at writing for the stack.",
       d: "Nothing here says users want the features any less. The cost shows up in what the team can ship.",

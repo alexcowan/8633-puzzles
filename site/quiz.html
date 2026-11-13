@@ -168,12 +168,12 @@ console.log(card.dataset.price, typeof card.dataset.price, card.dataset.price &l
     </div>
 
     <div class="q" data-q="p1-ai">
-      <div class="stem"><span class="lvl S">Stretch</span>9. Some distributors leave a part's lead time blank. HinH wants an AI to estimate the missing ones. Where does that go?</div>
+      <div class="stem"><span class="lvl S">Stretch</span>9. HinH's parts page gets each part's details from the distributor through an <b>adapter</b>: a small piece of code that turns the distributor's data into the shape the page's code expects. Some distributors leave a part's lead time blank, and HinH wants an AI to estimate the missing ones. Where should this AI-powered intervention go?</div>
       <div class="opts">
-        <label><input type="radio" name="p1-ai" value="a">Behind the interface, in the adapter, with a check on what the AI returns before showParts sees it.</label>
-        <label><input type="radio" name="p1-ai" value="b">Inside showParts, so the logic is all in one place.</label>
+        <label><input type="radio" name="p1-ai" value="a">In the adapter, with a check that the AI's estimate makes sense (say, a number of days in a reasonable range) before the page gets it.</label>
+        <label><input type="radio" name="p1-ai" value="b">In the page's own code, so all the logic is in one place.</label>
         <label><input type="radio" name="p1-ai" value="c">Nowhere: an AI can't be part of an application.</label>
-        <label><input type="radio" name="p1-ai" value="d">Behind the interface, and change the scenario's Then to “about right.”</label>
+        <label><input type="radio" name="p1-ai" value="d">In the adapter, and loosen the page's tests so they accept estimates that are “about right.”</label>
       </div>
     </div>
   </section>
@@ -194,7 +194,7 @@ console.log(card.dataset.price, typeof card.dataset.price, card.dataset.price &l
     </div>
 
     <div class="q" data-q="p2-pyramid">
-      <div class="stem"><span class="lvl F">Foundational</span>11. A test calls <code>isAffordable("184.00", "50")</code> directly and expects <code>false</code>. Nothing else runs. What kind of test is it?</div>
+      <div class="stem"><span class="lvl F">Foundational</span>11. A test calls <code>isAffordable("184.00", "50")</code> with ‘fake’ inputs and expects <code>false</code>. Nothing else runs. What kind of test is it?</div>
       <div class="opts">
         <label><input type="radio" name="p2-pyramid" value="a">Unit</label>
         <label><input type="radio" name="p2-pyramid" value="b">Integration</label>
@@ -214,22 +214,28 @@ console.log(card.dataset.price, typeof card.dataset.price, card.dataset.price &l
     </div>
 
     <div class="q" data-q="p2-integration">
-      <div class="stem"><span class="lvl A">Applied</span>13. In <a href="s7-three-tests.html">Which test catches it?</a>, a designer renamed the real page's price box from <code>max-price</code> to <code>price-limit</code>. The unit and integration tests passed, and only the system test failed. Why did the integration test pass?</div>
+      <div class="stem"><span class="lvl A">Applied</span>13. HinH's parts page has three automated tests for its price filter:</div>
+      <ul class="sub" style="margin:4px 0 6px;padding-left:22px">
+        <li>a <b>unit</b> test that calls the price rule, <code>isAffordable()</code>, with fixed inputs;</li>
+        <li>an <b>integration</b> test that runs the filter code against a copy of the page's HTML that's kept with the tests;</li>
+        <li>a <b>system</b> test that opens the real page in a browser and types a price into the price box.</li>
+      </ul>
+      <div class="stem">A designer renamed the real page's price box from <code>max-price</code> to <code>price-limit</code>. The unit and integration tests passed, and only the system test failed. Why did the integration test pass?</div>
       <div class="opts">
-        <label><input type="radio" name="p2-integration" value="a">It only checks the rule, isAffordable, which didn't change.</label>
-        <label><input type="radio" name="p2-integration" value="b">It runs against its own test copy of the page, which still says max-price.</label>
+        <label><input type="radio" name="p2-integration" value="a">It only checks the price rule, which didn't change.</label>
+        <label><input type="radio" name="p2-integration" value="b">Its copy of the page, kept with the tests, still says max-price.</label>
         <label><input type="radio" name="p2-integration" value="c">Tests like that are flaky; it would fail if you ran it again.</label>
-        <label><input type="radio" name="p2-integration" value="d">Nothing Trent sees was broken.</label>
+        <label><input type="radio" name="p2-integration" value="d">Nothing a technician using the page would see was broken.</label>
       </div>
     </div>
 
     <div class="q" data-q="p2-niche">
       <div class="stem"><span class="lvl S">Stretch</span>14. Your team built on a niche framework. Features the AI writes keep failing or taking several tries. What's the best read?</div>
       <div class="opts">
-        <label><input type="radio" name="p2-niche" value="a">It's a tax on every feature (on <i>f<sub>e</sub></i>). Keep the framework only for a deliberate reason, like performance, security, or what the team knows.</label>
+        <label><input type="radio" name="p2-niche" value="a">It's a tax on every feature the team ships. Keep the framework only for a deliberate reason, like performance, security, or what the team knows.</label>
         <label><input type="radio" name="p2-niche" value="b">Switch to whatever the AI picks by default; it knows best.</label>
         <label><input type="radio" name="p2-niche" value="c">It's a pipeline problem: add more tests.</label>
-        <label><input type="radio" name="p2-niche" value="d">It mostly hurts <i>s<sub>d</sub></i>: users will want these features less.</label>
+        <label><input type="radio" name="p2-niche" value="d">It mostly means users will want these features less.</label>
       </div>
     </div>
 
