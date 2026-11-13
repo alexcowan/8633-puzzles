@@ -95,9 +95,10 @@
       <div class="stem"><span class="lvl A">Applied</span>4. In the developer tools: IG-3300's price below is red, and the others are navy. Right-click that price and choose <b>Inspect</b> (or <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>I</kbd> on a Mac, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> on Windows). In the Elements panel and its Styles pane, find:</div>
       <div class="fields">
         <label for="dt-element">The element (its tag and its assigned CSS class)</label><input id="dt-element" type="text" spellcheck="false" placeholder="e.g. &lt;div class=&quot;something&quot;&gt;">
-        <label for="dt-winner">The rule that makes it red (its full selector, file, and line)</label><input id="dt-winner" type="text" spellcheck="false">
-        <label for="dt-loser">A color rule that's crossed out (selector)</label><input id="dt-loser" type="text" spellcheck="false">
+        <label for="dt-winner">The rule that makes it red (selector and declaration, file and line)</label><input id="dt-winner" type="text" spellcheck="false" placeholder="e.g. .card .title { font-size: 15px; }  styles.css, line 12">
+        <label for="dt-loser">Bonus (optional, not scored): a color rule that's crossed out (selector)*</label><input id="dt-loser" type="text" spellcheck="false">
       </div>
+      <p class="muted" style="font-size:14.5px;margin:6px 0 0">* In this case, CSS precedence is doing an override: more than one rule sets this price's color, and only one of them wins.</p>
       <div class="hinh" id="app" style="margin:14px 0 4px">
         <div class="hinh-bar">HinH Parts Lookup</div>
         <div class="hinh-body">
@@ -250,6 +251,8 @@ console.log(card.dataset.price, typeof card.dataset.price, card.dataset.price &l
     <table id="r-grid"></table>
     <h2 style="margin-top:22px">Question by question</h2>
     <div id="r-items"></div>
+    <h2 style="margin-top:22px">What to review</h2>
+    <div id="r-review"></div>
     <div class="row" style="margin-top:14px"><button type="button" class="ghost" id="again">Clear my answers</button></div>
   </section>
 </main>
@@ -261,7 +264,12 @@ const LEVELS={F:"Foundational",A:"Applied",S:"Stretch"};
 const PARTS={1:"Part 1 · The Fundamentals",2:"Part 2 · The Systems (so far)"};
 const TITLES={"s1-predict-then-run.html":"Predict, then run","s2-read-the-plan.html":"Read the plan before the code","s3-whose-rule.html":"Whose rule is it?",
   "s3-phone.html":"Breaks at the phone","s4-price.html":"Under a hundred dollars","s4-interface.html":"Where the fix goes","s5-price.html":"The price that wouldn't update",
-  "s7-three-tests.html":"Which test catches it?","syllabus.html":"the Session 6 tech note (syllabus)","terms.html":"Terms, Terms, Terms"};
+  "s7-three-tests.html":"Which test catches it?","terms.html":"Terms, Terms, Terms"};
+// The tech note for each session, and practice from the notes' exhibits where there's no puzzle yet.
+const NOTES={1:"Storytelling with Vibe Code",2:"Vibe Coding for MBAs",3:"The Jobs & Economics of UIs",4:"The Jobs & Economics of Algorithms",
+  5:"The Jobs & Economics of Models",6:"Diagnosing the Economics of Your Code",7:"Diagnosing the Economics of Your Product Pipeline"};
+const TRY={6:"Calculate F for your team with Exhibit 3, then work through Exhibit 4's stack discussion guide for your project.",
+  7:"Add one unit test to your project and have GitHub run it on every push (Exhibit 5). Exhibit 4 walks one bug through all three test levels."};
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const QS=[...document.querySelectorAll("[data-q]")].map(el=>el.dataset.q);
@@ -335,6 +343,17 @@ function show(r){
     const links=(it.credit<1&&it.practice?it.practice:[]).map(p=>`<a href="${esc(p)}">${esc(TITLES[p.split("?")[0]]||p)}${p.includes("?s=")?" (through Session "+p.split("=")[1]+")":""}</a>`).join(" · ");
     return `<div class="item-fb"><span class="mark ${cls}">${mk}</span><b>${n[it.id]}.</b> <span class="muted">${LEVELS[it.level]}</span><div>${esc(it.explain).replace(/`([^`]+)`/g,"<code>$1</code>")}</div>${links?`<div class="more">Practice: ${links}</div>`:""}</div>`;
   }).join("");
+  // What to review: missed questions grouped by the session (and tech note) that covers them, with practice.
+  const bySession={};
+  r.items.filter(it=>it.credit<1).forEach(it=>{ const s=it.s||0; (bySession[s]=bySession[s]||{qs:[],practice:new Set()}).qs.push(n[it.id]); (it.practice||[]).forEach(p=>bySession[s].practice.add(p)); });
+  const sessions=Object.keys(bySession).map(Number).sort((a,b)=>a-b);
+  $("r-review").innerHTML = !sessions.length ? '<p>Nothing to review: every question was fully right.</p>' :
+    '<p class="muted">The tech notes are on the Canvas page for each session.</p>' + sessions.map(s=>{
+      const g=bySession[s];
+      const links=[...g.practice].map(p=>`<a href="${esc(p)}">${esc(TITLES[p.split("?")[0]]||p)}${p.includes("?s=")?" (through Session "+p.split("=")[1]+")":""}</a>`).join(" · ");
+      return `<div class="item-fb"><b>Session ${s}</b> · <i>${esc(NOTES[s]||"")}</i> <span class="muted">(question${g.qs.length>1?"s":""} ${g.qs.join(", ")})</span>`+
+        (links?`<div class="more">Practice: ${links}</div>`:"")+(TRY[s]?`<div class="more">Try: ${esc(TRY[s])}</div>`:"")+`</div>`;
+    }).join("");
 }
 
 async function submit(){

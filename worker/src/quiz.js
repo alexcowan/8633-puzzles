@@ -41,7 +41,8 @@ export const QUIZ = [
     // In site/quiz/parts.css: `.catalog-part .price` (line 88) sets the navy; `.promo .price` (line 110) wins.
     winner: { must: ["promo", "price"], line: 110 }, loser: { must: ["catalog-part", "price"] }, element: { must: ["span", "price"] },
     explain: {
-      ok: "Right: the price is a span with class price; `.promo .price` (parts.css, line 110) sets the red, and `.catalog-part .price` (line 88) is crossed out. Both are one class plus one class, equally specific, so the later one wins.",
+      ok: "Right: the price is a span with class price, and `.promo .price` (parts.css, line 110) sets the red with `color: #C0392B`.",
+      bonusRight: "Bonus: right too. `.catalog-part .price` (line 88) is crossed out. Both selectors are one class plus one class, equally specific, so the later rule wins.",
       element: "The element is the price itself: a span with class price. Right-click the price, not the card, and choose Inspect.",
       winner: "The winning rule is the one on top in Styles with a color that isn't crossed out: `.promo .price`, in parts.css around line 110.",
       loser: "Look below the winner in Styles for a color with a line through it: `.catalog-part .price`, around line 88.",
@@ -107,7 +108,7 @@ export const QUIZ = [
       c: "Code organization matters, but the day of manual checking is the release process.",
       d: "You can tell from where the time goes: it's spent releasing, not building.",
     },
-    practice: ["terms.html", "syllabus.html"] },
+    practice: [] },
 
   { id: "p2-pyramid", part: 2, level: "F", s: 7, type: "mc",
     credit: { a: 1 },
@@ -127,7 +128,7 @@ export const QUIZ = [
       b: "Close, but the other way round: the team that succeeds less pays more per success.",
       d: "Divide by the success rate: $5,000 / 0.10 and $5,000 / 0.50.",
     },
-    practice: ["syllabus.html"] },
+    practice: [] },
 
   { id: "p2-integration", part: 2, level: "A", s: 7, type: "mc",
     credit: { b: 1 },
@@ -147,7 +148,7 @@ export const QUIZ = [
       c: "More tests catch the failures. They don't make the AI any better at writing for the stack.",
       d: "Nothing here says users want the features any less. The cost shows up in what the team can ship.",
     },
-    practice: ["syllabus.html"] },
+    practice: [] },
 
   { id: "p2-verify", part: 2, level: "S", s: 7, type: "mc",
     credit: { a: 1, b: 0.5 },
@@ -182,14 +183,19 @@ export function gradeItem(q, a) {
     return { credit, explain };
   }
   if (q.type === "devtools") {
+    // Scored on the element and the winning rule, half each. The crossed-out rule is an optional bonus:
+    // it gets feedback but no credit, and a blank bonus gets no comment.
     const parts = [
       ["element", has(a.element, q.element.must)],
       ["winner", has(a.winner, q.winner.must)],
-      ["loser", has(a.loser, q.loser.must) && !has(a.loser, ["promo"])],
     ];
     const got = parts.filter(p => p[1]).length;
-    const credit = Math.round((got / 3) * 100) / 100;
-    const explain = got === 3 ? q.explain.ok : parts.filter(p => !p[1]).map(p => q.explain[p[0]]).join(" ");
+    const credit = got / 2;
+    let explain = got === 2 ? q.explain.ok : parts.filter(p => !p[1]).map(p => q.explain[p[0]]).join(" ");
+    if (String(a.loser || "").trim()) {
+      const bonus = has(a.loser, q.loser.must) && !has(a.loser, ["promo"]);
+      explain += " " + (bonus ? q.explain.bonusRight : "Bonus: " + q.explain.loser);
+    }
     return { credit, explain };
   }
   if (q.type === "console") {
@@ -206,7 +212,7 @@ export function gradeItem(q, a) {
 
 export function gradeQuiz(answers) {
   answers = answers || {};
-  const items = QUIZ.map(q => ({ id: q.id, part: q.part, level: q.level, ...gradeItem(q, answers[q.id]), practice: q.practice }));
+  const items = QUIZ.map(q => ({ id: q.id, part: q.part, level: q.level, s: q.s, ...gradeItem(q, answers[q.id]), practice: q.practice }));
   const grid = {};
   for (const it of items) {
     const k = it.part + it.level;

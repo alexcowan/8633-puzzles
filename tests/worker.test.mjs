@@ -107,11 +107,11 @@ test("quiz key: every page option has an explanation, and the best answers score
 test("quiz key: partial credit, and the hands-on items aren't fussy", () => {
   const a = perfect();
   a["p1-mvc"] = { pick: "b" };                                                           // reasonable alternative
-  a["p1-devtools"] = { element: "<span class=\"price\">", winner: "promo price", loser: "" }; // two of three
+  a["p1-devtools"] = { element: "<span class=\"price\">", winner: "", loser: ".catalog-part .price" }; // one of two scored; bonus doesn't count
   a["p1-console"] = { predict: "a", paste: "  '184.00'  'string' true  VM123:2" };        // wrong prediction, messy paste
   const it = Object.fromEntries(gradeQuiz(a).items.map(i => [i.id, i]));
   assert.equal(it["p1-mvc"].credit, 0.5);
-  assert.equal(it["p1-devtools"].credit, 0.67);
+  assert.equal(it["p1-devtools"].credit, 0.5); assert.match(it["p1-devtools"].explain, /Bonus: right/);
   assert.equal(it["p1-console"].credit, 1); assert.equal(it["p1-console"].prediction, false);
   assert.equal(gradeQuiz({ "p1-console": { paste: "184.00" } }).items.find(i => i.id === "p1-console").credit, 0);
   assert.equal(gradeQuiz({ "p1-devtools": { loser: ".promo .price" } }).items.find(i => i.id === "p1-devtools").credit, 0);
