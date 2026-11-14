@@ -50,9 +50,8 @@
     <div class="fields">
       <label for="first">First name</label><input id="first" type="text" autocomplete="given-name">
       <label for="last">Last name</label><input id="last" type="text" autocomplete="family-name">
-      <label for="code">Class code</label><input id="code" type="text" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
     </div>
-    <p class="muted" style="margin-top:10px">The class code is on the Canvas page. Your answers save in this browser as you go, so reloading won't lose them.</p>
+    <p class="muted" style="margin-top:10px">Your answers save in this browser as you go, so reloading won't lose them.</p>
   </section>
 
   <!-- ===================== Part 1 ===================== -->
@@ -302,7 +301,6 @@ function restore(){
   const s=load(), d=s.draft||{};
   TEXT_IDS.forEach(id=>{ if(d[id]) $(id).value=d[id]; });
   Object.entries(d).forEach(([k,v])=>{ if(k.startsWith("r:")){ const r=document.querySelector(`input[name="${k.slice(2)}"][value="${v}"]`); if(r) r.checked=true; } });
-  try{ $("code").value=localStorage.getItem("cwg-code")||""; }catch(e){}
   if(s.result) show(s.result);
   left();
 }
@@ -373,13 +371,11 @@ function show(r){
 }
 
 async function submit(){
-  const first=$("first").value.trim(), last=$("last").value.trim(), code=$("code").value.trim();
+  const first=$("first").value.trim(), last=$("last").value.trim();
   if(!first||!last){ $("status").textContent="Put in your first and last name first."; $("first").focus(); return; }
-  if(!code){ $("status").textContent="Put in the class code (it's on the Canvas page)."; $("code").focus(); return; }
-  try{ localStorage.setItem("cwg-code",code); }catch(e){}
   $("submit").disabled=true; $("status").textContent="Submitting…";
   try{
-    const res=await fetch(QUIZ_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({code,first,last,answers:answers()})});
+    const res=await fetch(QUIZ_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({first,last,answers:answers()})});
     const d=await res.json().catch(()=>({}));
     if(!res.ok){ $("status").innerHTML=`<span class="err">${esc(d.error||("Something went wrong ("+res.status+")."))}</span>`; return; }
     try{ localStorage.setItem(KEY,JSON.stringify(Object.assign(load(),{result:d}))); }catch(e){}

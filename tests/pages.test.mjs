@@ -147,7 +147,7 @@ test("terms.html: comments load and a new comment posts", async () => {
   await ctx.close();
 });
 
-test("quiz.html: sends name, code and every answer, then shows where the student stands", async () => {
+test("quiz.html: sends name and every answer (no class code), then shows where the student stands", async () => {
   const { ctx, page, sent } = await openPage("quiz.html");
   await page.locator("#first").fill("Ada"); await page.locator("#last").fill("Lovelace");
   await page.locator('input[name="p1-gwt"][value="b"]').check();
@@ -161,7 +161,7 @@ test("quiz.html: sends name, code and every answer, then shows where the student
   await page.locator("#submit").click();
   await page.getByText("FAKE-EXPLAIN wrong").waitFor({ timeout: 3000 });
   const b = sent.filter(s => s.path === "/quiz").at(-1).body;
-  assert.equal(b.first, "Ada"); assert.equal(b.last, "Lovelace"); assert.equal(b.code, "class123");
+  assert.equal(b.first, "Ada"); assert.equal(b.last, "Lovelace"); assert.equal(b.code, undefined);
   assert.equal(b.answers["p1-gwt"].pick, "b");
   assert.equal(b.answers["p1-console"].paste, "112.00 string true");
   assert.match(b.answers["p1-devtools"].winner, /promo/);

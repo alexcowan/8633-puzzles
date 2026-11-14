@@ -120,14 +120,13 @@ test("quiz key: Just Checking", () => {
   assert.ok(isJustChecking("Just", "Checking")); assert.ok(isJustChecking(" just ", "checking!"));
   assert.ok(!isJustChecking("Justin", "Checkley"));
 });
-test("quiz: saves a named attempt and returns the grid; wrong code and missing name are refused", async () => {
-  assert.equal((await post("/quiz", { code: "nope", first: "A", last: "B", answers: {} })).status, 401);
-  assert.equal((await post("/quiz", { code: "class123", first: "A", last: "", answers: {} })).status, 400);
-  const r = await post("/quiz", { code: "class123", first: "Ada", last: "Lovelace", answers: perfect() });
+test("quiz: saves a named attempt and returns the grid; missing name is refused; no class code needed", async () => {
+  assert.equal((await post("/quiz", { first: "A", last: "", answers: {} })).status, 400);
+  const r = await post("/quiz", { first: "Ada", last: "Lovelace", answers: perfect() });
   assert.equal(r.status, 200);
   const d = await r.json();
   assert.equal(d.score, 15); assert.equal(d.justChecking, false); assert.ok(d.items.every(i => i.explain));
-  const jc = await (await post("/quiz", { code: "class123", first: "Just", last: "Checking", answers: {} })).json();
+  const jc = await (await post("/quiz", { first: "Just", last: "Checking", answers: {} })).json();
   assert.equal(jc.justChecking, true); assert.equal(jc.score, 0);
   const rows = JSON.parse(wr("d1", "execute", "cwg", "--local", "--json", "--command", "SELECT first, last, just_checking, score, of FROM quiz_attempts ORDER BY at"))[0].results;
   assert.deepEqual(rows, [{ first: "Ada", last: "Lovelace", just_checking: 0, score: 15, of: 15 }, { first: "Just", last: "Checking", just_checking: 1, score: 0, of: 15 }]);

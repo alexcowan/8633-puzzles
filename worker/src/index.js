@@ -334,7 +334,7 @@ async function stats(request, env, cors) {
 // and returned to the page. Every attempt is kept; the results view counts each student's first one.
 async function quiz(request, env, cors) {
   let b; try { b = await request.json(); } catch { return json({ error: "Bad JSON" }, 400, cors); }
-  if (!b.code || String(b.code).trim() !== env.CLASS_CODE) return json({ error: "Wrong class code." }, 401, cors);
+  // No class code here: grading is a lookup (no AI cost), and a few stray rows are acceptable.
   const first = String(b.first || "").trim().slice(0, 40), last = String(b.last || "").trim().slice(0, 40);
   if (!first || !last) return json({ error: "Put in your first and last name." }, 400, cors);
   const answers = b.answers && typeof b.answers === "object" ? b.answers : {};
