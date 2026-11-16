@@ -23,6 +23,7 @@
     "s5-context":          {title:"What does the AI get to see?",  s:5, stages:["design"],      steps:["intent"]},
     "s7-three-tests":      {title:"Which test catches it?",        s:7, stages:["delivery"],    steps:["debug"]},
     "s8-bug-hunt":         {title:"Never available today",         s:8, stages:["development","delivery"], steps:["debug"]},
+    "s8-cancelled":        {title:"Available, then cancelled",     s:8, stages:["development","delivery"], steps:["debug"]},
   };
 
   const css=`

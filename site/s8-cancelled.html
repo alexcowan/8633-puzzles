@@ -1,0 +1,449 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><script>/* Instructor reset: add ?reset to any puzzle URL to clear saved work on every puzzle (keeps the class code). */(function(){try{if(!/[?&]reset\b/.test(location.search))return;Object.keys(localStorage).forEach(function(k){if(k!=="cwg-code"&&(/^cwg-s\d/.test(k)||/^cwg-quiz/.test(k)||/^(ptr|pick|stf)-draft$/.test(k)||k==="gh-setup"))localStorage.removeItem(k);});location.replace(location.pathname);}catch(e){}})();</script><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Available, Then Cancelled</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!-- The app's own styles. -->
+<link rel="stylesheet" href="s4-price/parts.css">
+<link rel="stylesheet" href="ws.css">
+<style>
+.page{max-width:860px;margin:0 auto;display:grid;gap:28px}
+.page>*{min-width:0}
+.ws p{margin:0 0 10px;max-width:68ch}
+.ws pre{font-family:var(--mono);font-size:13px;line-height:1.5;background:var(--bg);border:1px solid var(--line-soft);border-radius:3px;padding:10px 12px;overflow-x:auto;margin:6px 0 14px;color:var(--fg)}
+.ws .src{counter-reset:ln;padding-left:0}
+.ws .src span{display:block;padding-left:44px;position:relative;white-space:pre}
+.ws .src span::before{counter-increment:ln;content:counter(ln);position:absolute;left:0;width:32px;text-align:right;color:var(--muted)}
+.ws .src span.c{color:var(--muted)}
+.ticket{border-left:4px solid var(--accent)}
+.ticket dl{display:grid;grid-template-columns:150px minmax(0,1fr);gap:6px 14px;margin:0}
+.ticket dt{color:var(--head);font-family:var(--serif)}
+.ticket dd{margin:0}
+.ticket .gwt b{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--head)}
+@media (max-width:620px){.ticket dl{grid-template-columns:1fr}}
+.offers{width:100%;border-collapse:collapse;font-size:15px}
+.offers th,.offers td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--hinh-rule)}
+.offers th{font-weight:600;color:var(--hinh-navy)}
+.steps{margin:6px 0 8px 1.3em;padding:0}.steps li{margin:2px 0}
+.offers td.pn{font-family:var(--mono);white-space:nowrap}
+.offers tr.first td{border-top:2px solid var(--hinh-rule)}
+.ws .taps{display:grid;gap:12px}
+.ws .tap{border-top:1px solid var(--line-soft);padding-top:12px}
+.ws .tap:first-child{border-top:0;padding-top:0}
+.fiddle p{margin:8px 0 0}.fiddle button{font-size:13px;padding:3px 10px;margin:0 4px}
+.fix-log{margin:2px 0 8px 22px;padding:4px 8px;background:rgba(0,0,0,.04);font-family:var(--mono);font-size:12.5px;white-space:pre-wrap}
+.ws .tap-out{margin:8px 0 2px;padding:8px 10px;border-left:3px solid var(--hinh-navy,#123);background:rgba(0,0,0,.03)}
+.ws .tap-out pre{margin:4px 0;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:13px}
+.ws .tap-out-label,.ws .tap-out-note{font-size:13px;color:var(--muted,#666)}
+.ws .tap .cl{margin:2px 0 8px;font-size:14px;color:var(--muted,#666)}
+.ws .tap .cl code{font-family:var(--mono);font-size:13px;white-space:nowrap}
+.ws .tap h3{font-family:var(--serif);font-weight:400;color:var(--head);font-size:17px;margin:0 0 4px}
+.ws .tap .row input{flex:1 1 280px}
+.ws .log{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+.ws .log th,.ws .log td{text-align:left;vertical-align:top;padding:6px;border-bottom:1px solid var(--line-soft)}
+.ws .log th{font-family:var(--serif);font-weight:400;color:var(--head)}
+.ws .log td.saw{font-family:var(--mono);font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;max-width:280px}
+.ws .log textarea{min-height:44px}
+.ws .hint{margin-top:8px;padding:10px 12px;border-radius:4px;background:var(--bg);border-left:3px solid var(--punch)}
+.ws #fix{font-family:var(--mono);font-size:13px;min-height:120px;white-space:pre}
+</style></head><body>
+
+<main class="page">
+  <nav aria-label="Puzzles" style="font-size:14px;letter-spacing:.02em"><a href="index.html" style="color:var(--head);text-underline-offset:3px">← All puzzles</a></nav>
+  <header class="ws">
+    <div class="eyebrow">Coding with GPT · Session 8 · In class, in pairs</div>
+    <h1>Available, then cancelled</h1>
+    <div data-pipeline></div>
+    <p>The story: <em>As Trent the Technician, I want to find a part's price and availability so I can decide on next steps with the customer.</em></p>
+    <p>To answer, the lookup asks two parts distributors, Huey and Lewy. For each part, a distributor reports a price, whether it's in stock, and a lead time: how many days until the technician can have it. A lead time of 0 means today.</p>
+    <p>Another bug report just came in about HinH's parts lookup. Same method: say what you expect before each check, look, and let each look rule out part of the path. Hints are here if you get stuck, one at a time. Nothing is scored until you ask, and nothing is recorded.</p>
+  </header>
+
+  <section class="ws panel ticket">
+    <div class="eyebrow">Bug report · HINH-497 · Severity: high</div>
+    <h2>Lewy parts show as available, then Lewy cancels the order</h2>
+    <dl>
+      <dt>Reported by</dt><dd>Purchasing, after Lewy cancelled four orders this week as out of stock.</dd>
+      <dt>Why it matters</dt><dd>Technicians order from Lewy because it's cheaper, tell the customer when the part will arrive, then get a cancellation and have to reorder from Huey and call the customer back.</dd>
+      <dt>Scenario</dt><dd class="gwt"><b>GIVEN</b> Lewy reports TH-7710 as not available<br><b>WHEN</b> Trent searches for TH-7710<br><b>THEN</b> Lewy's offer shows "Not available"</dd>
+      <dt>What happens</dt><dd>Lewy's offer for TH-7710 shows "Ships in 3 days," at $96.00.</dd>
+      <dt>What's fine</dt><dd>Huey's offers all look right. Lewy's other parts show the right lead times.</dd>
+      <dt>When it started</dt><dd>This week. Lewy moved to a new version of its system on Monday.</dd>
+      <dt>To reproduce</dt><dd>Search for TH-7710. Look at Lewy's row.</dd>
+    </dl>
+  </section>
+
+  <!-- ===================== The app ===================== -->
+  <div class="hinh" id="app">
+    <div class="hinh-bar">HinH Parts Lookup</div>
+    <div class="hinh-body">
+      <div class="search">
+        <input id="part-number" type="text" placeholder="Part number (leave blank to see every part)" autocomplete="off" aria-label="Part number" value="TH-7710">
+        <button id="search-button" type="button">Search</button>
+      </div>
+      <table class="offers"><thead><tr><th>Part number</th><th>Name</th><th>Distributor</th><th>Price</th><th>Availability</th></tr></thead><tbody id="offers"></tbody></table>
+    </div>
+  </div>
+  <!-- =================================================== -->
+
+  <section class="ws panel">
+    <h2>The code</h2>
+    <p>Unpacking the code, it basically executes these five steps:</p>
+    <ol class="steps">
+      <li>The View gets the part number and asks the controller to find it (<code>searchParts</code>).</li>
+      <li>The controller asks each distributor about the part (<code>askHuey</code>, <code>askLewy</code>).</li>
+      <li>Each distributor's answer goes through its adapter to normalize the data (<code>normalizeHuey</code>, <code>normalizeLewy</code>).</li>
+      <li>The controller labels each offer with its availability (<code>describeAvailability</code>).</li>
+      <li>The controller sends the offers back to the View.</li>
+    </ol>
+    <p class="muted">Note: The distributors' systems (step 2) are outside HinH's code, so they aren't shown. Look A, below, shows what they send.</p>
+    <p>Skim the code below to get a basic understanding of the various functions, then go on to the next section to get some observability on how it's working.</p>
+    <pre class="src" id="src"></pre>
+    <form id="fiddle" method="post" action="https://jsfiddle.net/api/post/library/pure/" target="_blank" class="fiddle">
+      <input type="hidden" name="title" value="HinH parts lookup: Available, then cancelled">
+      <input type="hidden" name="js" id="fiddle-js"><input type="hidden" name="html" id="fiddle-html">
+      <input type="hidden" name="wrap" value="b">
+      <p class="muted">Prefer to try the real code? <button type="submit">Open this code in JSFiddle</button> Add your own <code>console.log</code> lines, press Run, and see what they print. (Optional.)</p>
+    </form>
+  </section>
+
+  <section class="ws panel">
+    <h2>Look inside</h2>
+    <p>You don't need to understand every line of the code to find this bug. Follow the process below: each look narrows down where the problem can be, so you only have to read closely what's left.</p>
+    <p>You can look at three points along the path for the part in the search box. Before each look, write what you expect to see. The look goes in your log.</p>
+    <p>Each look shows what one <code>console.log</code> line would print at that point in the code. In your own app, you'd add that line, run the app, and read what it prints in the browser's console (in Chrome: View › Developer › JavaScript Console).</p>
+    <div class="taps">
+      <div class="tap"><h3>A. What the distributors sent <span class="muted">(after step 2)</span></h3>
+        <p class="cl">Same as adding this after line <span data-after="  const lewyAnswer ="></span>: <code>console.log('Distributors sent back:', hueyAnswer, lewyAnswer);</code></p>
+        <div class="row"><input type="text" id="pred-a" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-a">Look</button></div>
+        <div class="tap-out" id="out-a" hidden></div></div>
+      <div class="tap"><h3>B. What the adapters turned it into <span class="muted">(after step 3)</span></h3>
+        <p class="cl">Same as adding this after line <span data-after="  const normalizedOffers ="></span>: <code>console.log('Adapters normalized them to:', normalizedOffers);</code></p>
+        <div class="row"><input type="text" id="pred-b" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-b">Look</button></div>
+        <div class="tap-out" id="out-b" hidden></div></div>
+      <div class="tap"><h3>C. What the controller sends the View <span class="muted">(after step 4)</span></h3>
+        <p class="cl">Same as adding this after line <span data-after="  }));"></span>, just before the return: <code>console.log('Controller sends the View:', offersForView);</code></p>
+        <div class="row"><input type="text" id="pred-c" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-c">Look</button></div>
+        <div class="tap-out" id="out-c" hidden></div></div>
+      <div class="tap"><h3>D. Inside describeAvailability <span class="muted">(during step 4)</span></h3>
+        <p class="cl">Same as adding this after line <span data-after="  if (days === undefined)"></span>: <code>console.log('Lead time in, days out:', offer.leadDays, days);</code></p>
+        <div class="row"><input type="text" id="pred-d" placeholder="I expect to see…" autocomplete="off"><button type="button" id="run-look-d">Look</button></div>
+        <div class="tap-out" id="out-d" hidden></div></div>
+    </div>
+    <p class="muted" id="look-msg" hidden>Search for one part number first (for example TH-7710), then look.</p>
+    <h2 style="margin-top:18px">Your log</h2>
+    <table class="log"><thead><tr><th>#</th><th>What you checked</th><th>What you predicted</th><th>What you saw</th><th>What that tells you</th></tr></thead><tbody id="log"></tbody></table>
+    <p class="muted" id="log-empty" style="margin-top:8px">No looks yet.</p>
+  </section>
+
+
+  <section class="ws panel">
+    <h2>Fix it</h2>
+    <p>Once you've found it, change one line in Lewy's adapter and run the report's scenario, plus the cases that already work. The fix has to keep those working too.</p>
+    <p class="muted">You can also add your own <code>console.log</code> lines here, for example <code>console.log('Lewy sent', answer);</code> as the first line inside the function. What they print shows under each check, and they don't count as changes.</p>
+    <textarea id="fix" spellcheck="false" aria-label="The normalizeLewy function"></textarea>
+    <div class="row" style="margin-top:8px"><button type="button" id="run-fix">Run the checks</button><button type="button" class="ghost" id="fix-reset">Put the original back</button></div>
+    <div class="checks" id="fix-out"></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Stuck?</h2>
+    <p class="muted">Each hint gives a little more away. Try a look first.</p>
+    <div class="row"><button type="button" class="ghost" id="hint-next">Show hint 1 of 3</button></div>
+    <div id="hints"></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>Reflect on your debugging process</h2>
+    <p class="muted">Saved in this browser as you type, so reloading won't lose them.</p>
+    <div class="q"><label for="a1">1. Your path. Where did you look first, and why there? What did each look rule out?</label><textarea id="a1"></textarea></div>
+    <div class="q"><label for="a2">2. The test that would have caught it. Write it as Given-When-Then, say whether it's a unit, integration, or system test, and say what it should use as Lewy's answer.</label><textarea id="a2"></textarea></div>
+    <div class="q"><label for="a3">3. After release. HinH's code didn't change on Monday; Lewy's did. What one signal in production would have told HinH about this before Purchasing did?</label><textarea id="a3"></textarea></div>
+  </section>
+
+  <section class="ws rubric">
+    <div class="eyebrow">Be ready to explain</div>
+    <ol>
+      <li>Where you looked first, and how each look narrowed where the bug could be.</li>
+      <li>Why the bug only shows up for Lewy's out-of-stock parts, and why the 3 days in look D wasn't the problem.</li>
+      <li>The test you'd add, and the production signal that would have caught it.</li>
+    </ol>
+  </section>
+
+  <section class="ws panel">
+    <h2>Check my work</h2>
+    <p class="muted">An AI reads your three answers, your log, and your fix against the list above and tells you which answers hold up. Your score shows here and isn't recorded. Class code is on the Canvas page.</p>
+    <div class="row">
+      <input id="code" type="text" placeholder="Class code" autocomplete="off" style="max-width:180px;font-family:var(--mono)">
+      <button type="button" id="grade">Check my answers</button>
+      <span class="muted" id="status" hidden></span>
+    </div>
+    <div id="feedback" style="margin-top:12px"></div>
+  </section>
+</main>
+
+<script>
+/* ---------- The app: one source, shown on the page and run by it ---------- */
+const HUEY = {
+  "HX-2201": { part: "HX-2201", price: 184.00, in_stock: true, lead_days: 0 },
+  "CP-0450": { part: "CP-0450", price: 22.50,  in_stock: true, lead_days: 2 },
+  "TH-7710": { part: "TH-7710", price: 99.00,  in_stock: true, lead_days: 2 },
+};
+// Lewy's new system (since Monday) says "yes" or "no" for availability.
+const LEWY = {
+  "HX-2201": { sku: "HX-2201", unitPrice: 171.00, available: "yes", leadDays: 2 },
+  "CP-0450": { sku: "CP-0450", unitPrice: 19.80,  available: "yes", leadDays: 0 },
+  "TH-7710": { sku: "TH-7710", unitPrice: 96.00,  available: "no" },
+};
+const AVAIL_SRC = [
+"function describeAvailability(offer) {",
+"  if (!offer.inStock) return 'Not available';",
+"  let days = offer.leadDays;",
+"  // Some offers don't include a lead time; assume the worst case is 3 days.",
+"  if (days === undefined) days = 3;",
+"  if (days === 0) return 'Available today';",
+"  return 'Ships in ' + days + ' days';",
+"}"].join("\n");
+const LEWY_SRC = [
+"function normalizeLewy(answer) {",
+"  return { distributor: 'Lewy', price: answer.unitPrice,",
+"           // Boolean() turns a value into true or false.",
+"           inStock: Boolean(answer.available),",
+"           leadDays: answer.leadDays };",
+"}"].join("\n");
+const SRC = [
+"// The controller runs the steps in order. Steps 3 and 4 call functions defined below it.",
+"// Step 1. A function in the View reads the part number and calls searchParts with it.",
+"function searchParts(partNumber) {",
+"  // Step 2. Ask each distributor's system for the part.",
+"  // askHuey and askLewy call each distributor's API (not shown).",
+"  const hueyAnswer = askHuey(partNumber);",
+"  const lewyAnswer = askLewy(partNumber);",
+"  // Step 3. Translate each answer into HinH's format. Both adapter functions are below.",
+"  const normalizedOffers = [normalizeHuey(hueyAnswer), normalizeLewy(lewyAnswer)];",
+"  // Step 4. Label each offer. The describeAvailability function is below.",
+"  // map goes through the offers one at a time, calling each one offer,",
+"  // and builds a new list from what the code after => returns for each.",
+"  const offersForView = normalizedOffers.map(offer => ({",
+"    distributor: offer.distributor,",
+"    price: offer.price,",
+"    availability: describeAvailability(offer),",
+"  }));",
+"  // Step 5. Send the offers back to the View.",
+"  return offersForView;",
+"}",
+"",
+"// Step 3. Adapters turn each answer into the one shape HinH uses everywhere.",
+"function normalizeHuey(answer) {",
+"  return { distributor: 'Huey', price: answer.price,",
+"           inStock: answer.in_stock, leadDays: answer.lead_days };",
+"}",
+LEWY_SRC,
+"",
+"// Step 4. The rule: how each offer's availability is labeled.",
+AVAIL_SRC].join("\n");
+const BUG_LINE = SRC.split("\n").findIndex(l => l.includes("Boolean(answer")) + 1;
+
+function build(lewySrc){
+  const src = SRC.replace(LEWY_SRC, lewySrc);
+  const askHuey = p => HUEY[p], askLewy = p => LEWY[p];  // stand-ins for the distributors' systems
+  return new Function("askHuey","askLewy", src+"\nreturn {normalizeHuey,normalizeLewy,describeAvailability,searchParts};")(askHuey,askLewy);
+}
+const APP = build(LEWY_SRC);
+
+/* JSFiddle: built from this page's own code at click time, so it can't drift. */
+document.getElementById("fiddle").addEventListener("submit",()=>{
+  document.getElementById("fiddle-js").value=[
+    "// Stand-ins for the distributors' systems. They aren't part of HinH's code.",
+    "const HUEY = "+JSON.stringify(HUEY,null,2)+";",
+    "const LEWY = "+JSON.stringify(LEWY,null,2)+";",
+    "function askHuey(partNumber) { return HUEY[partNumber]; }",
+    "function askLewy(partNumber) { return LEWY[partNumber]; }",
+    "",
+    "// HinH's code, the same as on the puzzle page.",
+    SRC,
+    "",
+    "// Try it. Add your own console.log lines above, then press Run.",
+    "console.log('Result:', searchParts('TH-7710'));"].join("\n");
+  document.getElementById("fiddle-html").value=
+    '<pre id="out" style="font:14px/1.4 monospace;white-space:pre-wrap"></pre>\n'+
+    '<script>/* Show console.log output on the page too. */\n'+
+    'const __log=console.log; console.log=(...a)=>{ __log(...a); document.getElementById("out").textContent += a.map(x=>typeof x==="string"?x:JSON.stringify(x,null,2)).join(" ")+"\\n"; };<\/script>';
+});
+
+/* Fill in where each look's console.log would go. */
+document.querySelectorAll("[data-after]").forEach(el=>{ el.textContent = SRC.split("\n").findIndex(l=>l.startsWith(el.dataset.after)) + 1; });
+
+/* Show the source with line numbers. */
+(function(){ const pre=document.getElementById("src");
+  SRC.split("\n").forEach(l=>{ const s=document.createElement("span"); s.textContent=l||" "; if(/^\s*\/\//.test(l)) s.className="c"; pre.append(s); }); })();
+
+/* The page: render whatever the controller sends. */
+const money=n=>"$"+Number(n).toFixed(2);
+const CATALOG = { "HX-2201": "Blower motor, 1/2 HP", "CP-0450": "Run capacitor, 45 µF", "TH-7710": "Thermostat, programmable" };
+function queryNow(){ return document.getElementById("part-number").value.trim().toUpperCase(); }
+function matches(q){ return Object.keys(CATALOG).filter(pn => pn.startsWith(q)); }
+/* The looks need one part: the one the search box names, or the only part it matches. */
+function partNow(){ const q=queryNow(); if(CATALOG[q]) return q; const m=matches(q); return m.length===1 ? m[0] : null; }
+function render(){
+  const body=document.getElementById("offers"); body.innerHTML=""; const q=queryNow(), found=matches(q);
+  if(!found.length){ const tr=document.createElement("tr"); const td=document.createElement("td"); td.colSpan=5; td.textContent="No parts found for "+q+"."; tr.append(td); body.append(tr); return; }
+  found.forEach(pn=>{ APP.searchParts(pn).forEach((o,i)=>{ const tr=document.createElement("tr"); if(i===0) tr.className="first";
+    [i===0?pn:"", i===0?CATALOG[pn]:"", o.distributor, money(o.price), o.availability].forEach((v,j)=>{ const td=document.createElement("td"); td.textContent=v; if(j===0) td.className="pn"; tr.append(td); }); body.append(tr); }); });
+}
+document.getElementById("search-button").addEventListener("click", render);
+document.getElementById("part-number").addEventListener("keydown", e=>{ if(e.key==="Enter") render(); });
+render();
+
+/* ---------- Saved state ---------- */
+const KEY="cwg-s8-cancelled";
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){ return {}; } }
+function store(patch){ try{ localStorage.setItem(KEY, JSON.stringify(Object.assign(load(),patch))); }catch(e){} }
+
+/* ---------- Look inside ---------- */
+const TAPS={
+  a:{ name:"A. What the distributors sent", get:p=>({ Huey:HUEY[p], Lewy:LEWY[p] }) },
+  b:{ name:"B. What the adapters turned it into", get:p=>[APP.normalizeHuey(HUEY[p]), APP.normalizeLewy(LEWY[p])] },
+  c:{ name:"C. What the controller sends the View", get:p=>APP.searchParts(p) },
+  d:{ name:"D. Inside describeAvailability", get:p=>[APP.normalizeHuey(HUEY[p]), APP.normalizeLewy(LEWY[p])].map(offerSeen) },
+};
+/* Look D: rerun the current describeAvailability (the original, or the student's fix once it passes)
+   with a capture right after the line that sets days. */
+let availNow = AVAIL_SRC;
+function offerSeen(offer){
+  const lines = availNow.split("\n"), i = lines.findIndex(l => /\bconst\s+days\b|\blet\s+days\b/.test(l));
+  if (i < 0) return { distributor: offer.distributor, days: "(no days line to watch)" };
+  const j = lines.findIndex(l => l.includes("Available today"));
+  lines.splice(j > i ? j : i + 1, 0, "  __seen.days = days;");
+  const seen = {};
+  try { new Function("__seen", lines.join("\n") + "\nreturn describeAvailability;")(seen)(offer); } catch(e) { seen.days = "threw: " + e.message; }
+  return { distributor: offer.distributor,
+           leadDays: offer.leadDays === undefined ? "(missing)" : offer.leadDays,
+           days: "days" in seen ? seen.days : "(line not reached)" };
+}
+function drawLog(){
+  const looks=load().looks||[], body=document.getElementById("log"); body.innerHTML="";
+  document.getElementById("log-empty").hidden=looks.length>0;
+  looks.map((l,i)=>[l,i]).reverse().forEach(([l,i])=>{ const tr=document.createElement("tr");  // newest first, numbers kept
+    const c=[String(i+1), l.where+" ("+l.part+")", l.pred, l.saw];
+    c.forEach((v,j)=>{ const td=document.createElement("td"); td.textContent=v; if(j===3) td.className="saw"; tr.append(td); });
+    const td=document.createElement("td"); const ta=document.createElement("textarea"); ta.value=l.ruled||""; ta.setAttribute("aria-label","What look "+(i+1)+" tells you");
+    ta.addEventListener("input",()=>{ const all=load().looks||[]; if(all[i]){ all[i].ruled=ta.value; store({looks:all}); } });
+    td.append(ta); tr.append(td); body.append(tr); });
+}
+function showTapOut(k, n, saw){
+  const out=document.getElementById("out-"+k); out.innerHTML="";
+  const lab=document.createElement("div"); lab.className="tap-out-label"; lab.textContent="Look "+n+" printed:";
+  const label=(document.querySelector("#out-"+k).closest(".tap").querySelector(".cl code").textContent.match(/console\.log\('([^']*)'/)||[])[1]||"";
+  const pre=document.createElement("pre"); pre.textContent=(label?label+" ":"")+saw;
+  const note=document.createElement("div"); note.className="tap-out-note"; note.textContent="Saved as look "+n+" in Your log, below. Note there what it tells you.";
+  out.append(lab,pre,note); out.hidden=false;
+}
+Object.keys(TAPS).forEach(k=>{
+  const pred=document.getElementById("pred-"+k);
+  document.getElementById("run-look-"+k).onclick=()=>{
+    if(!pred.value.trim()){ pred.focus(); pred.placeholder="Write what you expect first…"; return; }
+    const p=partNow(); if(!p){ const box=document.getElementById("part-number"); box.focus(); box.select(); document.getElementById("look-msg").hidden=false; return; }
+    document.getElementById("look-msg").hidden=true;
+    const saw=JSON.stringify(TAPS[k].get(p),null,1).replace(/\n\s*/g," ");
+    const looks=load().looks||[]; looks.push({tap:k, where:TAPS[k].name, part:p, pred:pred.value.trim(), saw}); store({looks});
+    pred.value=""; drawLog(); showTapOut(k, looks.length, saw);
+  };
+});
+drawLog();
+
+/* ---------- Hints ---------- */
+const HINTS=[
+  "Halve the path. Compare look A with look C for TH-7710. What did Lewy actually say about TH-7710, and what did the View get? If those disagree, the problem is somewhere between them, not in Lewy's system and not in the page.",
+  "Look B for TH-7710. If Lewy's offer already says inStock: true coming out of the adapter, the problem is before describeAvailability, and look D is a detour: the 3 days is the missing-lead-time default doing its job. An offer that's out of stock should have stopped at 'Not available' before it ever got there.",
+  "Line "+BUG_LINE+". Lewy sends the word \"no\". Boolean() turns any text that isn't empty into true, so \"no\" becomes true. What should the line compare answer.available to instead?"];
+function drawHints(){
+  const n=load().hints||0, host=document.getElementById("hints"); host.innerHTML="";
+  for(let i=0;i<n;i++){ const d=document.createElement("div"); d.className="hint"; d.textContent="Hint "+(i+1)+": "+HINTS[i]; host.append(d); }
+  const b=document.getElementById("hint-next"); b.hidden=n>=HINTS.length; b.textContent="Show hint "+(n+1)+" of "+HINTS.length;
+}
+document.getElementById("hint-next").onclick=()=>{ store({hints:Math.min((load().hints||0)+1,HINTS.length)}); drawHints(); };
+drawHints();
+
+/* ---------- Fix it: runs the student's function against the scenarios ---------- */
+const fixEl=document.getElementById("fix");
+fixEl.value=load().fix||LEWY_SRC;
+fixEl.addEventListener("input",()=>store({fix:fixEl.value}));
+document.getElementById("fix-reset").onclick=()=>{ fixEl.value=LEWY_SRC; store({fix:LEWY_SRC}); };
+const CASES=[
+  {label:"The report's scenario: Lewy, TH-7710, not available", part:"TH-7710", d:"Lewy", want:"Not available"},
+  {label:"Lewy, CP-0450, available, lead time 0", part:"CP-0450", d:"Lewy", want:"Available today"},
+  {label:"Lewy, HX-2201, available, lead time 2", part:"HX-2201", d:"Lewy", want:"Ships in 2 days"},
+  {label:"Huey, TH-7710, in stock, lead time 2", part:"TH-7710", d:"Huey", want:"Ships in 2 days"},
+  {label:"Huey, HX-2201, in stock, lead time 0", part:"HX-2201", d:"Huey", want:"Available today"},
+];
+function runFix(){
+  let app, err=""; try{ app=build(fixEl.value); }catch(e){ err=e.message; }
+  const fmt=x=>typeof x==="string"?x:(x===undefined?"undefined":JSON.stringify(x));
+  const res=CASES.map(c=>{ let got; const logs=[], orig=console.log;
+    console.log=()=>{};   // the full lookup runs both distributors; keep its logs quiet
+    try{ got=app?app.searchParts(c.part).find(o=>o.distributor===c.d).availability:("didn't run: "+err); }catch(e){ got="threw: "+e.message; }
+    console.log=(...a)=>logs.push(a.map(fmt).join(" "));   // then catch the student's logs for just this offer
+    try{ if(app){ const offer=c.d==="Huey"?app.normalizeHuey(HUEY[c.part]):app.normalizeLewy(LEWY[c.part]); app.describeAvailability(offer); } }catch(e){}
+    finally{ console.log=orig; }
+    return {label:c.label, want:c.want, got:String(got), ok:got===c.want, logs}; });
+  /* console.log lines the student added don't count as changes. */
+  const isLog=l=>/^\s*console\.log\(.*\);?\s*$/.test(l);
+  const changed=fixEl.value.split("\n").filter(l=>!isLog(l)).filter((l,i)=>l.trim()!==(LEWY_SRC.split("\n")[i]||"").trim());
+  return {res, changed:changed.length, passed:res.every(r=>r.ok)};
+}
+function drawFix(r){
+  const out=document.getElementById("fix-out"); out.innerHTML="";
+  r.res.forEach(x=>{ const d=document.createElement("div"); d.className="chk";
+    const b=document.createElement("b"); b.className=x.ok?"ok":"no"; b.textContent=x.ok?"PASS ":"FAIL ";
+    d.append(b, document.createTextNode(x.label+": expected “"+x.want+"”, got “"+x.got+"”.")); out.append(d);
+    if(x.logs&&x.logs.length){ const pre=document.createElement("pre"); pre.className="fix-log"; pre.textContent=x.logs.map(l=>"console: "+l).join("\n"); out.append(pre); } });
+  const v=document.createElement("div"); v.className="verdict"+(r.passed?"":" no");
+  v.textContent = r.passed ? (r.changed<=1 ? "All five pass, with a one-line change. The page above now runs your fix." : "All five pass. You changed "+r.changed+" lines; the bug only needs one.") : "Not yet. Read the failing line against your change.";
+  out.append(v);
+}
+document.getElementById("run-fix").onclick=()=>{ const r=runFix(); drawFix(r); store({fixRun:{passed:r.passed,changed:r.changed,res:r.res}});
+  if(r.passed){ const fixed=build(fixEl.value); APP.searchParts=fixed.searchParts; APP.describeAvailability=fixed.describeAvailability; APP.normalizeHuey=fixed.normalizeHuey; APP.normalizeLewy=fixed.normalizeLewy; render(); } };
+if(load().fixRun) drawFix(load().fixRun);
+
+/* ---------- Answers ---------- */
+const fields=["a1","a2","a3"];
+const saved=load(); fields.forEach(id=>{ const el=document.getElementById(id); if(saved[id]) el.value=saved[id]; el.addEventListener("input",()=>store({[id]:el.value})); });
+
+/* ---------- Check my work ---------- */
+const GRADER_URL="https://shrill-wood-3253.acowan.workers.dev/grade";
+const PUZZLE_ID="s8-cancelled";
+const LABELS=["Your path","The test that would have caught it","The signal in production"];
+const codeEl=document.getElementById("code"), statusEl=document.getElementById("status"), fb=document.getElementById("feedback");
+try{ codeEl.value=localStorage.getItem("cwg-code")||""; }catch(e){}
+function collect(){
+  const s=load(), v=id=>document.getElementById(id).value.trim();
+  return { page_check:{
+             looks:(s.looks||[]).map(l=>({where:l.where, part:l.part, predicted:l.pred, saw:l.saw, ruled_out:l.ruled||""})),
+             hints_used:s.hints||0,
+             fix:{ text:fixEl.value, passed_all:!!(s.fixRun&&s.fixRun.passed), lines_changed:s.fixRun?s.fixRun.changed:null } },
+           items:[ {label:LABELS[0], answer:v("a1")}, {label:LABELS[1], answer:v("a2")}, {label:LABELS[2], answer:v("a3")} ] };
+}
+document.getElementById("grade").onclick=async()=>{
+  const code=codeEl.value.trim(); if(!code){ codeEl.focus(); return; }
+  try{ localStorage.setItem("cwg-code",code); }catch(e){}
+  statusEl.hidden=false; statusEl.textContent="Reading your answers…"; fb.innerHTML="";
+  try{
+    const r=await fetch(GRADER_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({puzzle:PUZZLE_ID,code,answers:collect()})});
+    const d=await r.json();
+    if(!r.ok){ statusEl.textContent=d.error||("Error "+r.status); return; }
+    statusEl.hidden=true;
+    const s=load(), res=d.results||[], ok=res.filter(x=>x.verdict==="ok").length;
+    const sc=document.createElement("div"); sc.className="score"; sc.textContent=`${ok} of ${res.length}`;
+    const sub=document.createElement("div"); sub.className="muted"; sub.textContent=`Looks: ${(s.looks||[]).length} · hints: ${s.hints||0} of 3 · fix: ${s.fixRun&&s.fixRun.passed?"passes":"not yet"} · answers: ${ok} of ${res.length} hold up`;
+    fb.append(sc,sub);
+    const list=document.createElement("div"); list.style.marginTop="8px";
+    res.forEach(x=>{ const el=document.createElement("div"); el.className="fbrow";
+      el.innerHTML=`<div class="fbhead"><b class="${x.verdict==="ok"?"ok":"thin"}">${x.verdict==="ok"?"OK":"THIN"}</b><span class="fblabel"></span></div><div></div>`;
+      el.querySelector(".fblabel").textContent=x.label; el.lastElementChild.textContent=x.note||""; list.append(el); });
+    fb.append(list);
+    if(d.summary){ const p=document.createElement("p"); p.className="muted"; p.style.marginTop="8px"; p.textContent=d.summary; fb.append(p); }
+  }catch(e){ statusEl.textContent="Couldn't reach the grader."; }
+};
+</script>
+<script src="pipeline.js"></script>
+<div class="site-version" style="position:fixed;right:6px;bottom:4px;font:10px/1 system-ui,sans-serif;color:#999;opacity:.7;pointer-events:none">__SITE_VERSION__</div>
+</body></html>
