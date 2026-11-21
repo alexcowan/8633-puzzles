@@ -131,3 +131,62 @@ test("quiz: saves a named attempt and returns the grid; missing name is refused;
   const rows = JSON.parse(wr("d1", "execute", "cwg", "--local", "--json", "--command", "SELECT first, last, just_checking, score, of FROM quiz_attempts ORDER BY at"))[0].results;
   assert.deepEqual(rows, [{ first: "Ada", last: "Lovelace", just_checking: 0, score: 15, of: 15 }, { first: "Just", last: "Checking", just_checking: 1, score: 0, of: 15 }]);
 });
+
+// ---------- the Vibe Code Audit ----------
+const PDF = Buffer.from("%PDF-1.4\n% a tiny stand-in\n").toString("base64");
+test("audit: team setup from the roster, private link, materials, two rounds, instructor results", async () => {
+  wr("d1", "execute", "cwg", "--local", "--command",
+    "INSERT INTO roster (email, first, last, preferred) VALUES ('aaa1x@darden.virginia.edu','Clyde','Bowie','Findley'),('bbb2y@darden.virginia.edu','Julia','Boyer','Julia'),('ccc3z@darden.virginia.edu','Ada','Lovelace','Ada')");
+  // The class code gates the roster.
+  assert.equal((await post("/audit/roster", { code: "nope", q: "find" })).status, 401);
+  const found = await (await post("/audit/roster", { code: "class123", q: "findley" })).json();
+  assert.deepEqual(found.people, [{ email: "aaa1x@darden.virginia.edu", name: "Findley Bowie" }]);
+  // Someone off the roster is refused.
+  assert.equal((await post("/audit/team", { code: "class123", me: "x@darden.virginia.edu", name: "T" })).status, 400);
+  const made = await (await post("/audit/team", { code: "class123", me: "AAA1X@darden.virginia.edu", members: ["bbb2y@darden.virginia.edu"], name: "Parts Pals", project_type: "de novo" })).json();
+  assert.ok(made.token && made.token.length >= 20);
+  assert.deepEqual(made.team.members.map(m => m.name), ["Findley Bowie", "Julia Boyer"]);
+  // Nobody on two teams.
+  assert.equal((await post("/audit/team", { code: "class123", me: "ccc3z@darden.virginia.edu", members: ["bbb2y@darden.virginia.edu"], name: "Other" })).status, 409);
+  const token = made.token;
+  assert.equal((await post("/audit/load", { token: "bad" })).status, 401);
+  // Can't run without material.
+  assert.equal((await post("/audit/run", { token })).status, 400);
+  // Google address for sharing; blank means no doc for that person.
+  const saved = await (await post("/audit/save", { token, deployed_url: "parts.example.com", members: [{ email: "aaa1x@darden.virginia.edu", google: "findley@gmail.com" }, { email: "bbb2y@darden.virginia.edu", google: "" }] })).json();
+  assert.equal(saved.team.deployed_url, "https://parts.example.com");
+  assert.deepEqual(saved.team.members.map(m => m.google), ["findley@gmail.com", ""]);
+  // A ZIP the page unpacked: secrets and dependencies never make the slice.
+  const z = await (await post("/audit/zip", { token, git_log: "abc first commit", files: [
+    { path: "README.md", text: "# Parts" }, { path: "app.js", text: "console.log(1)" }, { path: ".env", text: "KEY=secret" }, { path: "node_modules/x/index.js", text: "x" }, { path: "logo.png" },
+  ] })).json();
+  assert.deepEqual(z.material.repo.files, ["README.md", "app.js"]);
+  assert.equal(z.team.repo_access, "zip");
+  assert.equal((await post("/audit/doc", { token, pdf: "bm90IGEgcGRm" })).status, 400);
+  const d = await (await post("/audit/doc", { token, pdf: PDF, filename: "audit.pdf" })).json();
+  assert.equal(d.material.doc.source, "pdf");
+  // Round 1: a report with the Top 10 first, a status per question, one follow-up.
+  const r1 = await (await post("/audit/run", { token, stage: "checkin" })).json();
+  assert.equal(r1.run.round, 1);
+  assert.equal(r1.run.result.top10.length, 10);
+  assert.equal(r1.run.result.questions.length, 14);
+  assert.equal(r1.run.result.requests.length, 1);
+  const sent = fake.state.last;
+  assert.equal(sent.model, "claude-sonnet-5-5");
+  assert.ok(sent.messages[0].content.some(c => c.type === "document"));
+  assert.ok(!JSON.stringify(sent).includes("KEY=secret"));
+  const c = r1.run.result.counts; assert.equal(c.good + c.work + c.missing, 14);
+  // Round 2: answers go back, no more requests.
+  const r2 = await (await post("/audit/run", { token, stage: "checkin", answers: [{ id: "B4", ask: "Show me where matching happens.", answer: "app.js line 3" }] })).json();
+  assert.equal(r2.run.round, 2); assert.equal(r2.run.result.requests.length, 0);
+  assert.match(JSON.stringify(fake.state.last.messages), /app\.js line 3/);
+  // A new link replaces the old one.
+  const { token: t2 } = await (await post("/audit/relink", { token })).json();
+  assert.equal((await post("/audit/load", { token })).status, 401);
+  assert.equal((await post("/audit/load", { token: t2 })).status, 200);
+  // Instructor view.
+  assert.equal((await post("/audit/results", { code: "class123" })).status, 401);
+  const res = await (await post("/audit/results", { code: "prof456" })).json();
+  assert.equal(res.teams.length, 1); assert.equal(res.teams[0].latest.round, 2);
+  assert.ok(res.teams[0].pct > 0 && res.teams[0].pct <= 100);
+});

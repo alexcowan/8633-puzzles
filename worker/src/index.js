@@ -3,6 +3,7 @@
 // Storage is D1 (binding DB): comments on the Terms page, and an anonymous record of each grading call.
 
 import { QUIZ_ID, gradeQuiz, isJustChecking } from "./quiz.js";
+import { audit } from "./audit.js";
 
 const MODEL = "claude-haiku-5-5";
 const MAX_TOKENS = 1500;
@@ -168,7 +169,8 @@ export default {
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     const path = new URL(request.url).pathname;
     const isComments = path === "/comments" || path === "/comments/delete";
-    if (!(request.method === "POST" && (path === "/grade" || path === "/sheet" || path === "/stats" || path === "/quiz" || isComments)) && !(request.method === "GET" && path === "/comments")) {
+    const isAudit = /^\/audit\/[a-z]+$/.test(path);
+    if (!(request.method === "POST" && (path === "/grade" || path === "/sheet" || path === "/stats" || path === "/quiz" || isComments || isAudit)) && !(request.method === "GET" && path === "/comments")) {
       return json({ error: "Not found" }, 404, cors);
     }
     if (!allowedOrigin(origin, env)) return json({ error: "Origin not allowed" }, 403, cors);
@@ -182,6 +184,7 @@ export default {
     if (path === "/sheet") return readSheet(request, cors);
     if (path === "/stats") return stats(request, env, cors);
     if (path === "/quiz") return quiz(request, env, cors);
+    if (isAudit) return audit(request, env, path, cors);
 
     let body;
     try { body = await request.json(); } catch { return json({ error: "Bad JSON" }, 400, cors); }
