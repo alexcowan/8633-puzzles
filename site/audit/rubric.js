@@ -2,11 +2,16 @@
 // One source for both: the page shows it to students, and the worker sends it to the AI.
 // Sections and questions parallel the assessment template exactly (A–D, same order, same labels).
 
+// "from": where the material for each section comes from, relative to class. Shown on the page and in the Rubric sheet.
 export const SECTIONS = [
-  { id: "A", title: "Design Intent" },
-  { id: "B", title: "Unpacking" },
-  { id: "C", title: "Effectuating Alternatives" },
-  { id: "D", title: "Iteratively Coding, Testing, Debugging" },
+  { id: "A", title: "Design Intent",
+    from: "This should be in the product charter and design notes that you either found in the project listing (sponsored projects) or developed with your team (new projects)." },
+  { id: "B", title: "Unpacking",
+    from: "These don't have to be super formal, but you should have some material to edit together from the various caselets. If not, now's a good time to catch up." },
+  { id: "C", title: "Effectuating Alternatives",
+    from: "Same as B, for the caselets on stack and pipeline." },
+  { id: "D", title: "Iteratively Coding, Testing, Debugging",
+    from: "These are items the Auditor looks for itself, from what you submit: your product notes, your repo, and your deployed app (if you have one).", observed: true },
 ];
 
 export const QUESTIONS = [
