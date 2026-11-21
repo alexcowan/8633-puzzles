@@ -3,6 +3,7 @@
 // carries the team's private token (from the link the page shows), which is stored here only as a hash.
 
 import { QUESTIONS, SECTIONS, ENGINEERING_IDEAS } from "../../site/audit/rubric.js";
+import puppeteer from "@cloudflare/puppeteer";
 import { buildSlice, sliceText, readable, priority, MAX_SLICE_CHARS, MAX_FILE_CHARS } from "../../site/audit/slice.js";
 
 const MODEL = "claude-sonnet-5-5";
@@ -357,15 +358,17 @@ async function run(b, env, team, cors) {
 
   const slice = JSON.parse(m.repo_slice);
   const members = JSON.parse(team.members);
+  const { shot, text: shotText, note: shotNote } = team.deployed_url ? await screenshot(env, team.deployed_url) : {};
   const intro = [
     `Team: ${team.name} (${members.length} people). Stage: ${stage === "final" ? "final submission" : "check-in draft (sections C–D may be partial)"}.`,
     "Some teams started from a sponsor's existing code. If the doc or the commit history shows that, make your code recommendations about code the team wrote or changed.",
-    `Deployed app: ${team.deployed_url || "not given"}. You can't open it; judge from the doc and the code.`,
+    team.deployed_url ? `Deployed app: ${team.deployed_url}. ${shot ? "Attached is a screenshot of its first page as a visitor sees it, and the page's text; you can't click through it, so walk the rest of the happy path in the code." : "I couldn't open it this time (" + shotNote + "); judge from the sheet and the code."}` : "Not deployed (that's optional): walk the happy path in the code.",
     `Repo: ${team.repo_url || "uploaded as a ZIP"}.`,
   ].filter(Boolean).join("\n");
   const content = [];
   content.push({ type: "text", text: intro + "\n\n" + (m.doc_pdf ? "THEIR AUDIT SHEET (or doc) is the attached PDF." : m.doc_text) });
   if (m.doc_pdf) content.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: m.doc_pdf } });
+  if (shot) content.push({ type: "text", text: "THEIR DEPLOYED APP, first page:" }, { type: "image", source: { type: "base64", media_type: "image/jpeg", data: shot } }, { type: "text", text: "Its text:\n" + shotText });
   content.push({ type: "text", text: "THEIR REPO (a slice):\n" + sliceText(slice) + "\n\nCOMMIT HISTORY (newest first):\n" + (m.git_log || "not provided") });
   if (round === 2) {
     const prev = JSON.parse(prior.result);
@@ -422,6 +425,26 @@ async function logRun(env, id, teamId, at, stage, round, answers, result, error,
     .bind(id, teamId, at, stage, round, answers ? JSON.stringify(answers) : null, result ? JSON.stringify(result) : null, error).run();
   if (error) return json({ error: error === "network" ? "The Auditor is unavailable (network). Try again in a minute." : "The Auditor is unavailable right now (" + error.slice(0, 60) + "). Try again in a minute." }, 502, cors);
   return json({ run: { id, at, stage, round, answers, result } }, 200, cors);
+}
+
+// The deployed app's first page, as a visitor sees it. Best effort: any failure just means the
+// Auditor works from the code, and the report says why.
+async function screenshot(env, url) {
+  if (!env.BROWSER) return { note: "no browser available" };
+  if (!/^https:\/\/[^/]+\.[^/]+/.test(url) || /(^https:\/\/)(localhost|127\.|10\.|192\.168\.)/.test(url)) return { note: "not a public https link" };
+  let browser;
+  try {
+    browser = await puppeteer.launch(env.BROWSER);
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1280, height: 900 });
+    const res = await page.goto(url, { waitUntil: "networkidle2", timeout: 20000 });
+    if (res && res.status() >= 400) return { note: "it answered " + res.status() };
+    const shot = await page.screenshot({ type: "jpeg", quality: 60, encoding: "base64" });
+    const text = (await page.evaluate(() => document.body ? document.body.innerText : "")).slice(0, 4000);
+    return { shot, text };
+  } catch (e) {
+    return { note: /time limit|429/i.test(String(e)) ? "the browser's daily allowance ran out" : "it didn't load in 20 seconds" };
+  } finally { if (browser) try { await browser.close(); } catch {} }
 }
 
 // ---------- instructor ----------

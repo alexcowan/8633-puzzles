@@ -5,10 +5,17 @@ name = "shrill-wood-3253"
 keep_vars = true
 main = "src/index.js"
 compatibility_date = "2025-09-01"
+# nodejs_compat: the headless-browser client (@cloudflare/puppeteer) needs Node built-ins.
+compatibility_flags = ["nodejs_compat"]
 
 # Pages origins allowed to call the grader. Add http://localhost:8000 while testing locally.
 [vars]
 ALLOWED_ORIGINS = "https://alexcowan.github.io"
+
+# A headless browser for the Auditor: it opens a team's deployed app and takes a screenshot.
+# Workers Free allows 10 minutes of browser time a day; each audit uses a few seconds.
+[browser]
+binding = "BROWSER"
 
 # Per-IP backstop: 300 requests per minute. A classroom shares one IP, so this is a room-sized limit.
 [[ratelimits]]

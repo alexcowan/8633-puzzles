@@ -80,7 +80,7 @@ export const QUESTIONS = [
   { id: "D1", section: "D", label: "Demo and happy path",
     question: "How does it work/demo? How do the testable UX rewards and observable user behaviors line up in that happy path?",
     look_for: [
-      "Demo walks the happy path",
+      "The Auditor can walk the happy path, story by story: in the code (UI, controller, model), and in the app if it's deployed",
       "UX rewards and OECs line up with observable user behavior along it",
     ] },
   { id: "D2", section: "D", label: "Data",
