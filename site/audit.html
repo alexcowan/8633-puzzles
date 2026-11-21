@@ -360,7 +360,8 @@ function show(run) {
     <p class="tally">You're ${tally.length > 1 ? tally.slice(0, -1).join(", ") + ", and " + tally.slice(-1) : tally.join("")}.</p>
     <div class="qs">${SECTIONS.map(s => `<h3>${s.id}. ${esc(s.title)}</h3>` + r.questions.filter(q => q.id[0] === s.id).map(q => {
       const Q = QUESTIONS.find(x => x.id === q.id);
-      return `<div class="qrow"><span class="st ${q.status}">${STATUSES[q.status]}</span><span><b>${q.id}. ${esc(Q.label)}</b><br>${esc(q.note)}</span></div>`;
+      const label = q.status === "missing" && Q.optional ? "Optional, not done" : STATUSES[q.status];
+      return `<div class="qrow"><span class="st ${q.status === "missing" && Q.optional ? "work" : q.status}">${label}</span><span><b>${q.id}. ${esc(Q.label)}</b><br>${esc(q.note)}</span></div>`;
     }).join("")).join("")}</div>`;
   if (pending) $("answer").onclick = () => runAudit(r.requests.map((q, i) => ({ id: q.id, ask: q.ask, answer: $("report").querySelector(`textarea[data-i="${i}"]`).value })));
   const ok = state.runs.filter(x => x.result);

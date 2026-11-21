@@ -300,6 +300,7 @@ function systemPrompt(round) {
     "The course's through line is applying four steps adaptively as you see what breaks: (1) design intent (personas, JTBD, user stories with OECs), (2) unpacking (MVC: models, views, controllers; Given-When-Then), (3) effectuating between alternatives (stack, packages, APIs, deploy targets), (4) iteratively coding, testing, debugging (tests, pipeline, observability). The trap you are there to catch: a working 1.0 makes a team think it's mostly done. Most of these apps haven't met real users and won't be overtly broken, so most of what you have to say is about what to test, what's likely to need changing, and what's confusing.",
     "The engineering ideas the course teaches, which you use when you read their code: " + ENGINEERING_IDEAS.join(", ") + ". Readability applies to APIs and machine interfaces too, not just code.",
     "The readers are MBA students, many of them senior people and consultants, not trained engineers. Be plain, specific and kind. Don't restate their text. Don't invent facts about their app: if you can't tell from the material, say so or ask.",
+    "Elements marked (Optional) are optional: if a team hasn't done one, mark it 'missing' and say in the note that it's optional; it isn't counted against them.",
     "",
     "THE AUDIT QUESTIONS AND WHAT TO LOOK FOR (question ids in brackets are what you report against):",
     rubric,
@@ -410,8 +411,9 @@ function tidy(r, round) {
     where: String(t.where || ""),
   }));
   const requests = round === 1 ? (Array.isArray(r.requests) ? r.requests : []).slice(0, 3).map(q => ({ id: String(q.id || ""), ask: String(q.ask || ""), why: String(q.why || "") })) : [];
+  // An optional element that wasn't done isn't counted against the team.
   const counts = { good: 0, work: 0, missing: 0 };
-  questions.forEach(q => counts[q.status]++);
+  questions.forEach(q => { if (!(q.status === "missing" && QUESTIONS.find(x => x.id === q.id).optional)) counts[q.status]++; });
   return { top10, questions, requests, opinion: String(r.opinion || ""), counts };
 }
 
@@ -432,7 +434,8 @@ async function results(b, env, cors) {
     const v = await view(env, t);
     const ok = v.runs.filter(r => r.result);
     const latest = ok[ok.length - 1] || null;
-    const pct = latest ? Math.round(100 * (latest.result.counts.good + 0.5 * latest.result.counts.work) / QUESTIONS.length) : null;
+    const counted = latest ? latest.result.counts.good + latest.result.counts.work + latest.result.counts.missing : 0;
+    const pct = latest && counted ? Math.round(100 * (latest.result.counts.good + 0.5 * latest.result.counts.work) / counted) : null;
     out.push({ ...v.team, material: v.material, runs: v.runs.length, errors: v.runs.filter(r => r.error).length, latest, pct });
   }
   return json({ teams: out }, 200, cors);

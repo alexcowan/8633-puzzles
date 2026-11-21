@@ -31,7 +31,7 @@ export const QUESTIONS = [
       "Each key story has an observable OEC",
       "Key stories unpacked into Given-When-Then, including one non-happy path",
     ] },
-  { id: "A4", section: "A", label: "Testing with users",
+  { id: "A4", section: "A", label: "Testing with users (Optional)", optional: true,
     question: "What testing have you done with users? What surprised you?",
     look_for: [
       "Describes testing with real or classmate users",
@@ -43,17 +43,17 @@ export const QUESTIONS = [
       "Names the components that carry the UX and how they work",
       "Says whether they sit inside one MVC; if not, names the integration points",
     ] },
-  { id: "B2", section: "B", label: "Model entities",
-    question: "What are the key Model entities and how are they represented in the Model?",
-    look_for: [
-      "Key entities and their relationships (has-a / is-a)",
-      "How they're represented and stored",
-    ] },
-  { id: "B3", section: "B", label: "Key UIs and comparables",
+  { id: "B2", section: "B", label: "Key UIs and comparables",
     question: "What are the key UIs and what comparables are most relevant?",
     look_for: [
       "Key UIs fit the user's real context (device, setting, attention)",
       "2–3 comps with similar affordances, compared affordance by affordance",
+    ] },
+  { id: "B3", section: "B", label: "Model entities",
+    question: "What are the key Model entities and how are they represented in the Model?",
+    look_for: [
+      "Key entities and their relationships (has-a / is-a)",
+      "How they're represented and stored",
     ] },
   { id: "B4", section: "B", label: "Big-hitter algorithms",
     question: "What are the big-hitter algorithms and how do they work?",
