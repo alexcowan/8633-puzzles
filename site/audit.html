@@ -1,0 +1,372 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vibe Code Audit · Coding with GPT</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="ws.css">
+<style>
+.page{max-width:860px;margin:0 auto;display:grid;gap:24px}
+.ws p{margin:0 0 10px;max-width:70ch}
+.ws .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.ws .row input[type=text],.ws .row input[type=url],.ws .row input[type=email]{flex:1 1 280px}
+.ws input[type=url],.ws input[type=email],.ws select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:7px 9px;min-width:0}
+.ws label.lbl{font-family:var(--serif);color:var(--head);display:block;margin:12px 0 2px}
+.ws .err{color:var(--bad)} .ws .ok{color:var(--ok)}
+.ws .status{font-size:15px;margin:6px 0 0;min-height:1.2em}
+.ws .chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.ws .chip{background:var(--bg);border:1px solid var(--line-soft);border-radius:14px;padding:2px 6px 2px 11px;display:inline-flex;gap:4px;align-items:center}
+.ws .chip button{background:none;color:var(--muted);padding:0 4px;font-size:16px;line-height:1}
+.ws .ta{position:relative;flex:1 1 280px}
+.ws .ta input{width:100%;box-sizing:border-box}
+.ws .ta ul{position:absolute;z-index:5;left:0;right:0;top:100%;margin:2px 0 0;padding:0;list-style:none;background:var(--panel);border:1px solid var(--line);border-radius:4px;max-height:240px;overflow:auto}
+.ws .ta li{padding:6px 10px;cursor:pointer;margin:0} .ws .ta li:hover,.ws .ta li.on{background:var(--mark)}
+.ws .ta li small{color:var(--muted);font-family:var(--mono);font-size:12px;margin-left:6px}
+.ws .link{font-family:var(--mono);font-size:13px;word-break:break-all;background:var(--bg);border:1px solid var(--line-soft);border-radius:4px;padding:8px 10px}
+.ws table.members{border-collapse:collapse;width:100%} .ws table.members td{padding:6px 6px 6px 0;border-top:1px solid var(--line-soft)}
+.ws table.members input{width:100%;box-sizing:border-box}
+.ws .opt{border-left:3px solid var(--second);padding:4px 12px;margin:10px 0;background:var(--bg)}
+.ws .done{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ok);margin-left:8px}
+.ws .todo{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted);margin-left:8px}
+.ws details summary{cursor:pointer;font-family:var(--serif);color:var(--head)}
+.ws .rb h3{font-family:var(--serif);font-weight:400;color:var(--head);font-size:18px;margin:14px 0 4px}
+.ws .rb .q{margin:8px 0} .ws .rb .q b{font-family:var(--serif);font-weight:400;color:var(--head)}
+.ws .rb .q ul{margin:2px 0 0;padding-left:20px;font-size:15px}
+/* The report */
+.report{display:grid;gap:18px}
+.report .opinion{font-family:var(--serif);color:var(--head);font-size:18px;line-height:1.45}
+.report .tally{font-size:19px}
+.report .tally b.good{color:var(--ok)} .report .tally b.work{color:var(--head)} .report .tally b.missing{color:var(--bad)}
+.report ol.top{padding-left:0;list-style:none;counter-reset:t;margin:0}
+.report ol.top li{counter-increment:t;display:grid;grid-template-columns:2.2em 1fr;gap:2px 8px;padding:10px 0;border-top:1px solid var(--line-soft);margin:0}
+.report ol.top li::before{content:counter(t);font-family:var(--serif);color:var(--accent);font-size:22px;line-height:1.1;grid-row:span 3}
+.report ol.top .t{font-family:var(--serif);color:var(--head)}
+.report .tags{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em}
+.report .tags span{border:1px solid var(--line-soft);border-radius:3px;padding:0 5px;margin-right:6px}
+.report .qs h3{font-family:var(--serif);font-weight:400;color:var(--head);font-size:18px;margin:14px 0 2px}
+.report .qrow{display:grid;grid-template-columns:9.5em 1fr;gap:8px;padding:8px 0;border-top:1px solid var(--line-soft)}
+.report .st{font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase}
+.report .st.good{color:var(--ok)} .report .st.work{color:var(--head)} .report .st.missing{color:var(--bad)}
+.report .qrow b{font-family:var(--serif);font-weight:400;color:var(--head)}
+.report .req{background:var(--mark);border-radius:4px;padding:12px 14px}
+.report .req .one{margin:10px 0}
+.ws .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line-soft);border-top-color:var(--accent);border-radius:50%;animation:s 1s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes s{to{transform:rotate(360deg)}}
+.ws .history{font-size:14.5px} .ws .history button{padding:2px 8px;font-size:14px}
+[hidden]{display:none!important}
+</style></head><body>
+<main class="page">
+  <nav aria-label="Puzzles" style="font-size:14px;letter-spacing:.02em"><a href="index.html" style="color:var(--head);text-underline-offset:3px">← All puzzles</a></nav>
+
+  <header class="ws">
+    <div class="eyebrow">Coding with GPT · Final assignment · One per team</div>
+    <h1>The Vibe Code Audit</h1>
+    <p style="margin-top:10px">I'm the Auditor. Give me your audit doc and your repo, and I'll read them the way a good auditor reads a set of books: I'll give you a ranked list of ten recommendations, tell you where you're in good shape and where you need work, and, if I need to see more, ask for it. Then you answer and I give you my final opinion.</p>
+    <p class="muted">Your work saves as you go. Anyone on your team can pick up where you left off with your team's link.</p>
+  </header>
+
+  <!-- 1. Team setup (until there's a team) -->
+  <section class="ws panel" id="setup" hidden>
+    <h2>Set up your team</h2>
+    <p>One of you does this once, then sends the team link to the others.</p>
+    <label class="lbl" for="code">Class code</label>
+    <div class="row"><input type="text" id="code" autocomplete="off" style="max-width:220px"></div>
+    <label class="lbl" for="me-q">You</label>
+    <div class="row"><div class="ta" data-ta="me"><input type="text" id="me-q" placeholder="Start typing your name" autocomplete="off"><ul hidden></ul></div></div>
+    <div class="chips" id="me-chip"></div>
+    <label class="lbl" for="mates-q">Your teammates</label>
+    <div class="row"><div class="ta" data-ta="mates"><input type="text" id="mates-q" placeholder="Add each teammate by name" autocomplete="off"><ul hidden></ul></div></div>
+    <div class="chips" id="mates-chips"></div>
+    <label class="lbl" for="tname">Team name</label>
+    <div class="row"><input type="text" id="tname" maxlength="60" style="max-width:360px"></div>
+    <label class="lbl" for="ptype">Project</label>
+    <div class="row"><select id="ptype"><option value="de novo">De novo (we started it)</option><option value="sponsored">Sponsored (we started from someone else's code)</option></select></div>
+    <div class="row" style="margin-top:14px"><button id="create">Create our team</button></div>
+    <p class="status" id="setup-st"></p>
+  </section>
+
+  <!-- 2. The team -->
+  <section class="ws panel" id="teampanel" hidden>
+    <h2 id="tn"></h2>
+    <p>Your team's link. <b>Send it only to your teammates</b>: anyone with it can open and change your audit. It opens your audit on any device.</p>
+    <div class="row"><div class="link" id="tlink" style="flex:1"></div><button class="ghost" id="copy">Copy</button></div>
+    <p class="muted" style="font-size:14.5px">Lost it, or sent it to the wrong place? <button class="ghost" id="relink" style="padding:2px 8px;font-size:14px">Make a new link</button> (the old one stops working).</p>
+    <details style="margin-top:8px"><summary>Your team and where the reviewed copy goes</summary>
+      <p style="margin-top:8px">After the final, your instructor's reviewed copy of the report is shared with these Google addresses. Change any of them to the address you use with Google, or clear it if you don't want a copy.</p>
+      <table class="members" id="members"></table>
+      <div class="row"><div class="ta" data-ta="add"><input type="text" id="add-q" placeholder="Add a teammate by name" autocomplete="off"><ul hidden></ul></div></div>
+      <div class="row"><button class="ghost" id="savemembers">Save</button><span class="status" id="members-st"></span></div>
+    </details>
+  </section>
+
+  <!-- 3. Materials -->
+  <section class="ws panel" id="docpanel" hidden>
+    <h2>1. Your audit doc <span id="doc-done"></span></h2>
+    <p>The Google Doc with your answers to the audit questions (below). If it's set to "Anyone with the link can view", paste the link. If not, download it as a PDF (File → Download → PDF) and upload that.</p>
+    <div class="row"><input type="url" id="docurl" placeholder="https://docs.google.com/document/d/…"><button id="docgo">Check</button></div>
+    <div class="row"><span class="muted">or</span> <input type="file" id="pdf" accept="application/pdf"></div>
+    <p class="status" id="doc-st"></p>
+  </section>
+
+  <section class="ws panel" id="repopanel" hidden>
+    <h2>2. Your repo <span id="repo-done"></span></h2>
+    <p>Paste your GitHub repo's link. If it's public, I'll read it from there.</p>
+    <div class="row"><input type="url" id="repourl" placeholder="https://github.com/your-team/your-app"><button id="repogo">Check</button></div>
+    <p class="status" id="repo-st"></p>
+    <div id="private" hidden>
+      <p>It's private, so I need one of these. Either is fine:</p>
+      <div class="opt"><b style="font-family:var(--serif);font-weight:400;color:var(--head)">A. Let me read it on GitHub.</b> In the repo, Settings → Collaborators → Add people → <code>instructor-8633</code>. Then click Check again; I'll accept the invite. I'll see your commit history too.</div>
+      <div class="opt"><b style="font-family:var(--serif);font-weight:400;color:var(--head)">B. Upload a ZIP.</b> On the repo's page, click the green <b>Code</b> button → <b>Download ZIP</b> (check the branch is your main one first). Don't zip your own folder: GitHub's ZIP leaves out your keys and installed packages.
+        <div class="row"><input type="file" id="zip" accept=".zip,application/zip"></div>
+        <label class="lbl" for="gitlog">Your commit history <span class="muted" style="font-family:var(--sans)">(optional, but I'll ask for it): ask your AI to run <code>git log --oneline -60</code> and paste the result</span></label>
+        <textarea id="gitlog" rows="4"></textarea>
+        <div class="row"><button id="zipgo">Upload</button></div>
+      </div>
+    </div>
+    <p class="muted" id="repo-files" style="font-size:14.5px"></p>
+    <label class="lbl" for="deployed">Where it's deployed</label>
+    <div class="row"><input type="url" id="deployed" placeholder="https://…"><button class="ghost" id="depgo">Save</button></div>
+  </section>
+
+  <!-- 4. Run -->
+  <section class="ws panel" id="runpanel" hidden>
+    <h2>3. Ask for the audit</h2>
+    <p>It takes a minute or two: I read everything. You get <span id="nruns"></span> runs for the check-in and the same for the final, follow-up rounds included.</p>
+    <div class="row">
+      <select id="stage"><option value="checkin">Check-in (before Class 10)</option><option value="final">Final</option></select>
+      <button id="rungo">Run the audit</button>
+    </div>
+    <p class="status" id="run-st"></p>
+  </section>
+
+  <section class="ws panel" id="reportpanel" hidden>
+    <div class="row" style="justify-content:space-between"><h2 id="rtitle" style="margin:0"></h2><button class="ghost" id="dl">Download</button></div>
+    <div class="report" id="report"></div>
+    <div class="history" id="history"></div>
+  </section>
+
+  <!-- What the Auditor reads against -->
+  <section class="ws rubric rb">
+    <details><summary>The audit questions, and what I look for</summary>
+      <p style="margin-top:8px">Your audit doc answers these, in this order. I give each one a status: <b>in good shape</b>, <b>needs some work</b>, or <b>missing</b>. I also read your code against the course's engineering ideas (DRY, separation of concerns, dependency direction, readability, determinism), so be ready to talk about it.</p>
+      <div id="rubric"></div>
+    </details>
+  </section>
+</main>
+
+<script type="module">
+import { SECTIONS, QUESTIONS, STATUSES } from "./audit/rubric.js";
+import { buildSlice } from "./audit/slice.js";
+import { readZip } from "./audit/zip.js";
+
+const API = "https://shrill-wood-3253.acowan.workers.dev/audit/";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const STEP = { intent: "Design intent", unpack: "Unpacking", effectuate: "Effectuating", iterate: "Iterating" };
+let token = null, state = null, shown = null;
+
+// ---------- the rubric, from the same file the Auditor reads ----------
+$("rubric").innerHTML = SECTIONS.map(s => `<h3>${s.id}. ${esc(s.title)}</h3>` + QUESTIONS.filter(q => q.section === s.id).map(q =>
+  `<div class="q"><b>${q.id}. ${esc(q.label)}</b><br>${esc(q.question)}<ul>${q.look_for.map(l => `<li>${esc(l)}</li>`).join("")}</ul></div>`).join("")).join("");
+
+// ---------- calls ----------
+async function call(action, body) {
+  let r;
+  try { r = await fetch(API + action, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }); }
+  catch { throw new Error("I can't reach the Auditor. Check your connection and try again."); }
+  let d = {}; try { d = await r.json(); } catch {}
+  if (!r.ok) { const e = new Error(d.error || "Something went wrong (" + r.status + ")."); e.data = d; throw e; }
+  return d;
+}
+const say = (el, msg, cls = "") => { $(el).className = "status " + cls; $(el).innerHTML = msg; };
+const busy = (el, msg) => say(el, `<span class="spin"></span>${esc(msg)}`);
+
+// ---------- team setup ----------
+let me = null; const mates = new Map();
+$("code").value = localStorage.getItem("cwg-code") || "";
+function typeahead(key, pick, codeFn) {
+  const box = document.querySelector(`[data-ta="${key}"]`), input = box.querySelector("input"), ul = box.querySelector("ul");
+  let t = 0, people = [], on = -1;
+  const draw = () => { ul.hidden = !people.length; ul.innerHTML = people.map((p, i) => `<li data-i="${i}" class="${i === on ? "on" : ""}">${esc(p.name)}<small>${esc(p.email)}</small></li>`).join(""); };
+  input.addEventListener("input", () => {
+    clearTimeout(t); const q = input.value.trim();
+    if (q.length < 2) { people = []; return draw(); }
+    t = setTimeout(async () => {
+      try { people = (await call("roster", { code: codeFn(), q })).people; on = -1; draw(); }
+      catch (e) { people = []; draw(); say(key === "add" ? "members-st" : "setup-st", esc(e.message), "err"); }
+    }, 220);
+  });
+  input.addEventListener("keydown", e => {
+    if (ul.hidden) return;
+    if (e.key === "ArrowDown") { on = Math.min(on + 1, people.length - 1); draw(); e.preventDefault(); }
+    else if (e.key === "ArrowUp") { on = Math.max(on - 1, 0); draw(); e.preventDefault(); }
+    else if (e.key === "Enter" && on >= 0) { choose(people[on]); e.preventDefault(); }
+    else if (e.key === "Escape") { people = []; draw(); }
+  });
+  ul.addEventListener("mousedown", e => { const li = e.target.closest("li"); if (li) { choose(people[+li.dataset.i]); e.preventDefault(); } });
+  input.addEventListener("blur", () => setTimeout(() => { people = []; draw(); }, 150));
+  function choose(p) { pick(p); input.value = ""; people = []; draw(); }
+}
+const chip = (p, onX) => { const s = document.createElement("span"); s.className = "chip"; s.innerHTML = `${esc(p.name)} <button aria-label="Remove ${esc(p.name)}">×</button>`; s.querySelector("button").onclick = onX; return s; };
+function drawChips() {
+  $("me-chip").replaceChildren(...(me ? [chip(me, () => { me = null; drawChips(); })] : []));
+  $("mates-chips").replaceChildren(...[...mates.values()].map(p => chip(p, () => { mates.delete(p.email); drawChips(); })));
+}
+const setupCode = () => $("code").value.trim();
+typeahead("me", p => { me = p; mates.delete(p.email); drawChips(); }, setupCode);
+typeahead("mates", p => { if (!me || p.email !== me.email) mates.set(p.email, p); drawChips(); }, setupCode);
+$("create").onclick = async () => {
+  if (!setupCode()) return say("setup-st", "Put in the class code.", "err");
+  if (!me) return say("setup-st", "Pick yourself from the list (start typing your name).", "err");
+  if (!$("tname").value.trim()) return say("setup-st", "Give your team a name.", "err");
+  busy("setup-st", "Setting up your team…");
+  try {
+    const d = await call("team", { code: setupCode(), me: me.email, members: [...mates.keys()], name: $("tname").value, project_type: $("ptype").value });
+    localStorage.setItem("cwg-code", setupCode());
+    useToken(d.token); render(d); say("setup-st", "");
+  } catch (e) { say("setup-st", esc(e.message), "err"); }
+};
+
+// ---------- the team link ----------
+function linkFor(t) { return location.origin + location.pathname + "#t=" + t; }
+function useToken(t) {
+  token = t; localStorage.setItem("cwg-audit-token", t);
+  if (location.hash !== "#t=" + t) history.replaceState(null, "", "#t=" + t);
+  $("tlink").textContent = linkFor(t);
+}
+$("copy").onclick = async () => { try { await navigator.clipboard.writeText(linkFor(token)); $("copy").textContent = "Copied"; setTimeout(() => $("copy").textContent = "Copy", 1500); } catch {} };
+$("relink").onclick = async () => {
+  if (!confirmInline()) return;
+  try { const d = await call("relink", { token }); useToken(d.token); } catch (e) { alertErr(e); }
+};
+function confirmInline() { const b = $("relink"); if (b.dataset.sure) { delete b.dataset.sure; b.textContent = "Make a new link"; return true; } b.dataset.sure = 1; b.textContent = "Sure? Click again"; setTimeout(() => { delete b.dataset.sure; b.textContent = "Make a new link"; }, 4000); return false; }
+function alertErr(e) { say("run-st", esc(e.message), "err"); }
+
+// ---------- members and Google addresses ----------
+const added = new Map();
+typeahead("add", p => { if (!state.team.members.some(m => m.email === p.email)) added.set(p.email, p); drawMembers(); }, () => localStorage.getItem("cwg-code") || "");
+function drawMembers() {
+  const rows = state.team.members.map(m => ({ ...m, isNew: false })).concat([...added.values()].map(p => ({ email: p.email, name: p.name, google: p.email, isNew: true })));
+  $("members").innerHTML = rows.map(m => `<tr data-email="${esc(m.email)}"><td style="width:38%">${esc(m.name)}${m.isNew ? ' <span class="muted">(new)</span>' : ""}<br><small class="muted" style="font-family:var(--mono);font-size:12px">${esc(m.email)}</small></td><td><input type="email" value="${esc(m.google)}" placeholder="no copy" aria-label="Google address for ${esc(m.name)}"></td></tr>`).join("");
+}
+$("savemembers").onclick = async () => {
+  const members = [...$("members").querySelectorAll("tr")].map(tr => ({ email: tr.dataset.email, google: tr.querySelector("input").value }));
+  busy("members-st", "Saving…");
+  try { const d = await call("save", { token, members }); added.clear(); render(d); say("members-st", "Saved.", "ok"); }
+  catch (e) { say("members-st", esc(e.message), "err"); }
+};
+
+// ---------- doc ----------
+$("docgo").onclick = async () => {
+  busy("doc-st", "Opening your doc…");
+  try { render(await call("doc", { token, doc_url: $("docurl").value })); say("doc-st", "Got it.", "ok"); }
+  catch (e) { say("doc-st", esc(e.message), "err"); }
+};
+$("pdf").onchange = async () => {
+  const f = $("pdf").files[0]; if (!f) return;
+  if (f.size > 1000000) return say("doc-st", "That PDF is over 1 MB. Download it again without images, or trim it.", "err");
+  busy("doc-st", "Uploading…");
+  const b64 = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(String(fr.result).split(",")[1]); fr.readAsDataURL(f); });
+  try { render(await call("doc", { token, pdf: b64, filename: f.name })); say("doc-st", "Got it.", "ok"); }
+  catch (e) { say("doc-st", esc(e.message), "err"); }
+};
+
+// ---------- repo ----------
+$("repogo").onclick = async () => {
+  busy("repo-st", "Looking at your repo…");
+  try {
+    const d = await call("repo", { token, repo_url: $("repourl").value });
+    if (d.need === "access") { $("private").hidden = false; return say("repo-st", esc(d.error)); }
+    $("private").hidden = true; render(d);
+    say("repo-st", d.accepted ? "Accepted your invite and read your repo." : d.access === "public" ? "It's public, so I read it from GitHub." : "Read it on GitHub.", "ok");
+  } catch (e) { say("repo-st", esc(e.message), "err"); }
+};
+$("zipgo").onclick = async () => {
+  const f = $("zip").files[0];
+  if (!f) return say("repo-st", "Choose the ZIP first.", "err");
+  busy("repo-st", "Unpacking your ZIP…");
+  try {
+    const files = await readZip(f);
+    const slice = buildSlice(files); // the same slice the worker builds, so only what I'll read leaves your computer
+    const send = slice.tree.map(p => ({ path: p, text: (slice.files.find(x => x.path === p) || {}).text }));
+    const d = await call("zip", { token, files: send, git_log: $("gitlog").value, repo_url: $("repourl").value });
+    render(d); say("repo-st", "Got it.", "ok");
+  } catch (e) { say("repo-st", esc(e.message), "err"); }
+};
+$("depgo").onclick = async () => { try { render(await call("save", { token, deployed_url: $("deployed").value })); } catch (e) { say("repo-st", esc(e.message), "err"); } };
+
+// ---------- run ----------
+$("rungo").onclick = () => runAudit();
+async function runAudit(answers) {
+  const stage = answers ? shown.stage : $("stage").value;
+  busy("run-st", answers ? "Reading your answers and writing my final opinion…" : "Reading your doc and your code… (a minute or two)");
+  $("rungo").disabled = true;
+  try { await call("run", { token, stage, answers }); render(await call("load", { token })); say("run-st", ""); $("reportpanel").scrollIntoView({ behavior: "smooth" }); }
+  catch (e) { say("run-st", esc(e.message), "err"); }
+  finally { $("rungo").disabled = false; }
+}
+
+// ---------- drawing ----------
+function render(d) {
+  state = d;
+  $("setup").hidden = true;
+  for (const id of ["teampanel", "docpanel", "repopanel", "runpanel"]) $(id).hidden = false;
+  $("tn").textContent = d.team.name;
+  drawMembers();
+  const docDone = !!d.material.doc, repoDone = !!d.material.repo;
+  $("doc-done").outerHTML = `<span id="doc-done" class="${docDone ? "done" : "todo"}">${docDone ? "✓ " + (d.material.doc.source === "pdf" ? "PDF uploaded" : "read") : "to do"}</span>`;
+  $("repo-done").outerHTML = `<span id="repo-done" class="${repoDone ? "done" : "todo"}">${repoDone ? "✓ " + ({ public: "read on GitHub", collaborator: "read on GitHub", zip: "ZIP uploaded" }[d.team.repo_access] || "read") : "to do"}</span>`;
+  if (d.team.doc_source === "gdoc" && d.team.doc_url && !$("docurl").value) $("docurl").value = d.team.doc_url;
+  if (d.team.repo_url && !$("repourl").value) $("repourl").value = d.team.repo_url;
+  if (d.team.deployed_url && !$("deployed").value) $("deployed").value = d.team.deployed_url;
+  $("repo-files").textContent = repoDone ? d.material.repo.note + " Files I read: " + d.material.repo.files.join(", ") : "";
+  $("nruns").textContent = d.limits.runs_per_stage;
+  const ok = d.runs.filter(r => r.result);
+  if (ok.length) show(ok[ok.length - 1]); else $("reportpanel").hidden = true;
+}
+
+function show(run) {
+  shown = run;
+  const r = run.result, c = r.counts;
+  const later = state.runs.filter(x => x.result && x.stage === run.stage && x.at > run.at).length;
+  const pending = run.round === 1 && r.requests.length && !later;
+  $("reportpanel").hidden = false;
+  $("rtitle").textContent = `${run.stage === "final" ? "Final" : "Check-in"} audit · ${run.round === 1 && r.requests.length ? "preliminary" : "final opinion"} · ${new Date(run.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`;
+  const tally = [["good", c.good], ["work", c.work], ["missing", c.missing]].filter(x => x[1])
+    .map(([k, n]) => `<b class="${k}">${k === "good" ? `in good shape on ${n}` : k === "work" ? `need some work on ${n}` : `are missing ${n}`}</b>`);
+  $("report").innerHTML = `
+    <p class="opinion">${esc(r.opinion)}</p>
+    ${pending ? `<div class="req"><b style="font-family:var(--serif);font-weight:400;color:var(--head)">Before my final opinion, I'd like to see a bit more.</b>
+      ${r.requests.map((q, i) => `<div class="one"><div><b>${esc(q.id)}</b> · ${esc(q.ask)}</div><div class="muted" style="font-size:15px">Why I'm asking: ${esc(q.why)}</div><textarea data-i="${i}" rows="3" aria-label="Your answer"></textarea></div>`).join("")}
+      <div class="row"><button id="answer">Send my answers</button><span class="muted" style="font-size:14.5px">Leave one blank if you'd rather not answer it.</span></div></div>` : ""}
+    <div><h3 style="font-family:var(--serif);font-weight:400;color:var(--head);font-size:20px;margin:0 0 4px">Top 10 recommendations</h3>
+    <ol class="top">${r.top10.map(t => `<li><span class="t">${esc(t.title)}</span><span>${esc(t.observation)}</span><span class="tags"><span>${STEP[t.step]}</span><span>${esc(t.action)}</span>${t.where ? `<span>${esc(t.where)}</span>` : ""}</span></li>`).join("")}</ol></div>
+    <p class="tally">You're ${tally.length > 1 ? tally.slice(0, -1).join(", ") + ", and " + tally.slice(-1) : tally.join("")}.</p>
+    <div class="qs">${SECTIONS.map(s => `<h3>${s.id}. ${esc(s.title)}</h3>` + r.questions.filter(q => q.id[0] === s.id).map(q => {
+      const Q = QUESTIONS.find(x => x.id === q.id);
+      return `<div class="qrow"><span class="st ${q.status}">${STATUSES[q.status]}</span><span><b>${q.id}. ${esc(Q.label)}</b><br>${esc(q.note)}</span></div>`;
+    }).join("")).join("")}</div>`;
+  if (pending) $("answer").onclick = () => runAudit(r.requests.map((q, i) => ({ id: q.id, ask: q.ask, answer: $("report").querySelector(`textarea[data-i="${i}"]`).value })));
+  const ok = state.runs.filter(x => x.result);
+  $("history").innerHTML = ok.length > 1 ? "<p class='muted' style='margin-top:14px'>Earlier reports: " + ok.map(x => `<button class="ghost" data-id="${x.id}" ${x.id === run.id ? "disabled" : ""}>${x.stage === "final" ? "Final" : "Check-in"} ${x.round === 2 ? "(final opinion)" : ""} ${new Date(x.at).toLocaleDateString([], { month: "short", day: "numeric" })}</button>`).join(" ") + "</p>" : "";
+  $("history").querySelectorAll("button[data-id]").forEach(b => b.onclick = () => show(state.runs.find(x => x.id === b.dataset.id)));
+}
+
+// Download: the report as a standalone page.
+$("dl").onclick = () => {
+  const html = `<!doctype html><meta charset="utf-8"><title>${esc(state.team.name)} · Vibe Code Audit</title><style>body{font-family:Georgia,serif;max-width:760px;margin:30px auto;line-height:1.5;color:#333}h1,h2,h3{color:#002D45;font-weight:400}textarea,button,.row{display:none}</style><h1>${esc(state.team.name)}: Vibe Code Audit</h1><h2>${esc($("rtitle").textContent)}</h2>` + $("report").innerHTML;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+  a.download = state.team.name.replace(/[^\w-]+/g, "-") + "-audit.html"; a.click();
+};
+
+// ---------- start ----------
+(async () => {
+  const fromHash = (/#t=([\w-]{20,})/.exec(location.hash) || [])[1];
+  const t = fromHash || localStorage.getItem("cwg-audit-token");
+  if (!t) { $("setup").hidden = false; return; }
+  try { useToken(t); render(await call("load", { token: t })); }
+  catch (e) {
+    localStorage.removeItem("cwg-audit-token"); token = null; history.replaceState(null, "", location.pathname);
+    $("setup").hidden = false; say("setup-st", esc(e.message), "err");
+  }
+})();
+</script>
+</body></html>
