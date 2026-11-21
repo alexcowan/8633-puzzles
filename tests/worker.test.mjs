@@ -139,6 +139,9 @@ test("audit: team setup from the roster, private link, materials, two rounds, in
     "INSERT INTO roster (email, first, last, preferred) VALUES ('aaa1x@darden.virginia.edu','Clyde','Bowie','Findley'),('bbb2y@darden.virginia.edu','Julia','Boyer','Julia'),('ccc3z@darden.virginia.edu','Ada','Lovelace','Ada')");
   // The class code gates the roster.
   assert.equal((await post("/audit/roster", { code: "nope", q: "find" })).status, 401);
+  // The page checks the code with an empty query before showing the rest of the form.
+  assert.equal((await post("/audit/roster", { code: "nope", q: "" })).status, 401);
+  assert.deepEqual(await (await post("/audit/roster", { code: "class123", q: "" })).json(), { people: [] });
   const found = await (await post("/audit/roster", { code: "class123", q: "findley" })).json();
   assert.deepEqual(found.people, [{ email: "aaa1x@darden.virginia.edu", name: "Findley Bowie" }]);
   // Someone off the roster is refused.

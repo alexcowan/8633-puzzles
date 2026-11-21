@@ -67,7 +67,9 @@
     <h2>Set up your team</h2>
     <p>One of you does this once, then sends the team link to the others.</p>
     <label class="lbl" for="code">Class code</label>
-    <div class="row"><input type="text" id="code" autocomplete="off" style="max-width:220px"></div>
+    <div class="row"><input type="text" id="code" autocomplete="off" style="max-width:220px"><button id="codego">Continue</button></div>
+    <p class="status" id="code-st"></p>
+    <div id="afterCode" hidden>
     <label class="lbl" for="me-q">You</label>
     <div class="row"><div class="ta" data-ta="me"><input type="text" id="me-q" placeholder="Start typing your name" autocomplete="off"><ul hidden></ul></div></div>
     <div class="chips" id="me-chip"></div>
@@ -79,6 +81,7 @@
     <label class="lbl" for="ptype">Project</label>
     <div class="row"><select id="ptype"><option value="de novo">De novo (we started it)</option><option value="sponsored">Sponsored (we started from someone else's code)</option></select></div>
     <div class="row" style="margin-top:14px"><button id="create">Create our team</button></div>
+    </div>
     <p class="status" id="setup-st"></p>
   </section>
 
@@ -181,6 +184,15 @@ const busy = (el, msg) => say(el, `<span class="spin"></span>${esc(msg)}`);
 // ---------- team setup ----------
 let me = null; const mates = new Map();
 $("code").value = localStorage.getItem("cwg-code") || "";
+// The class code comes first: nothing from the roster shows until the worker has accepted it.
+let codeOk = false;
+$("codego").onclick = async () => {
+  if (!$("code").value.trim()) return say("code-st", "Put in the class code.", "err");
+  busy("code-st", "Checking…");
+  try { await call("roster", { code: $("code").value.trim(), q: "" }); codeOk = true; localStorage.setItem("cwg-code", $("code").value.trim()); $("code").readOnly = true; $("codego").hidden = true; $("afterCode").hidden = false; say("code-st", ""); $("me-q").focus(); }
+  catch (e) { say("code-st", esc(e.message), "err"); }
+};
+$("code").addEventListener("keydown", e => { if (e.key === "Enter") $("codego").click(); });
 function typeahead(key, pick, codeFn) {
   const box = document.querySelector(`[data-ta="${key}"]`), input = box.querySelector("input"), ul = box.querySelector("ul");
   let t = 0, people = [], on = -1;
