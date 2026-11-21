@@ -71,8 +71,8 @@
     <p class="status" id="code-st"></p>
     <div id="afterCode" hidden>
     <label class="lbl" for="me-q">You</label>
-    <div class="row"><div class="ta" data-ta="me"><input type="text" id="me-q" placeholder="Start typing your name" autocomplete="off"><ul hidden></ul></div></div>
-    <div class="chips" id="me-chip"></div>
+    <div class="row" id="me-pick"><div class="ta" data-ta="me"><input type="text" id="me-q" placeholder="Start typing your name" autocomplete="off"><ul hidden></ul></div></div>
+    <div class="row" id="me-chosen" hidden><span id="me-name" style="font-size:18px;color:var(--head)"></span><button class="ghost" id="me-change" style="padding:2px 8px;font-size:14px">Not you?</button></div>
     <label class="lbl" for="mates-q">Your teammates</label>
     <div class="row"><div class="ta" data-ta="mates"><input type="text" id="mates-q" placeholder="Add each teammate by name" autocomplete="off"><ul hidden></ul></div></div>
     <div class="chips" id="mates-chips"></div>
@@ -218,11 +218,13 @@ function typeahead(key, pick, codeFn) {
 }
 const chip = (p, onX) => { const s = document.createElement("span"); s.className = "chip"; s.innerHTML = `${esc(p.name)} <button aria-label="Remove ${esc(p.name)}">×</button>`; s.querySelector("button").onclick = onX; return s; };
 function drawChips() {
-  $("me-chip").replaceChildren(...(me ? [chip(me, () => { me = null; drawChips(); })] : []));
+  // "You" is one person: once picked, the search box gives way to the name.
+  $("me-pick").hidden = !!me; $("me-chosen").hidden = !me; $("me-name").textContent = me ? me.name : "";
   $("mates-chips").replaceChildren(...[...mates.values()].map(p => chip(p, () => { mates.delete(p.email); drawChips(); })));
 }
 const setupCode = () => $("code").value.trim();
-typeahead("me", p => { me = p; mates.delete(p.email); drawChips(); }, setupCode);
+typeahead("me", p => { me = p; mates.delete(p.email); drawChips(); $("mates-q").focus(); }, setupCode);
+$("me-change").onclick = () => { me = null; drawChips(); $("me-q").focus(); };
 typeahead("mates", p => { if (!me || p.email !== me.email) mates.set(p.email, p); drawChips(); }, setupCode);
 $("create").onclick = async () => {
   if (!setupCode()) return say("setup-st", "Put in the class code.", "err");
