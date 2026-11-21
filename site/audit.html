@@ -58,7 +58,7 @@
   <header class="ws">
     <div class="eyebrow">Coding with GPT · Final assignment · One per team</div>
     <h1>The Vibe Code Audit</h1>
-    <p style="margin-top:10px">I'm the Auditor. Give me your audit sheet and your repo, and I'll read them the way a good auditor reads a set of books: I'll give you a ranked list of ten recommendations, tell you where you're in good shape and where you need work, and, if I need to see more, ask for it. Then you answer and I give you my final opinion.</p>
+    <p style="margin-top:10px">I'm the Auditor. Give me your Rubric and your repo, and I'll read them the way a good auditor reads a set of books: I'll give you a ranked list of ten recommendations, tell you where you're in good shape and where you need work, and, if I need to see more, ask for it. Then you answer and I give you my final opinion.</p>
     <p class="muted">Your work saves as you go. Anyone on your team can pick up where you left off with your team's link.</p>
   </header>
 
@@ -99,8 +99,8 @@
 
   <!-- 3. Materials -->
   <section class="ws panel" id="docpanel" hidden>
-    <h2>1. Your audit sheet <span id="doc-done"></span></h2>
-    <p>Your copy of the <a id="tmpl" href="#" target="_blank" rel="noopener">audit sheet template</a>: for each element, where it lives in your working docs. Set it to "Anyone with the link can view" and paste the link; I'll follow the links in it too (public Google Docs, Sheets and Slides; anything in your repo I read there). Or download it as a PDF (File → Download → PDF) and upload that.</p>
+    <h2>1. Your Rubric <span id="doc-done"></span></h2>
+    <p>Your copy of the <a id="tmpl" href="#" target="_blank" rel="noopener">Rubric</a>: for each element, where it lives in your working docs. Set it to "Anyone with the link can view" and paste the link; I'll follow the links in it too (public Google Docs, Sheets and Slides; anything in your repo I read there). Or download it as a PDF (File → Download → PDF) and upload that.</p>
     <div class="row"><input type="url" id="docurl" placeholder="https://docs.google.com/spreadsheets/d/…"><button id="docgo">Check</button></div>
     <div class="row"><span class="muted">or</span> <input type="file" id="pdf" accept="application/pdf"></div>
     <p class="status" id="doc-st"></p>
@@ -146,7 +146,7 @@
   <!-- What the Auditor reads against -->
   <section class="ws rubric rb">
     <details><summary>The audit questions, and what I look for</summary>
-      <p style="margin-top:8px">Your audit sheet has one row for each of these, in this order. I give each one a status: <b>in good shape</b>, <b>needs some work</b>, or <b>missing</b>. I also read your code against the course's engineering ideas (DRY, separation of concerns, dependency direction, readability, determinism), so be ready to talk about it.</p>
+      <p style="margin-top:8px">Your Rubric has one row for each of these, in this order. I give each one a status: <b>in good shape</b>, <b>needs some work</b>, or <b>missing</b>. I also read your code against the course's engineering ideas (DRY, separation of concerns, dependency direction, readability, determinism), so be ready to talk about it.</p>
       <div id="rubric"></div>
     </details>
   </section>
@@ -166,7 +166,7 @@ let token = null, state = null, shown = null;
 
 document.getElementById("tmpl").href = TEMPLATE;
 // ---------- the rubric, from the same file the Auditor reads ----------
-$("rubric").innerHTML = SECTIONS.map(s => `<h3>${s.id}. ${esc(s.title)}</h3>` + QUESTIONS.filter(q => q.section === s.id).map(q =>
+$("rubric").innerHTML = SECTIONS.map(s => `<h3>${s.id}. ${esc(s.title)}</h3><p class="muted" style="font-size:15px;margin:0 0 6px">${esc(s.from)}</p>` + QUESTIONS.filter(q => q.section === s.id).map(q =>
   `<div class="q"><b>${q.id}. ${esc(q.label)}</b><br>${esc(q.question)}<ul>${q.look_for.map(l => `<li>${esc(l)}</li>`).join("")}</ul></div>`).join("")).join("");
 
 // ---------- calls ----------

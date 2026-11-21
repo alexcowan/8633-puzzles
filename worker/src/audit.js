@@ -169,15 +169,15 @@ async function doc(b, env, team, cors) {
     await touchTeam(env, team.id, { doc_source: "pdf", doc_url: b.filename ? String(b.filename).slice(0, 120) : "uploaded PDF" });
     return json(await view(env, await fresh(env, team)), 200, cors);
   }
-  // The audit sheet (or a doc): read it, then follow the links in it to the team's working docs.
+  // The Rubric sheet (or a doc): read it, then follow the links in it to the team's working docs.
   const url = String(b.doc_url || "");
   const g = googleFile(url);
-  if (!g || !["sheet", "doc"].includes(g.kind)) return json({ error: "That doesn't look like a link to your audit sheet. Copy it from the address bar, or download it as a PDF and upload that." }, 400, cors);
+  if (!g || !["sheet", "doc"].includes(g.kind)) return json({ error: "That doesn't look like a link to your Rubric. Copy it from the address bar, or download it as a PDF and upload that." }, 400, cors);
   const main = await googleExport(g);
   if (main.error === "private") return json({ error: "I can't open that: it isn't public. Either set General access to \"Anyone with the link\" (Viewer), or download it as a PDF (File → Download → PDF) and upload that.", need: "pdf" }, 403, cors);
   if (main.error) return json({ error: "Couldn't reach Google. Try again in a moment." }, 502, cors);
   if (main.text.trim().length < 200) return json({ error: "I opened it, but there's almost nothing in it yet." }, 400, cors);
-  const label = g.kind === "sheet" ? "THEIR AUDIT SHEET (CSV)" : "THEIR AUDIT DOC";
+  const label = g.kind === "sheet" ? "THEIR RUBRIC SHEET (CSV)" : "THEIR AUDIT DOC";
   const parts = [`${label}:\n${main.text}`];
   // Linked working docs: Google Docs, Slides and Sheets that are public. Anything else is noted, not opened.
   const links = [...new Set((main.text.match(/https?:\/\/[^\s",)\]]+/g) || []))].filter(u => u !== url).slice(0, MAX_LINKS);
@@ -293,10 +293,10 @@ async function zip(b, env, team, cors) {
 const LABELS = QUESTIONS.map(q => q.id);
 
 function systemPrompt(round) {
-  const rubric = SECTIONS.map(s => `${s.id}. ${s.title}\n` + QUESTIONS.filter(q => q.section === s.id).map(q =>
+  const rubric = SECTIONS.map(s => `${s.id}. ${s.title}${s.observed ? " (you judge these yourself, from the notes, the repo and the deployed app; the team needn't write them up)" : " (from the team's own notes: " + s.from + ")"}\n` + QUESTIONS.filter(q => q.section === s.id).map(q =>
     `  ${q.id} ${q.label}: "${q.question}"\n     Look for: ${q.look_for.join("; ")}`).join("\n")).join("\n");
   return [
-    "You are the Auditor for the final assignment in an MBA course, Coding with GPT, at Darden. Student teams of 2–4 vibe-coded an app with AI. Their working docs (personas, stories, designs and so on) live wherever they keep them; their audit sheet is the index: one row per element below, a 'Where it lives' link or repo path for each, their own ticks (TRUE/FALSE) against what to look for, and statuses and notes they copied from earlier audits. You read the sheet, the linked docs that were public, a slice of their repo and its commit history, and return an audit, the way a good financial auditor would: observations, questions, and priorities, not a grade.",
+    "You are the Auditor for the final assignment in an MBA course, Coding with GPT, at Darden. Student teams of 2–4 vibe-coded an app with AI. Their working docs (personas, stories, designs and so on) live wherever they keep them; their Rubric (a sheet) is the index: one row per element below, a 'Where it lives' link or repo path for each, their own ticks (TRUE/FALSE) against what to look for, and statuses and notes they copied from earlier audits. You read the sheet, the linked docs that were public, a slice of their repo and its commit history, and return an audit, the way a good financial auditor would: observations, questions, and priorities, not a grade.",
     "Judge each element by the material, not by their ticks or earlier statuses. A 'Where it lives' entry that's a repo path refers to the repo slice; if that file isn't in the slice, say you couldn't see it. If an element's material is in a link you couldn't open (listed at the end of their sheet), don't mark it missing for that alone: say so in the note, and ask for it in your requests if it matters.",
     "The course's through line is applying four steps adaptively as you see what breaks: (1) design intent (personas, JTBD, user stories with OECs), (2) unpacking (MVC: models, views, controllers; Given-When-Then), (3) effectuating between alternatives (stack, packages, APIs, deploy targets), (4) iteratively coding, testing, debugging (tests, pipeline, observability). The trap you are there to catch: a working 1.0 makes a team think it's mostly done. Most of these apps haven't met real users and won't be overtly broken, so most of what you have to say is about what to test, what's likely to need changing, and what's confusing.",
     "The engineering ideas the course teaches, which you use when you read their code: " + ENGINEERING_IDEAS.join(", ") + ". Readability applies to APIs and machine interfaces too, not just code.",
@@ -344,7 +344,7 @@ const AUDIT_TOOL = {
 async function run(b, env, team, cors) {
   const stage = b.stage === "final" ? "final" : "checkin";
   const m = await env.DB.prepare("SELECT * FROM audit_material WHERE team_id = ?").bind(team.id).first();
-  if (!m || (!m.doc_text && !m.doc_pdf)) return json({ error: "Add your audit sheet first." }, 400, cors);
+  if (!m || (!m.doc_text && !m.doc_pdf)) return json({ error: "Add your Rubric first." }, 400, cors);
   if (!m.repo_slice) return json({ error: "Add your repo first (a GitHub link or a ZIP)." }, 400, cors);
   const { count } = await env.DB.prepare("SELECT count(*) AS count FROM audit_runs WHERE team_id = ? AND stage = ? AND error IS NULL").bind(team.id, stage).first();
   if (count >= MAX_RUNS_PER_STAGE) return json({ error: `That's all ${MAX_RUNS_PER_STAGE} runs for the ${stage === "final" ? "final" : "check-in"}. Your latest report stays here.` }, 429, cors);
@@ -366,7 +366,7 @@ async function run(b, env, team, cors) {
     `Repo: ${team.repo_url || "uploaded as a ZIP"}.`,
   ].filter(Boolean).join("\n");
   const content = [];
-  content.push({ type: "text", text: intro + "\n\n" + (m.doc_pdf ? "THEIR AUDIT SHEET (or doc) is the attached PDF." : m.doc_text) });
+  content.push({ type: "text", text: intro + "\n\n" + (m.doc_pdf ? "THEIR RUBRIC (or doc) is the attached PDF." : m.doc_text) });
   if (m.doc_pdf) content.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: m.doc_pdf } });
   if (shot) content.push({ type: "text", text: "THEIR DEPLOYED APP, first page:" }, { type: "image", source: { type: "base64", media_type: "image/jpeg", data: shot } }, { type: "text", text: "Its text:\n" + shotText });
   content.push({ type: "text", text: "THEIR REPO (a slice):\n" + sliceText(slice) + "\n\nCOMMIT HISTORY (newest first):\n" + (m.git_log || "not provided") });
