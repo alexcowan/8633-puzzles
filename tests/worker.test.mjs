@@ -166,6 +166,8 @@ test("audit: team setup from the roster, private link, materials, two rounds, in
   assert.deepEqual(z.material.repo.files, ["README.md", "app.js"]);
   assert.equal(z.team.repo_access, "zip");
   assert.equal((await post("/audit/doc", { token, pdf: "bm90IGEgcGRm" })).status, 400);
+  // Only a Google Sheet or Doc link (or a PDF) is accepted as the audit sheet.
+  assert.equal((await post("/audit/doc", { token, doc_url: "https://example.com/notes" })).status, 400);
   const d = await (await post("/audit/doc", { token, pdf: PDF, filename: "audit.pdf" })).json();
   assert.equal(d.material.doc.source, "pdf");
   // Round 1: a report with the Top 10 first, a status per question, one follow-up.

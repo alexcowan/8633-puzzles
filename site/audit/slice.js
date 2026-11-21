@@ -21,6 +21,7 @@ export function listable(path) {
 export function priority(path) {
   const p = path.toLowerCase(), base = p.split("/").pop(), depth = p.split("/").length - 1;
   if (/^(readme|agents|claude)/.test(base)) return 0 + depth * 0.1;
+  if (/^docs\//.test(p) && /\.(md|txt)$/.test(p)) return 0.5 + depth * 0.1; // the team's working docs, kept in the repo
   if (/^(package\.json|requirements\.txt|pyproject\.toml|pubspec\.yaml|gemfile|go\.mod|wrangler\.toml|firebase\.json|vercel\.json|netlify\.toml|render\.yaml|dockerfile|procfile)$/.test(base)) return 1 + depth * 0.1;
   if (p.startsWith(".github/workflows/")) return 2;
   if (/(^|\/)(tests?|__tests__|spec|e2e|cypress|playwright)\/|\.(test|spec)\.[a-z]+$/.test(p)) return 4 + depth * 0.1;

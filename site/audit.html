@@ -58,7 +58,7 @@
   <header class="ws">
     <div class="eyebrow">Coding with GPT · Final assignment · One per team</div>
     <h1>The Vibe Code Audit</h1>
-    <p style="margin-top:10px">I'm the Auditor. Give me your audit doc and your repo, and I'll read them the way a good auditor reads a set of books: I'll give you a ranked list of ten recommendations, tell you where you're in good shape and where you need work, and, if I need to see more, ask for it. Then you answer and I give you my final opinion.</p>
+    <p style="margin-top:10px">I'm the Auditor. Give me your audit sheet and your repo, and I'll read them the way a good auditor reads a set of books: I'll give you a ranked list of ten recommendations, tell you where you're in good shape and where you need work, and, if I need to see more, ask for it. Then you answer and I give you my final opinion.</p>
     <p class="muted">Your work saves as you go. Anyone on your team can pick up where you left off with your team's link.</p>
   </header>
 
@@ -99,9 +99,9 @@
 
   <!-- 3. Materials -->
   <section class="ws panel" id="docpanel" hidden>
-    <h2>1. Your audit doc <span id="doc-done"></span></h2>
-    <p>The Google Doc with your answers to the audit questions (below). If it's set to "Anyone with the link can view", paste the link. If not, download it as a PDF (File → Download → PDF) and upload that.</p>
-    <div class="row"><input type="url" id="docurl" placeholder="https://docs.google.com/document/d/…"><button id="docgo">Check</button></div>
+    <h2>1. Your audit sheet <span id="doc-done"></span></h2>
+    <p>Your copy of the <a id="tmpl" href="#" target="_blank" rel="noopener">audit sheet template</a>: for each element, where it lives in your working docs. Set it to "Anyone with the link can view" and paste the link; I'll follow the links in it too (public Google Docs, Sheets and Slides; anything in your repo I read there). Or download it as a PDF (File → Download → PDF) and upload that.</p>
+    <div class="row"><input type="url" id="docurl" placeholder="https://docs.google.com/spreadsheets/d/…"><button id="docgo">Check</button></div>
     <div class="row"><span class="muted">or</span> <input type="file" id="pdf" accept="application/pdf"></div>
     <p class="status" id="doc-st"></p>
   </section>
@@ -146,7 +146,7 @@
   <!-- What the Auditor reads against -->
   <section class="ws rubric rb">
     <details><summary>The audit questions, and what I look for</summary>
-      <p style="margin-top:8px">Your audit doc answers these, in this order. I give each one a status: <b>in good shape</b>, <b>needs some work</b>, or <b>missing</b>. I also read your code against the course's engineering ideas (DRY, separation of concerns, dependency direction, readability, determinism), so be ready to talk about it.</p>
+      <p style="margin-top:8px">Your audit sheet has one row for each of these, in this order. I give each one a status: <b>in good shape</b>, <b>needs some work</b>, or <b>missing</b>. I also read your code against the course's engineering ideas (DRY, separation of concerns, dependency direction, readability, determinism), so be ready to talk about it.</p>
       <div id="rubric"></div>
     </details>
   </section>
@@ -158,11 +158,13 @@ import { buildSlice } from "./audit/slice.js";
 import { readZip } from "./audit/zip.js";
 
 const API = "https://shrill-wood-3253.acowan.workers.dev/audit/";
+const TEMPLATE = "https://docs.google.com/spreadsheets/d/1NSsyWaeZxmi_ZyRu6bi2iA2czTZE9B2fm03HFn7Wgdc/copy";
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const STEP = { intent: "Design intent", unpack: "Unpacking", effectuate: "Effectuating", iterate: "Iterating" };
 let token = null, state = null, shown = null;
 
+document.getElementById("tmpl").href = TEMPLATE;
 // ---------- the rubric, from the same file the Auditor reads ----------
 $("rubric").innerHTML = SECTIONS.map(s => `<h3>${s.id}. ${esc(s.title)}</h3>` + QUESTIONS.filter(q => q.section === s.id).map(q =>
   `<div class="q"><b>${q.id}. ${esc(q.label)}</b><br>${esc(q.question)}<ul>${q.look_for.map(l => `<li>${esc(l)}</li>`).join("")}</ul></div>`).join("")).join("");
@@ -268,7 +270,12 @@ $("savemembers").onclick = async () => {
 // ---------- doc ----------
 $("docgo").onclick = async () => {
   busy("doc-st", "Opening your doc…");
-  try { render(await call("doc", { token, doc_url: $("docurl").value })); say("doc-st", "Got it.", "ok"); }
+  try {
+    const d = await call("doc", { token, doc_url: $("docurl").value }); render(d);
+    const l = d.links || { opened: [], unopened: [] };
+    say("doc-st", "Got it." + (l.opened.length ? ` Opened ${l.opened.length} linked doc${l.opened.length > 1 ? "s" : ""}.` : "") +
+      (l.unopened.length ? `<br><span class="muted">Couldn't open:</span> ${l.unopened.map(esc).join("<br>")}` : ""), "ok");
+  }
   catch (e) { say("doc-st", esc(e.message), "err"); }
 };
 $("pdf").onchange = async () => {
@@ -325,7 +332,7 @@ function render(d) {
   const docDone = !!d.material.doc, repoDone = !!d.material.repo;
   $("doc-done").outerHTML = `<span id="doc-done" class="${docDone ? "done" : "todo"}">${docDone ? "✓ " + (d.material.doc.source === "pdf" ? "PDF uploaded" : "read") : "to do"}</span>`;
   $("repo-done").outerHTML = `<span id="repo-done" class="${repoDone ? "done" : "todo"}">${repoDone ? "✓ " + ({ public: "read on GitHub", collaborator: "read on GitHub", zip: "ZIP uploaded" }[d.team.repo_access] || "read") : "to do"}</span>`;
-  if (d.team.doc_source === "gdoc" && d.team.doc_url && !$("docurl").value) $("docurl").value = d.team.doc_url;
+  if (/^g/.test(d.team.doc_source || "") && d.team.doc_url && !$("docurl").value) $("docurl").value = d.team.doc_url;
   if (d.team.repo_url && !$("repourl").value) $("repourl").value = d.team.repo_url;
   if (d.team.deployed_url && !$("deployed").value) $("deployed").value = d.team.deployed_url;
   $("repo-files").textContent = repoDone ? d.material.repo.note + " Files I read: " + d.material.repo.files.join(", ") : "";
