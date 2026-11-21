@@ -151,6 +151,10 @@ test("audit: team setup from the roster, private link, materials, two rounds, in
   assert.deepEqual(made.team.members.map(m => m.name), ["Findley Bowie", "Julia Boyer"]);
   // Nobody on two teams.
   assert.equal((await post("/audit/team", { code: "class123", me: "ccc3z@darden.virginia.edu", members: ["bbb2y@darden.virginia.edu"], name: "Other" })).status, 409);
+  // Except instructors, who can be on as many teams as they like.
+  wr("d1", "execute", "cwg", "--local", "--command", "UPDATE roster SET role = 'instructor' WHERE email = 'ccc3z@darden.virginia.edu'");
+  assert.equal((await post("/audit/team", { code: "class123", me: "ccc3z@darden.virginia.edu", name: "Test 1" })).status, 200);
+  assert.equal((await post("/audit/team", { code: "class123", me: "ccc3z@darden.virginia.edu", name: "Test 2" })).status, 200);
   const token = made.token;
   assert.equal((await post("/audit/load", { token: "bad" })).status, 401);
   // Can't run without material.
@@ -192,6 +196,6 @@ test("audit: team setup from the roster, private link, materials, two rounds, in
   // Instructor view.
   assert.equal((await post("/audit/results", { code: "class123" })).status, 401);
   const res = await (await post("/audit/results", { code: "prof456" })).json();
-  assert.equal(res.teams.length, 1); assert.equal(res.teams[0].latest.round, 2);
-  assert.ok(res.teams[0].pct > 0 && res.teams[0].pct <= 100);
+  const pals = res.teams.find(t => t.name === "Parts Pals"); assert.equal(res.teams.length, 3); assert.equal(pals.latest.round, 2);
+  assert.ok(pals.pct > 0 && pals.pct <= 100);
 });

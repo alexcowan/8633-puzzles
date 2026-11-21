@@ -61,16 +61,17 @@ async function createTeam(b, env, cors) {
   if (!name) return json({ error: "Give your team a name." }, 400, cors);
   const emails = [...new Set([normEmail(b.me), ...(b.members || []).map(normEmail)].filter(Boolean))];
   if (emails.length > 6) return json({ error: "Teams are 2–4 people." }, 400, cors);
-  const people = [];
+  const people = [], staff = new Set();
   for (const e of emails) {
-    const r = await env.DB.prepare("SELECT email, first, last, preferred FROM roster WHERE email = ?").bind(e).first();
+    const r = await env.DB.prepare("SELECT email, first, last, preferred, role FROM roster WHERE email = ?").bind(e).first();
     if (!r) return json({ error: `${e} isn't on the class roster. Use your Darden email.` }, 400, cors);
     people.push({ email: r.email, name: fullName(r), google: r.email });
+    if (r.role === "instructor") staff.add(r.email);
   }
-  // Nobody on two teams.
+  // Nobody on two teams, except instructors (who can join as many as they like, e.g. to test).
   const { results: teams } = await env.DB.prepare("SELECT name, members FROM audit_teams").all();
   for (const t of teams) {
-    const taken = JSON.parse(t.members).map(m => m.email).filter(e => emails.includes(e));
+    const taken = JSON.parse(t.members).map(m => m.email).filter(e => emails.includes(e) && !staff.has(e));
     if (taken.length) return json({ error: `${taken.join(", ")} ${taken.length > 1 ? "are" : "is"} already on team "${t.name}". Ask that team for its link instead.` }, 409, cors);
   }
   const token = randomToken(), id = randomToken().slice(0, 12), now = new Date().toISOString();
@@ -124,10 +125,10 @@ async function save(b, env, team, cors) {
       const e = normEmail(m.email);
       let p = cur.find(c => c.email === e);
       if (!p) {
-        const r = await env.DB.prepare("SELECT email, first, last, preferred FROM roster WHERE email = ?").bind(e).first();
+        const r = await env.DB.prepare("SELECT email, first, last, preferred, role FROM roster WHERE email = ?").bind(e).first();
         if (!r) return json({ error: `${e} isn't on the class roster.` }, 400, cors);
         const { results: teams } = await env.DB.prepare("SELECT name, members FROM audit_teams WHERE id != ?").bind(team.id).all();
-        const other = teams.find(t => JSON.parse(t.members).some(x => x.email === e));
+        const other = r.role === "instructor" ? null : teams.find(t => JSON.parse(t.members).some(x => x.email === e));
         if (other) return json({ error: `${e} is already on team "${other.name}".` }, 409, cors);
         p = { email: r.email, name: fullName(r), google: r.email };
       }
@@ -190,12 +191,49 @@ async function doc(b, env, team, cors) {
     opened.push(u); parts.push(`===== LINKED ${f.kind.toUpperCase()}: ${u} =====\n${r.text.slice(0, MAX_LINKED_CHARS)}`);
   }));
   if (unopened.length) parts.push("LINKS I COULDN'T OPEN:\n" + unopened.join("\n"));
+  // The Submission block at the top of the Rubric: product notes, repo, deployed app.
+  const sub = g.kind === "sheet" ? submission(main.text) : {};
+  const found = {
+    notes: sub.notes ? { url: sub.notes, opened: opened.includes(sub.notes) } : null,
+    repo: sub.repo || null,
+    deployed: sub.deployed || null,
+  };
+  if (sub.deployed) await touchTeam(env, team.id, { deployed_url: cleanUrl(sub.deployed) });
   await material(env, team.id, { doc_text: parts.join("\n\n").slice(0, 160000), doc_pdf: null });
   await touchTeam(env, team.id, { doc_source: g.kind === "sheet" ? "gsheet" : "gdoc", doc_url: g.canonical });
-  return json({ links: { opened, unopened }, ...(await view(env, await fresh(env, team))) }, 200, cors);
+  return json({ links: { opened, unopened }, found, ...(await view(env, await fresh(env, team))) }, 200, cors);
 }
 
 const MAX_LINKS = 15, MAX_LINKED_CHARS = 20000;
+
+// Reads the Submission rows of the Rubric's CSV: a label in column B, the value in the next filled cell.
+function submission(csv) {
+  const out = {};
+  for (const row of parseCSV(csv)) {
+    const label = (row[1] || "").trim().toLowerCase();
+    const value = row.slice(2).map(v => v.trim()).find(v => v && !/^\[.*\]$/.test(v)) || "";
+    const url = (/https?:\/\/\S+/.exec(value) || [])[0];
+    if (!url) continue;
+    if (/^product charter|^product notes|design notes/.test(label)) out.notes = out.notes || url;
+    else if (/^repo/.test(label)) out.repo = out.repo || url;
+    else if (/^deployed/.test(label)) out.deployed = out.deployed || url;
+  }
+  return out;
+}
+function parseCSV(text) {
+  const rows = []; let row = [], cell = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; } else if (c === '"') q = false; else cell += c; }
+    else if (c === '"') q = true;
+    else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(cell); rows.push(row); row = []; cell = ""; }
+    else cell += c;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  return rows;
+}
+export { submission };
 function googleFile(u) {
   const m = /docs\.google\.com\/(document|spreadsheets|presentation)\/d\/([A-Za-z0-9_-]{20,})/.exec(String(u || ""));
   if (!m) return null;
