@@ -78,8 +78,6 @@
     <div class="chips" id="mates-chips"></div>
     <label class="lbl" for="tname">Team name</label>
     <div class="row"><input type="text" id="tname" maxlength="60" style="max-width:360px"></div>
-    <label class="lbl" for="ptype">Project</label>
-    <div class="row"><select id="ptype"><option value="de novo">De novo (we started it)</option><option value="sponsored">Sponsored (we started from someone else's code)</option></select></div>
     <div class="row" style="margin-top:14px"><button id="create">Create our team</button></div>
     </div>
     <p class="status" id="setup-st"></p>
@@ -232,7 +230,7 @@ $("create").onclick = async () => {
   if (!$("tname").value.trim()) return say("setup-st", "Give your team a name.", "err");
   busy("setup-st", "Setting up your team…");
   try {
-    const d = await call("team", { code: setupCode(), me: me.email, members: [...mates.keys()], name: $("tname").value, project_type: $("ptype").value });
+    const d = await call("team", { code: setupCode(), me: me.email, members: [...mates.keys()], name: $("tname").value });
     localStorage.setItem("cwg-code", setupCode());
     useToken(d.token); render(d); say("setup-st", "");
   } catch (e) { say("setup-st", esc(e.message), "err"); }
