@@ -73,7 +73,7 @@ async function createTeam(b, env, cors) {
     if (taken.length) return json({ error: `${taken.join(", ")} ${taken.length > 1 ? "are" : "is"} already on team "${t.name}". Ask that team for its link instead.` }, 409, cors);
   }
   const token = randomToken(), id = randomToken().slice(0, 12), now = new Date().toISOString();
-  const type = b.project_type === "sponsored" ? "sponsored" : "de novo";
+  const type = b.project_type === "sponsored" ? "sponsored" : b.project_type === "de novo" ? "de novo" : null;
   await env.DB.prepare("INSERT INTO audit_teams (id, token_hash, name, project_type, created_at, created_by, members, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
     .bind(id, await sha256(token), name, type, now, people[0].email, JSON.stringify(people), now).run();
   const team = await env.DB.prepare("SELECT * FROM audit_teams WHERE id = ?").bind(id).first();
@@ -329,8 +329,8 @@ async function run(b, env, team, cors) {
   const slice = JSON.parse(m.repo_slice);
   const members = JSON.parse(team.members);
   const intro = [
-    `Team: ${team.name} (${team.project_type || "de novo"} project; ${members.length} people). Stage: ${stage === "final" ? "final submission" : "check-in draft (sections C–D may be partial)"}.`,
-    team.project_type === "sponsored" ? "This is a sponsored project that started from someone else's code: code recommendations should be about code the team wrote or changed, which the commit history shows." : "",
+    `Team: ${team.name} (${members.length} people). Stage: ${stage === "final" ? "final submission" : "check-in draft (sections C–D may be partial)"}.`,
+    "Some teams started from a sponsor's existing code. If the doc or the commit history shows that, make your code recommendations about code the team wrote or changed.",
     `Deployed app: ${team.deployed_url || "not given"}. You can't open it; judge from the doc and the code.`,
     `Repo: ${team.repo_url || "uploaded as a ZIP"}.`,
   ].filter(Boolean).join("\n");
