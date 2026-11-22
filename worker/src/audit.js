@@ -195,8 +195,12 @@ async function doc(b, env, team, cors) {
   if (main.text.trim().length < 200) return json({ error: "I opened it, but there's almost nothing in it yet." }, 400, cors);
   const label = g.kind === "sheet" ? "THEIR RUBRIC SHEET (CSV)" : "THEIR AUDIT DOC";
   const parts = [`${label}:\n${main.text}`];
+  // The Submission rows: product notes, repo, deployed app. The repo and app are read in their own steps.
+  const sub = g.kind === "sheet" ? submission(main.text) : {};
+  const ownStep = new Set([sub.repo, sub.deployed].filter(Boolean).map(cleanUrl));
   // Linked working docs: Google Docs, Slides and Sheets that are public. Anything else is noted, not opened.
-  const links = [...new Set((main.text.match(/https?:\/\/[^\s",)\]]+/g) || []))].filter(u => u !== url).slice(0, MAX_LINKS);
+  const links = [...new Set((main.text.match(/https?:\/\/[^\s",)\]]+/g) || []))]
+    .filter(u => u !== url && !ownStep.has(cleanUrl(u)) && !GH_REPO.test(u + "/")).slice(0, MAX_LINKS);
   const opened = [], unopened = [];
   await Promise.all(links.map(async u => {
     const f = googleFile(u);
@@ -206,8 +210,6 @@ async function doc(b, env, team, cors) {
     opened.push(u); parts.push(`===== LINKED ${f.kind.toUpperCase()}: ${u} =====\n${r.text.slice(0, MAX_LINKED_CHARS)}`);
   }));
   if (unopened.length) parts.push("LINKS I COULDN'T OPEN:\n" + unopened.join("\n"));
-  // The Submission tab (the sheet's first tab): product notes, repo, deployed app.
-  const sub = g.kind === "sheet" ? submission(main.text) : {};
   const found = {
     notes: sub.notes ? { url: sub.notes, opened: opened.includes(sub.notes) } : null,
     repo: sub.repo || null,
