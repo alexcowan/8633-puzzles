@@ -115,7 +115,7 @@ export const ENGINEERING_IDEAS = ["DRY", "separation of concerns", "dependency d
 // these ideas are new to. Canvas file links: enrolled students can open them.
 export const READINGS = {
   hdd: { title: "Digital Product Management with Hypothesis-Driven Development (UVA-OM-1740)",
-         url: "https://darden.instructure.com/courses/8084357/files/362546006?wrap=1",
+         url: "https://darden.instructure.com/courses/8084357/files/367905528?wrap=1",
          for: "experiments, demand hypotheses, and jobs-to-be-done" },
   ux:  { title: "Designing Digital User Experiences (UVA-OM-1739)",
          url: "https://darden.instructure.com/courses/8084357/files/362546005?wrap=1",
