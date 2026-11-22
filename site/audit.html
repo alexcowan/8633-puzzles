@@ -404,9 +404,26 @@ $("dl").onclick = () => {
 
 // ---------- start ----------
 (async () => {
+  // "?reset" on the link (before or after the #t=…) is for testing. With a team link, it starts that
+  // team over (instructor test teams only). Without one, it forgets this browser's saved link.
+  const resetAsked = /[?&]reset\b/.test(location.search + location.hash);
   const fromHash = (/#t=([\w-]{20,})/.exec(location.hash) || [])[1];
+  if (resetAsked && !fromHash) {
+    localStorage.removeItem("cwg-audit-token");
+    history.replaceState(null, "", location.pathname);
+    $("setup").hidden = false; say("setup-st", "Starting fresh: this browser no longer remembers a team link.", "ok"); return;
+  }
   const t = fromHash || localStorage.getItem("cwg-audit-token");
   if (!t) { $("setup").hidden = false; return; }
+  if (resetAsked) {
+    try {
+      useToken(t);
+      for (const id of ["docurl", "repourl", "deployed"]) $(id).value = "";
+      render(await call("reset", { token: t }));
+      say("run-st", "Reset: materials and runs cleared. The team and its link are unchanged.", "ok");
+    } catch (e) { useToken(t); say("run-st", esc(e.message), "err"); render(await call("load", { token: t })); }
+    return;
+  }
   try { useToken(t); render(await call("load", { token: t })); }
   catch (e) {
     localStorage.removeItem("cwg-audit-token"); token = null; history.replaceState(null, "", location.pathname);

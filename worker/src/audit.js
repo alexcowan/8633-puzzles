@@ -32,6 +32,7 @@ export async function audit(request, env, path, cors) {
     if (action === "doc") return await doc(b, env, team, cors);
     if (action === "run") return await run(b, env, team, cors);
     if (action === "relink") return await relink(env, team, cors);
+    if (action === "reset") return await reset(env, team, cors);
   } catch (e) {
     return json({ error: "Something went wrong on my side: " + String(e && e.message || e).slice(0, 200) }, 500, cors);
   }
@@ -86,6 +87,20 @@ async function relink(env, team, cors) {
   const token = randomToken();
   await env.DB.prepare("UPDATE audit_teams SET token_hash = ? WHERE id = ?").bind(await sha256(token), team.id).run();
   return json({ token }, 200, cors);
+}
+
+// Testing: start a team over (materials, runs, links), keeping the team, its members and its link.
+// Only for teams with an instructor on them, so students can't use it to get around the run limit.
+async function reset(env, team, cors) {
+  const emails = JSON.parse(team.members).map(m => m.email);
+  const staff = await env.DB.prepare(`SELECT count(*) AS n FROM roster WHERE role = 'instructor' AND email IN (${emails.map(() => "?").join(",")})`).bind(...emails).first();
+  if (!staff || !staff.n) return json({ error: "Only test teams with an instructor on them can be reset." }, 403, cors);
+  await env.DB.batch([
+    env.DB.prepare("DELETE FROM audit_runs WHERE team_id = ?").bind(team.id),
+    env.DB.prepare("DELETE FROM audit_material WHERE team_id = ?").bind(team.id),
+    env.DB.prepare("UPDATE audit_teams SET repo_url = NULL, repo_access = NULL, deployed_url = NULL, doc_url = NULL, doc_source = NULL, updated_at = ? WHERE id = ?").bind(new Date().toISOString(), team.id),
+  ]);
+  return json(await view(env, await fresh(env, team)), 200, cors);
 }
 
 async function teamFromToken(env, token) {
