@@ -189,6 +189,16 @@ test("audit: team setup from the roster, private link, materials, two rounds, in
   const r2 = await (await post("/audit/run", { token, stage: "checkin", answers: [{ id: "B4", ask: "Show me where matching happens.", answer: "app.js line 3" }] })).json();
   assert.equal(r2.run.round, 2); assert.equal(r2.run.result.requests.length, 0);
   assert.match(JSON.stringify(fake.state.last.messages), /app\.js line 3/);
+  // Reset is for instructor test teams only.
+  assert.equal((await post("/audit/reset", { token })).status, 403);
+  const test1 = await (await post("/audit/team", { code: "class123", me: "ccc3z@darden.virginia.edu", name: "Test 3" })).json();
+  await post("/audit/save", { token: test1.token, deployed_url: "x.example.com" });
+  await post("/audit/doc", { token: test1.token, pdf: PDF, filename: "a.pdf" });
+  await post("/audit/run", { token: test1.token, stage: "checkin" });
+  const wiped = await (await post("/audit/reset", { token: test1.token })).json();
+  assert.equal(wiped.runs.length, 0); assert.equal(wiped.material.doc, null); assert.equal(wiped.team.deployed_url, null);
+  assert.equal(wiped.team.name, "Test 3");
+  assert.equal((await post("/audit/load", { token: test1.token })).status, 200);
   // A new link replaces the old one.
   const { token: t2 } = await (await post("/audit/relink", { token })).json();
   assert.equal((await post("/audit/load", { token })).status, 401);
@@ -196,6 +206,6 @@ test("audit: team setup from the roster, private link, materials, two rounds, in
   // Instructor view.
   assert.equal((await post("/audit/results", { code: "class123" })).status, 401);
   const res = await (await post("/audit/results", { code: "prof456" })).json();
-  const pals = res.teams.find(t => t.name === "Parts Pals"); assert.equal(res.teams.length, 3); assert.equal(pals.latest.round, 2);
+  const pals = res.teams.find(t => t.name === "Parts Pals"); assert.equal(res.teams.length, 4); assert.equal(pals.latest.round, 2);
   assert.ok(pals.pct > 0 && pals.pct <= 100);
 });
