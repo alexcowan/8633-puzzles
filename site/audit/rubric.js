@@ -110,3 +110,15 @@ export const STATUSES = {
 
 // The engineering ideas the course carries across layers; recommendations from reading the code cite these.
 export const ENGINEERING_IDEAS = ["DRY", "separation of concerns", "dependency direction", "readability", "determinism"];
+
+// Readings to suggest when an element comes back "needs some work" or "missing", for students
+// these ideas are new to. Canvas file links: enrolled students can open them.
+export const READINGS = {
+  hdd: { title: "Digital Product Management with Hypothesis-Driven Development (UVA-OM-1740)",
+         url: "https://darden.instructure.com/courses/8084357/files/362546006?wrap=1",
+         for: "experiments, demand hypotheses, and jobs-to-be-done" },
+  ux:  { title: "Designing Digital User Experiences (UVA-OM-1739)",
+         url: "https://darden.instructure.com/courses/8084357/files/362546005?wrap=1",
+         for: "user stories, OECs, and testing with users" },
+};
+export const READING_FOR = { A1: "hdd", A2: "hdd", A3: "ux", A4: "ux" };

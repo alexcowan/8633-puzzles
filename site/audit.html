@@ -161,7 +161,7 @@
 </main>
 
 <script type="module">
-import { SECTIONS, QUESTIONS, STATUSES } from "./audit/rubric.js";
+import { SECTIONS, QUESTIONS, STATUSES, READINGS, READING_FOR } from "./audit/rubric.js";
 import { buildSlice } from "./audit/slice.js";
 import { readZip } from "./audit/zip.js";
 
@@ -384,7 +384,9 @@ function show(run) {
     <div class="qs">${SECTIONS.map(s => `<h3>${s.id}. ${esc(s.title)}</h3>` + r.questions.filter(q => q.id[0] === s.id).map(q => {
       const Q = QUESTIONS.find(x => x.id === q.id);
       const label = q.status === "missing" && Q.optional ? "Optional, not done" : STATUSES[q.status];
-      return `<div class="qrow"><span class="st ${q.status === "missing" && Q.optional ? "work" : q.status}">${label}</span><span><b>${q.id}. ${esc(Q.label)}</b><br>${esc(q.note)}</span></div>`;
+      const rd = q.status !== "good" && READINGS[READING_FOR[q.id]];
+      const read = rd ? `<br><span class="muted" style="font-size:15px">New to ${esc(rd.for)}? Read <a href="${rd.url}" target="_blank" rel="noopener">${esc(rd.title)}</a> (Canvas).</span>` : "";
+      return `<div class="qrow"><span class="st ${q.status === "missing" && Q.optional ? "work" : q.status}">${label}</span><span><b>${q.id}. ${esc(Q.label)}</b><br>${esc(q.note)}${read}</span></div>`;
     }).join("")).join("")}</div>`;
   if (pending) $("answer").onclick = () => runAudit(r.requests.map((q, i) => ({ id: q.id, ask: q.ask, answer: $("report").querySelector(`textarea[data-i="${i}"]`).value })));
   const ok = state.runs.filter(x => x.result);
