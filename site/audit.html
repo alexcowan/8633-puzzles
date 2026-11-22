@@ -138,9 +138,8 @@
   <!-- 4. Run -->
   <section class="ws panel" id="runpanel" hidden>
     <h2>3. Ask for the audit</h2>
-    <p>It takes a minute or two: I read everything. You get <span id="nruns"></span> runs for the check-in and the same for the final, follow-up rounds included.</p>
+    <p>It takes a minute or two: I read everything. You get <span id="nruns"></span> runs in all, follow-up rounds included. Run it whenever you like: what you run before Class 11 is your check-in, and your last run before the final deadline is your final.</p>
     <div class="row">
-      <select id="stage"><option value="checkin">Check-in (before Class 10)</option><option value="final">Final</option></select>
       <button id="rungo">Run the audit</button>
     </div>
     <p class="status" id="run-st"></p>
@@ -338,10 +337,9 @@ $("depgo").onclick = async () => { try { render(await call("save", { token, depl
 // ---------- run ----------
 $("rungo").onclick = () => runAudit();
 async function runAudit(answers) {
-  const stage = answers ? shown.stage : $("stage").value;
   busy("run-st", answers ? "Reading your answers and writing my final opinion…" : "Reading your doc and your code… (a minute or two)");
   $("rungo").disabled = true;
-  try { await call("run", { token, stage, answers }); render(await call("load", { token })); say("run-st", ""); $("reportpanel").scrollIntoView({ behavior: "smooth" }); }
+  try { await call("run", { token, answers }); render(await call("load", { token })); say("run-st", ""); $("reportpanel").scrollIntoView({ behavior: "smooth" }); }
   catch (e) { say("run-st", esc(e.message), "err"); }
   finally { $("rungo").disabled = false; }
 }
@@ -361,7 +359,7 @@ function render(d) {
   if (d.team.deployed_url && !$("deployed").value) $("deployed").value = d.team.deployed_url;
   if (d.team.doc_source === "pdf") $("depbox").hidden = false;
   $("repo-files").textContent = repoDone ? d.material.repo.note + " Files I read: " + d.material.repo.files.join(", ") : "";
-  $("nruns").textContent = d.limits.runs_per_stage;
+  $("nruns").textContent = d.limits.runs;
   const ok = d.runs.filter(r => r.result);
   if (ok.length) show(ok[ok.length - 1]); else $("reportpanel").hidden = true;
 }

@@ -11,7 +11,10 @@ const MAX_TOKENS = 8000;
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const GITHUB_API = "https://api.github.com";
 const AUDITOR_ACCOUNT = "instructor-8633";
-const MAX_RUNS_PER_STAGE = 6;     // per team, both rounds counted
+const MAX_RUNS = 10;               // per team, both rounds counted
+// Runs before Class 11 are the check-in; runs after are the final. The date decides, not the team.
+const CHECKIN_ENDS = "2026-11-24T19:45:00Z";
+const stageAt = (iso) => (iso < CHECKIN_ENDS ? "checkin" : "final");
 const MAX_PDF_B64 = 1400000;      // about 1 MB of PDF
 const MAX_GITHUB_FILES = 36;      // Workers allow 50 outbound calls per request; leave room for the rest
 
@@ -125,7 +128,7 @@ async function view(env, team) {
       repo, git_log: !!(m && m.has_log),
     },
     runs: runs.map(r => ({ id: r.id, at: r.at, stage: r.stage, round: r.round, answers: r.answers ? JSON.parse(r.answers) : null, result: r.result ? JSON.parse(r.result) : null, error: r.error })),
-    limits: { runs_per_stage: MAX_RUNS_PER_STAGE },
+    limits: { runs: MAX_RUNS },
   };
 }
 
@@ -397,17 +400,17 @@ const AUDIT_TOOL = {
 };
 
 async function run(b, env, team, cors) {
-  const stage = b.stage === "final" ? "final" : "checkin";
+  const stage = stageAt(new Date().toISOString());
   const m = await env.DB.prepare("SELECT * FROM audit_material WHERE team_id = ?").bind(team.id).first();
   if (!m || (!m.doc_text && !m.doc_pdf)) return json({ error: "Add your Submission first." }, 400, cors);
   if (!m.repo_slice) return json({ error: "Add your repo first (a GitHub link or a ZIP)." }, 400, cors);
-  const { count } = await env.DB.prepare("SELECT count(*) AS count FROM audit_runs WHERE team_id = ? AND stage = ? AND error IS NULL").bind(team.id, stage).first();
-  if (count >= MAX_RUNS_PER_STAGE) return json({ error: `That's all ${MAX_RUNS_PER_STAGE} runs for the ${stage === "final" ? "final" : "check-in"}. Your latest report stays here.` }, 429, cors);
+  const { count } = await env.DB.prepare("SELECT count(*) AS count FROM audit_runs WHERE team_id = ? AND error IS NULL").bind(team.id).first();
+  if (count >= MAX_RUNS) return json({ error: `That's all ${MAX_RUNS} runs. Your latest report stays here.` }, 429, cors);
 
   // Round 2 if this answers the latest round-1 run's requests.
   let round = 1, prior = null, answers = null;
   if (Array.isArray(b.answers) && b.answers.length) {
-    prior = await env.DB.prepare("SELECT * FROM audit_runs WHERE team_id = ? AND stage = ? AND round = 1 AND error IS NULL ORDER BY at DESC LIMIT 1").bind(team.id, stage).first();
+    prior = await env.DB.prepare("SELECT * FROM audit_runs WHERE team_id = ? AND round = 1 AND error IS NULL ORDER BY at DESC LIMIT 1").bind(team.id).first();
     if (prior) { round = 2; answers = b.answers.slice(0, 3).map(a => ({ id: String(a.id || "").slice(0, 4), ask: String(a.ask || "").slice(0, 600), answer: String(a.answer || "").slice(0, 3000) })); }
   }
 
