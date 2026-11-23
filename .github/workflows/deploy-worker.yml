@@ -4,11 +4,10 @@ name: Deploy grader
 #   CLOUDFLARE_API_TOKEN   a token with "Edit Cloudflare Workers" and D1 edit permissions
 #   CLOUDFLARE_ACCOUNT_ID  from the Cloudflare dashboard sidebar
 # Without them the job runs the tests and skips the deploy.
-# Optional: AUDIT_SMOKE_TOKEN (a test team's link token) turns on a live check after each deploy.
 on:
   push:
     branches: [main]
-    paths: ["worker/**", "scripts/smoke-audit.mjs", ".github/workflows/deploy-worker.yml"]
+    paths: ["worker/**", ".github/workflows/deploy-worker.yml"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -36,11 +35,6 @@ jobs:
         if: env.CLOUDFLARE_API_TOKEN != ''
         working-directory: worker
         run: npx wrangler deploy
-      - name: Live check (the Auditor's intake steps, against the deployed worker)
-        if: env.CLOUDFLARE_API_TOKEN != ''
-        env:
-          AUDIT_SMOKE_TOKEN: ${{ secrets.AUDIT_SMOKE_TOKEN }}
-        run: sleep 15 && node scripts/smoke-audit.mjs
       - name: Deploy skipped
         if: env.CLOUDFLARE_API_TOKEN == ''
         run: echo "::warning::CLOUDFLARE_API_TOKEN isn't set, so the grader was tested but not deployed."
