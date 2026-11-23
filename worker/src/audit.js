@@ -440,7 +440,7 @@ async function run(b, env, team, cors) {
       method: "POST",
       headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
       body: JSON.stringify({
-        model: MODEL, max_tokens: MAX_TOKENS, thinking: { type: "disabled" },
+        model: MODEL, max_tokens: MAX_TOKENS, thinking: { type: "between_tools" },
         system: systemPrompt(round), tools: [AUDIT_TOOL], tool_choice: { type: "tool", name: "report_audit" },
         messages: [{ role: "user", content }],
       }),
