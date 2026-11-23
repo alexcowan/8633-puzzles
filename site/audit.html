@@ -376,8 +376,9 @@ function show(run) {
   $("report").innerHTML = `
     <p class="opinion">${esc(r.opinion)}</p>
     ${pending ? `<div class="req"><b style="font-family:var(--serif);font-weight:400;color:var(--head)">Before my final opinion, I'd like to see a bit more.</b>
+      <p style="margin:6px 0 2px"><b>These are optional.</b> Answer what you can and leave the rest blank. I'll give you my final opinion either way.</p>
       ${r.requests.map((q, i) => `<div class="one"><div><b>${esc(q.id)}</b> · ${esc(q.ask)}</div><div class="muted" style="font-size:15px">Why I'm asking: ${esc(q.why)}</div><textarea data-i="${i}" rows="3" aria-label="Your answer"></textarea></div>`).join("")}
-      <div class="row"><button id="answer">Send my answers</button><span class="muted" style="font-size:14.5px">Leave one blank if you'd rather not answer it.</span></div></div>` : ""}
+      <div class="row"><button id="answer">Send my answers</button></div></div>` : ""}
     <div><h3 style="font-family:var(--serif);font-weight:400;color:var(--head);font-size:20px;margin:0 0 4px">Top 10 recommendations</h3>
     <ol class="top">${r.top10.map(t => `<li><span class="t">${esc(t.title)}</span><span>${esc(t.observation)}</span><span class="tags"><span>${STEP[t.step]}</span><span>${esc(t.action)}</span>${t.where ? `<span>${esc(t.where)}</span>` : ""}</span></li>`).join("")}</ol></div>
     <p class="tally">You're ${tally.length > 1 ? tally.slice(0, -1).join(", ") + ", and " + tally.slice(-1) : tally.join("")}.</p>
