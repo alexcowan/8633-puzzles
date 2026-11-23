@@ -355,7 +355,7 @@ function systemPrompt(round) {
     `  ${q.id} ${q.label}: "${q.question}"\n     Look for: ${q.look_for.join("; ")}`).join("\n")).join("\n");
   return [
     "You are the Auditor for the final assignment in an MBA course, Coding with GPT, at Darden. Student teams of 2–4 vibe-coded an app with AI. Their working docs (personas, stories, designs and so on) live wherever they keep them; their Submission (the first tab of a sheet) links to their product charter and design notes, their repo, and their deployed app if they have one. They don't map their material to the elements below; finding it is your job, and when something important is missing, ask for it and say why. You read the Submission, the linked docs that were public, a slice of their repo and its commit history, and return an audit, the way a good financial auditor would: observations, questions, and priorities, not a grade.",
-    "Judge each element by the material, not by their ticks or earlier statuses. A 'Where it lives' entry that's a repo path refers to the repo slice; if that file isn't in the slice, say you couldn't see it. If an element's material is in a link you couldn't open (listed at the end of their sheet), don't mark it missing for that alone: say so in the note, and ask for it in your requests if it matters.",
+    "Judge each element by the material itself. A repo path refers to the repo slice; if that file isn't in the slice, say you couldn't see it. If an element's material is in a link you couldn't open (listed at the end of their sheet), don't mark it missing for that alone: say so in the note, and ask for it in your requests if it matters.",
     "The course's through line is applying four steps adaptively as you see what breaks: (1) design intent (personas, JTBD, user stories with OECs), (2) unpacking (MVC: models, views, controllers; Given-When-Then), (3) effectuating between alternatives (stack, packages, APIs, deploy targets), (4) iteratively coding, testing, debugging (tests, pipeline, observability). The trap you are there to catch: a working 1.0 makes a team think it's mostly done. Most of these apps haven't met real users and won't be overtly broken, so most of what you have to say is about what to test, what's likely to need changing, and what's confusing.",
     "The engineering ideas the course teaches, which you use when you read their code: " + ENGINEERING_IDEAS.join(", ") + ". Readability applies to APIs and machine interfaces too, not just code.",
     "The readers are MBA students, many of them senior people and consultants, not trained engineers. Be plain, specific and kind. Don't restate their text. Don't invent facts about their app: if you can't tell from the material, say so or ask.",
@@ -364,7 +364,7 @@ function systemPrompt(round) {
     "THE AUDIT QUESTIONS AND WHAT TO LOOK FOR (question ids in brackets are what you report against):",
     rubric,
     "",
-    "WHAT TO RETURN (through the report_audit tool):",
+    "WHAT TO RETURN: call the report_audit tool exactly once, with the whole audit. Don't answer in text; the tool call is your entire answer.",
     "1. top10: your ten most useful recommendations, ranked, most important first. Each is phrased mostly as an observation or a question (for example: a part of the UI that looks confusing, a comparable worth testing against, a part of the code likely to need changing, an A/B test worth running), says which of the four steps it goes back to, and what to do: change, test, or leave alone on purpose. At least two must come from reading their code against the engineering ideas, and must cite a file and line(s) from the slice. At least one must be framed as a test with users. Spread them across the four steps.",
     "2. questions: one entry per question id, in order (" + LABELS.join(", ") + "), with a status: 'good' (in good shape: the answer engages with what to look for), 'work' (needs some work: there, but thin or missing a look-for), or 'missing' (not answered, or answered with nothing they could act on). The note is one or two sentences on why, specific to their app. Judge the doc and the repo together: if the code shows something the doc leaves out, say so.",
     round === 1
@@ -441,7 +441,7 @@ async function run(b, env, team, cors) {
       headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
       body: JSON.stringify({
         model: MODEL, max_tokens: MAX_TOKENS, thinking: { type: "between_tools" },
-        system: systemPrompt(round), tools: [AUDIT_TOOL], tool_choice: { type: "tool", name: "report_audit" },
+        system: systemPrompt(round), tools: [AUDIT_TOOL], tool_choice: { type: "auto" },
         messages: [{ role: "user", content }],
       }),
     });
@@ -454,8 +454,14 @@ async function run(b, env, team, cors) {
   }
   const data = await res.json();
   const use = (data.content || []).find(c => c.type === "tool_use" && c.name === "report_audit");
-  if (!use) return logRun(env, runId, team.id, at, stage, round, answers, null, "unreadable", cors);
-  const result = tidy(use.input, round);
+  let input = use && use.input;
+  if (!input) {
+    // Fallback: the model wrote the audit as JSON text instead of calling the tool.
+    const text = (data.content || []).filter(c => c.type === "text").map(c => c.text).join("");
+    try { input = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)); } catch {}
+  }
+  if (!input) return logRun(env, runId, team.id, at, stage, round, answers, null, "unreadable", cors);
+  const result = tidy(input, round);
   return logRun(env, runId, team.id, at, stage, round, answers, result, null, cors);
 }
 
