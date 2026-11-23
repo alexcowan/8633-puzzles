@@ -447,7 +447,9 @@ async function run(b, env, team, cors) {
     });
   } catch { return logRun(env, runId, team.id, at, stage, round, answers, null, "network", cors); }
   if (!res.ok) {
-    const detail = (await res.text()).slice(0, 300);
+    const raw = await res.text();
+    let detail = raw.slice(0, 300);
+    try { const e = JSON.parse(raw).error; if (e && e.message) detail = (e.type ? e.type + ": " : "") + e.message.slice(0, 280); } catch {}
     return logRun(env, runId, team.id, at, stage, round, answers, null, "api " + res.status + ": " + detail, cors);
   }
   const data = await res.json();
@@ -481,7 +483,7 @@ function tidy(r, round) {
 async function logRun(env, id, teamId, at, stage, round, answers, result, error, cors) {
   await env.DB.prepare("INSERT INTO audit_runs (id, team_id, at, stage, round, answers, result, error) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
     .bind(id, teamId, at, stage, round, answers ? JSON.stringify(answers) : null, result ? JSON.stringify(result) : null, error).run();
-  if (error) return json({ error: error === "network" ? "The Auditor is unavailable (network). Try again in a minute." : "The Auditor is unavailable right now (" + error.slice(0, 60) + "). Try again in a minute." }, 502, cors);
+  if (error) return json({ error: error === "network" ? "The Auditor is unavailable (network). Try again in a minute." : "The Auditor is unavailable right now (" + error.slice(0, 300) + "). Try again in a minute." }, 502, cors);
   return json({ run: { id, at, stage, round, answers, result } }, 200, cors);
 }
 
