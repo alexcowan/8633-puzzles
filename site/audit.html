@@ -60,7 +60,7 @@
   <header class="ws">
     <div class="eyebrow">Coding with GPT · Final assignment · One per team</div>
     <h1>The Vibe Code Audit</h1>
-    <p style="margin-top:10px">I'm the Auditor. Give me your Submission and your repo, and I'll read them the way a good auditor reads a set of books: I'll give you a ranked list of ten recommendations, tell you where you're in good shape and where you need work, and, if I need to see more, ask for it. Then you answer and I give you my final opinion.</p>
+    <p style="margin-top:10px">I'm the Auditor. Give me your product charter and design notes, your repo, and your deployed app if you have one, and I'll read them the way a good auditor reads a set of books: I'll give you a ranked list of ten recommendations, tell you where you're in good shape and where you need work, and, if I need to see more, ask for it. Then you answer and I give you my final opinion.</p>
     <p class="muted">Your work saves as you go. Anyone on your team can pick up where you left off with your team's link.</p>
   </header>
 
@@ -101,10 +101,9 @@
 
   <!-- 3. Materials -->
   <section class="ws panel" id="docpanel" hidden>
-    <h2>1. Your submission <span id="doc-done"></span></h2>
-    <p>Make a copy of the <a id="tmpl" href="#" target="_blank" rel="noopener">audit sheet</a> and fill in its <b>Submission</b> tab: your team, your product charter and design notes, your repo, and your deployed app if you have one. That's all I need to start. The Rubric tab shows what I look for; you don't fill it in.</p>
-    <p>Set the sheet to "Anyone with the link can view" and paste its link. I'll tell you what I found and what I couldn't, and follow the links in it (public Google Docs, Sheets and Slides; anything in your repo I read there).</p>
-    <div class="row"><input type="url" id="docurl" placeholder="[URL of your rubric here]"><button id="docgo">Check</button></div>
+    <h2>1. Your product charter and design notes <span id="doc-done"></span></h2>
+    <p>Paste a link to your product charter and design notes: a Google Doc, Slides or Sheet set to "Anyone with the link can view." If they're spread across a few files, one that links to the others is fine: I follow public Google Docs, Sheets and Slides it links to. Don't polish first; post what you have, and I'll tell you what else I need and why.</p>
+    <div class="row"><input type="url" id="docurl" placeholder="[URL of your charter and design notes]"><button id="docgo">Check</button></div>
     <ul class="found" id="found" hidden></ul>
     <details style="margin-top:6px"><summary style="font-size:15px">Can't share it? Upload a PDF instead</summary>
       <p style="margin-top:6px;font-size:15px">Download it (File → Download → PDF) and upload it here. You'll then need to give me your repo and deployed link below.</p>
@@ -115,7 +114,7 @@
 
   <section class="ws panel" id="repopanel" hidden>
     <h2>2. Your repo <span id="repo-done"></span></h2>
-    <p>I take this from your Submission. If it's public, I read it from GitHub.</p>
+    <p>Paste your repo's link. If it's public, I read it from GitHub.</p>
     <div class="row"><input type="url" id="repourl" placeholder="[URL of your repository]"><button id="repogo">Check</button></div>
     <p class="status" id="repo-st"></p>
     <div id="private" hidden>
@@ -129,7 +128,7 @@
       </div>
     </div>
     <p class="muted" id="repo-files" style="font-size:14.5px"></p>
-    <div id="depbox" hidden>
+    <div id="depbox">
     <label class="lbl" for="deployed">Where it's deployed <span class="muted" style="font-family:var(--sans)">(optional: I read your code either way; if it's deployed I also open its first page)</span></label>
     <div class="row"><input type="url" id="deployed" placeholder="[URL of your deployed app]"><button class="ghost" id="depgo">Save</button></div>
     </div>
@@ -154,7 +153,7 @@
   <!-- What the Auditor reads against -->
   <section class="ws rubric rb">
     <details><summary>The audit questions, and what I look for</summary>
-      <p style="margin-top:8px">This is what I look for, in this order (it's also the Rubric tab of the audit sheet). I give each one a status: <b>in good shape</b>, <b>needs some work</b>, or <b>missing</b>. I also read your code against the course's engineering ideas (DRY, separation of concerns, dependency direction, readability, determinism), so be ready to talk about it.</p>
+      <p style="margin-top:8px">This is what I look for, in this order. I give each one a status: <b>in good shape</b>, <b>needs some work</b>, or <b>missing</b>. I also read your code against the course's engineering ideas (DRY, separation of concerns, dependency direction, readability, determinism), so be ready to talk about it.</p>
       <div id="rubric"></div>
     </details>
   </section>
@@ -166,13 +165,11 @@ import { buildSlice } from "./audit/slice.js";
 import { readZip } from "./audit/zip.js";
 
 const API = "https://shrill-wood-3253.acowan.workers.dev/audit/";
-const TEMPLATE = "https://docs.google.com/spreadsheets/d/1NSsyWaeZxmi_ZyRu6bi2iA2czTZE9B2fm03HFn7Wgdc/copy";
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const STEP = { intent: "Design intent", unpack: "Unpacking", effectuate: "Effectuating", iterate: "Iterating" };
 let token = null, state = null, shown = null;
 
-document.getElementById("tmpl").href = TEMPLATE;
 // ---------- the rubric, from the same file the Auditor reads ----------
 $("rubric").innerHTML = SECTIONS.map(s => `<h3>${s.id}. ${esc(s.title)}</h3><p class="muted" style="font-size:15px;margin:0 0 6px">${esc(s.from)}</p>` + QUESTIONS.filter(q => q.section === s.id).map(q =>
   `<div class="q"><b>${q.id}. ${esc(q.label)}</b><br>${esc(q.question)}<ul>${q.look_for.map(l => `<li>${esc(l)}</li>`).join("")}</ul></div>`).join("")).join("");
@@ -277,7 +274,7 @@ $("savemembers").onclick = async () => {
 
 // ---------- doc ----------
 $("docgo").onclick = async () => {
-  busy("doc-st", "Opening your Submission…");
+  busy("doc-st", "Opening your charter and design notes…");
   $("found").hidden = true;
   try {
     const d = await call("doc", { token, doc_url: $("docurl").value }); render(d);
@@ -287,16 +284,18 @@ $("docgo").onclick = async () => {
   }
   catch (e) { say("doc-st", esc(e.message), "err"); }
 };
-// What the Submission section gave me: green for found, red for what's missing or wouldn't open.
+// What step 1 gave me: green for opened, red for what wouldn't open.
 function showFound(d) {
   const f = d.found || {}, l = d.links || { opened: [], unopened: [] };
   const li = (cls, mark, text) => `<li class="${cls}">${mark} ${text}</li>`;
   const rows = [];
-  rows.push(!f.notes ? li("n", "✗", "Product charter and design notes: not filled in") :
+  rows.push(!f.notes ? li("n", "✗", "Product charter and design notes: not found") :
     f.notes.opened ? li("y", "✓", "Product charter and design notes: opened") :
     li("n", "✗", "Product charter and design notes: I couldn't open them. Set General access to \"Anyone with the link\" (Viewer)."));
-  rows.push(f.repo ? li("y", "✓", "Repo: found; checking it below") : li("n", "✗", "Repo: not filled in"));
-  rows.push(f.deployed ? li("y", "✓", "Deployed app: " + esc(f.deployed)) : li("o", "–", "Deployed app: none (that's optional)"));
+  if (f.sheet) {
+    rows.push(f.repo ? li("y", "✓", "Repo: found; checking it below") : li("n", "✗", "Repo: not filled in"));
+    rows.push(f.deployed ? li("y", "✓", "Deployed app: " + esc(f.deployed)) : li("o", "–", "Deployed app: none (that's optional)"));
+  }
   const others = l.unopened.filter(u => !(f.notes && u.startsWith(f.notes)));
   if (others.length) rows.push(li("n", "✗", "Other links I couldn't open:<br>" + others.map(esc).join("<br>")));
   $("found").innerHTML = rows.join(""); $("found").hidden = false;
@@ -306,7 +305,7 @@ $("pdf").onchange = async () => {
   if (f.size > 1000000) return say("doc-st", "That PDF is over 1 MB. Download it again without images, or trim it.", "err");
   busy("doc-st", "Uploading…");
   const b64 = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(String(fr.result).split(",")[1]); fr.readAsDataURL(f); });
-  try { render(await call("doc", { token, pdf: b64, filename: f.name })); say("doc-st", "Got it. Now give me your repo and deployed link below.", "ok"); $("depbox").hidden = false; }
+  try { render(await call("doc", { token, pdf: b64, filename: f.name })); say("doc-st", "Got it. Now give me your repo and deployed link below.", "ok"); }
   catch (e) { say("doc-st", esc(e.message), "err"); }
 };
 
@@ -357,7 +356,6 @@ function render(d) {
   if (/^g/.test(d.team.doc_source || "") && d.team.doc_url && !$("docurl").value) $("docurl").value = d.team.doc_url;
   if (d.team.repo_url && !$("repourl").value) $("repourl").value = d.team.repo_url;
   if (d.team.deployed_url && !$("deployed").value) $("deployed").value = d.team.deployed_url;
-  if (d.team.doc_source === "pdf") $("depbox").hidden = false;
   $("repo-files").textContent = repoDone ? d.material.repo.note + " Files I read: " + d.material.repo.files.join(", ") : "";
   $("nruns").textContent = d.limits.runs;
   const ok = d.runs.filter(r => r.result);

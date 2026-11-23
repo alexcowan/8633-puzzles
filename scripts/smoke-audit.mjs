@@ -3,14 +3,16 @@
 // and the puzzle grader with exactly the settings real calls use (the API can change under us).
 //
 //   AUDIT_SMOKE_TOKEN  the test team's link token (the part after #t=)
-//   AUDIT_SMOKE_SHEET  optional: the test team's audit sheet (defaults to the HinH test sheet)
+//   AUDIT_SMOKE_NOTES  optional: the test team's charter and design notes (defaults to the HinH test doc)
+//   AUDIT_SMOKE_REPO   optional: the test team's repo (defaults to the HinH parts catalog)
 //   AUDIT_API          optional: the Auditor's address (defaults to the live one)
 //
 //   node scripts/smoke-audit.mjs
 
 const API = process.env.AUDIT_API || "https://shrill-wood-3253.acowan.workers.dev/audit/";
 const TOKEN = process.env.AUDIT_SMOKE_TOKEN;
-const SHEET = process.env.AUDIT_SMOKE_SHEET || "https://docs.google.com/spreadsheets/d/18fDDXfVX_T7kAMElZMwtBDnhJY-JhdOVWnanNubi8Es/edit";
+const NOTES = process.env.AUDIT_SMOKE_NOTES || "https://docs.google.com/document/d/1YHKsS0hXguetIl1U2KkAw7CNFkLtxs_3Jl1kxkwgglw/edit";
+const REPO = process.env.AUDIT_SMOKE_REPO || "https://github.com/alexcowan/2ModelfromDesignIII";
 
 if (!TOKEN) { console.log("AUDIT_SMOKE_TOKEN isn't set; skipping the live check."); process.exit(0); }
 
@@ -28,22 +30,14 @@ async function call(action, body) {
   return { status: res.status, json };
 }
 
-// 1. The Submission: the sheet opens, the charter doc is opened, the repo is picked up,
-//    and nothing from the Submission is listed as a link it couldn't open.
-const doc = await call("doc", { doc_url: SHEET });
-check(doc.status === 200, `sheet opens (HTTP ${doc.status}${doc.json.error ? ": " + doc.json.error : ""})`);
-const found = doc.json.found || {};
-check(found.notes?.opened === true, "product charter and design notes: opened");
-check(/github\.com\//.test(found.repo || ""), `repo found in the Submission (${found.repo || "none"})`);
-const unopened = doc.json.links?.unopened || [];
-const stray = unopened.filter(u => /github\.com\//.test(u) || (found.repo && u.startsWith(found.repo)) || (found.deployed && u.startsWith(found.deployed)));
-check(stray.length === 0, `no Submission links listed as "couldn't open"${stray.length ? ": " + stray.join("; ") : ""}`);
+// 1. The charter and design notes open.
+const doc = await call("doc", { doc_url: NOTES });
+check(doc.status === 200, `charter and design notes open (HTTP ${doc.status}${doc.json.error ? ": " + doc.json.error : ""})`);
+check(doc.json.found?.notes?.opened === true, "product charter and design notes: opened");
 
-// 2. The repo step reads the repo the Submission points to.
-if (found.repo) {
-  const repo = await call("repo", { repo_url: found.repo });
-  check(repo.status === 200 && !repo.json.need && !repo.json.error, `repo readable (HTTP ${repo.status}${repo.json.error ? ": " + repo.json.error : ""})`);
-}
+// 2. The repo step reads the repo.
+const repo = await call("repo", { repo_url: REPO });
+check(repo.status === 200 && !repo.json.need && !repo.json.error, `repo readable (HTTP ${repo.status}${repo.json.error ? ": " + repo.json.error : ""})`);
 
 // 3. The AI accepts the requests the Auditor and the puzzle grader send.
 const ping = await call("pingai", {});
