@@ -419,7 +419,8 @@ $("dl").onclick = () => {
       useToken(t);
       for (const id of ["docurl", "repourl", "deployed"]) $(id).value = "";
       render(await call("reset", { token: t }));
-      say("run-st", "Reset: materials and runs cleared. The team and its link are unchanged.", "ok");
+      say("doc-st", "Reset: this team's materials and runs are cleared. The team and its link are unchanged.", "ok");
+      $("docpanel").scrollIntoView({ block: "start" });
     } catch (e) { useToken(t); say("run-st", esc(e.message), "err"); render(await call("load", { token: t })); }
     return;
   }
@@ -429,5 +430,8 @@ $("dl").onclick = () => {
     $("setup").hidden = false; say("setup-st", esc(e.message), "err");
   }
 })();
+// A link pasted into this tab that only changes what's after the # (a different team, or ?reset)
+// doesn't reload the page on its own, so reload it.
+window.addEventListener("hashchange", () => location.reload());
 </script>
 </body></html>
