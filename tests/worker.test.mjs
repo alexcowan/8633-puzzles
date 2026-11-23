@@ -191,6 +191,7 @@ test("audit: team setup from the roster, private link, materials, two rounds, in
   assert.match(JSON.stringify(fake.state.last.messages), /app\.js line 3/);
   // Reset is for instructor test teams only.
   assert.equal((await post("/audit/reset", { token })).status, 403);
+  assert.equal((await post("/audit/pingai", { token })).status, 403);
   const test1 = await (await post("/audit/team", { code: "class123", me: "ccc3z@darden.virginia.edu", name: "Test 3" })).json();
   await post("/audit/save", { token: test1.token, deployed_url: "x.example.com" });
   await post("/audit/doc", { token: test1.token, pdf: PDF, filename: "a.pdf" });
@@ -199,6 +200,9 @@ test("audit: team setup from the roster, private link, materials, two rounds, in
   assert.equal(wiped.runs.length, 0); assert.equal(wiped.material.doc, null); assert.equal(wiped.team.deployed_url, null);
   assert.equal(wiped.team.name, "Test 3");
   assert.equal((await post("/audit/load", { token: test1.token })).status, 200);
+  const ping = await post("/audit/pingai", { token: test1.token });
+  assert.equal(ping.status, 200);
+  assert.deepEqual((await ping.json()).checks.map(c => [c.kind, c.ok]), [["auditor", true], ["grader", true]]);
   // A new link replaces the old one.
   const { token: t2 } = await (await post("/audit/relink", { token })).json();
   assert.equal((await post("/audit/load", { token })).status, 401);

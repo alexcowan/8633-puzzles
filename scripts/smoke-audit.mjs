@@ -1,5 +1,6 @@
-// Live check of the Auditor, run after each deploy: the steps a team takes before an audit,
-// against the deployed worker and a real test team. No audit run, so no AI calls.
+// Live check of the worker, run after each deploy and once a day: the steps a team takes before an
+// audit, against the deployed worker and a real test team, plus one tiny AI call each for the Auditor
+// and the puzzle grader with exactly the settings real calls use (the API can change under us).
 //
 //   AUDIT_SMOKE_TOKEN  the test team's link token (the part after #t=)
 //   AUDIT_SMOKE_SHEET  optional: the test team's audit sheet (defaults to the HinH test sheet)
@@ -43,6 +44,11 @@ if (found.repo) {
   const repo = await call("repo", { repo_url: found.repo });
   check(repo.status === 200 && !repo.json.need && !repo.json.error, `repo readable (HTTP ${repo.status}${repo.json.error ? ": " + repo.json.error : ""})`);
 }
+
+// 3. The AI accepts the requests the Auditor and the puzzle grader send.
+const ping = await call("pingai", {});
+for (const c of ping.json.checks || []) check(c.ok, `AI call for the ${c.kind} (${c.model}): ${c.detail}`);
+if (!ping.json.checks) check(false, `AI check ran (HTTP ${ping.status}${ping.json.error ? ": " + ping.json.error : ""})`);
 
 if (failures.length) { console.error(`\n${failures.length} check(s) failed.`); process.exit(1); }
 console.log("\nThe Auditor's intake steps work on the live site.");

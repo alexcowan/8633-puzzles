@@ -4,11 +4,10 @@
 
 import { QUESTIONS, SECTIONS, ENGINEERING_IDEAS } from "../../site/audit/rubric.js";
 import puppeteer from "@cloudflare/puppeteer";
+import { ANTHROPIC_URL, aiBody, aiHeaders, toolInput, apiError, pingAI } from "./ai.js";
 import { buildSlice, sliceText, readable, priority, MAX_SLICE_CHARS, MAX_FILE_CHARS } from "../../site/audit/slice.js";
 
-const MODEL = "claude-sonnet-5-5";
 const MAX_TOKENS = 8000;
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const GITHUB_API = "https://api.github.com";
 const AUDITOR_ACCOUNT = "instructor-8633";
 const MAX_RUNS = 10;               // per team, both rounds counted
@@ -36,6 +35,7 @@ export async function audit(request, env, path, cors) {
     if (action === "run") return await run(b, env, team, cors);
     if (action === "relink") return await relink(env, team, cors);
     if (action === "reset") return await reset(env, team, cors);
+    if (action === "pingai") return await pingAll(env, team, cors);
   } catch (e) {
     return json({ error: "Something went wrong on my side: " + String(e && e.message || e).slice(0, 200) }, 500, cors);
   }
@@ -94,10 +94,23 @@ async function relink(env, team, cors) {
 
 // Testing: start a team over (materials, runs, links), keeping the team, its members and its link.
 // Only for teams with an instructor on them, so students can't use it to get around the run limit.
-async function reset(env, team, cors) {
+async function isStaffTeam(env, team) {
   const emails = JSON.parse(team.members).map(m => m.email);
+  if (!emails.length) return false;
   const staff = await env.DB.prepare(`SELECT count(*) AS n FROM roster WHERE role = 'instructor' AND email IN (${emails.map(() => "?").join(",")})`).bind(...emails).first();
-  if (!staff || !staff.n) return json({ error: "Only test teams with an instructor on them can be reset." }, 403, cors);
+  return !!(staff && staff.n);
+}
+
+// Live check: one tiny AI call per kind (Auditor, puzzle grader), with the settings real calls use.
+// Instructor test teams only, so it can't be used to spend the API budget.
+async function pingAll(env, team, cors) {
+  if (!(await isStaffTeam(env, team))) return json({ error: "Only test teams with an instructor on them can run the AI check." }, 403, cors);
+  const checks = await Promise.all([pingAI(env, "auditor"), pingAI(env, "grader")]);
+  return json({ checks }, checks.every(c => c.ok) ? 200 : 503, cors);
+}
+
+async function reset(env, team, cors) {
+  if (!(await isStaffTeam(env, team))) return json({ error: "Only test teams with an instructor on them can be reset." }, 403, cors);
   await env.DB.batch([
     env.DB.prepare("DELETE FROM audit_runs WHERE team_id = ?").bind(team.id),
     env.DB.prepare("DELETE FROM audit_material WHERE team_id = ?").bind(team.id),
@@ -438,28 +451,16 @@ async function run(b, env, team, cors) {
   try {
     res = await fetchWithRetry(env.ANTHROPIC_URL || ANTHROPIC_URL, {
       method: "POST",
-      headers: { "content-type": "application/json", "x-api-key": env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({
-        model: MODEL, max_tokens: MAX_TOKENS, thinking: { type: "between_tools" },
-        system: systemPrompt(round), tools: [AUDIT_TOOL], tool_choice: { type: "auto" },
-        messages: [{ role: "user", content }],
-      }),
+      headers: aiHeaders(env),
+      body: JSON.stringify(aiBody("auditor", { maxTokens: MAX_TOKENS, system: systemPrompt(round), tool: AUDIT_TOOL, user: content })),
     });
   } catch { return logRun(env, runId, team.id, at, stage, round, answers, null, "network", cors); }
   if (!res.ok) {
-    const raw = await res.text();
-    let detail = raw.slice(0, 300);
-    try { const e = JSON.parse(raw).error; if (e && e.message) detail = (e.type ? e.type + ": " : "") + e.message.slice(0, 280); } catch {}
+    const detail = apiError(await res.text());
     return logRun(env, runId, team.id, at, stage, round, answers, null, "api " + res.status + ": " + detail, cors);
   }
   const data = await res.json();
-  const use = (data.content || []).find(c => c.type === "tool_use" && c.name === "report_audit");
-  let input = use && use.input;
-  if (!input) {
-    // Fallback: the model wrote the audit as JSON text instead of calling the tool.
-    const text = (data.content || []).filter(c => c.type === "text").map(c => c.text).join("");
-    try { input = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)); } catch {}
-  }
+  const input = toolInput(data, "report_audit");
   if (!input) return logRun(env, runId, team.id, at, stage, round, answers, null, "unreadable", cors);
   const result = tidy(input, round);
   return logRun(env, runId, team.id, at, stage, round, answers, result, null, cors);

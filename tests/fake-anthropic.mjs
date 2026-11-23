@@ -12,6 +12,10 @@ export function startFakeAnthropic(port) {
     state.calls++;
     const b = JSON.parse(body); state.last = b;
     if (state.failNext > 0) { state.failNext--; res.writeHead(state.failStatus, { "content-type": "application/json" }); return res.end('{"type":"error","error":{"type":"overloaded_error"}}'); }
+    if (b.tools && b.tools[0] && b.tools[0].name === "report_check") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ content: [{ type: "tool_use", name: "report_check", input: { ok: true } }] }));
+    }
     if (b.tools && b.tools[0] && b.tools[0].name === "report_audit") {
       // The Auditor: a status per question id listed in the system prompt; round 1 asks one follow-up.
       const ids = (/one entry per question id, in order \((.*?)\)/.exec(b.system) || [, ""])[1].split(", ").filter(Boolean);

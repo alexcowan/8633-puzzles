@@ -1,0 +1,25 @@
+# Live check of the deployed worker: the Auditor's intake steps with a test team, and one tiny AI
+# call each for the Auditor and the puzzle grader with the settings real calls use.
+# Runs after each worker deploy, once a day (the AI API can change without any deploy), and on demand.
+# Needs the AUDIT_SMOKE_TOKEN repo secret (an instructor test team's link token); skips without it.
+name: Live check
+on:
+  workflow_run:
+    workflows: ["Deploy grader"]
+    types: [completed]
+  schedule:
+    - cron: "17 11 * * *"
+  workflow_dispatch:
+jobs:
+  check:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check the live worker
+        env:
+          AUDIT_SMOKE_TOKEN: ${{ secrets.AUDIT_SMOKE_TOKEN }}
+        run: sleep 10 && node scripts/smoke-audit.mjs

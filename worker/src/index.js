@@ -4,10 +4,9 @@
 
 import { QUIZ_ID, gradeQuiz, isJustChecking } from "./quiz.js";
 import { audit } from "./audit.js";
+import { ANTHROPIC_URL, aiBody, aiHeaders, toolInput } from "./ai.js";
 
-const MODEL = "claude-haiku-5-5";
 const MAX_TOKENS = 1500;
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 
 // One answer key per puzzle. The page shows students the questions ("Be ready to explain");
 // the guidance below is what the grader checks their answers against, so it stays out of the pages.
@@ -242,20 +241,8 @@ export default {
     let res;
     try { res = await fetchWithRetry(env.ANTHROPIC_URL || ANTHROPIC_URL, {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: MAX_TOKENS,
-        thinking: { type: "disabled" },
-        system,
-        tools: [tool],
-        tool_choice: { type: "tool", name: "report_review" },
-        messages: [{ role: "user", content: "Student answers (JSON):\n" + answers }],
-      }),
+      headers: aiHeaders(env),
+      body: JSON.stringify(aiBody("grader", { maxTokens: MAX_TOKENS, system, tool, user: "Student answers (JSON):\n" + answers })),
     }); } catch {
       logGrade(env, ctx, body.puzzle, null, "network");
       return json({ error: "Grader unavailable (network)" }, 502, cors);
@@ -267,16 +254,11 @@ export default {
       return json({ error: "Grader unavailable (" + res.status + ")", detail: detail.slice(0, 300) }, 502, cors);
     }
     const data = await res.json();
-    const use = (data.content || []).find(c => c.type === "tool_use" && c.name === "report_review");
-    let parsed = use && use.input;
+    const parsed = toolInput(data, "report_review");
     if (!parsed) {
-      // Fallback: the model answered in text after all.
       const text = (data.content || []).map(c => c.text || "").join("");
-      try { parsed = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1)); }
-      catch {
-        logGrade(env, ctx, body.puzzle, null, "unreadable");
-        return json({ error: "Grader returned something unreadable.", raw: text.slice(0, 300) }, 502, cors);
-      }
+      logGrade(env, ctx, body.puzzle, null, "unreadable");
+      return json({ error: "Grader returned something unreadable.", raw: text.slice(0, 300) }, 502, cors);
     }
 
     // One verdict per item, in order; fill any the model skipped.
