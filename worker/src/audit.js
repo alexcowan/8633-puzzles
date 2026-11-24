@@ -523,8 +523,13 @@ async function screenshot(env, url) {
 async function results(b, env, cors) {
   if (!env.INSTRUCTOR_CODE || String(b.code || "").trim() !== env.INSTRUCTOR_CODE) return json({ error: "Wrong instructor code." }, 401, cors);
   const { results: teams } = await env.DB.prepare("SELECT * FROM audit_teams ORDER BY name").all();
+  // Leave out test teams (only instructors on them) and the sample test.* roster accounts.
+  const { results: staffRows } = await env.DB.prepare("SELECT email FROM roster WHERE role = 'instructor'").all();
+  const staff = new Set(staffRows.map(r => r.email));
+  const isTest = e => staff.has(e) || /^test\./.test(e);
   const out = [];
   for (const t of teams) {
+    if (JSON.parse(t.members).every(m => isTest(m.email))) continue;
     const v = await view(env, t);
     const ok = v.runs.filter(r => r.result);
     const latest = ok[ok.length - 1] || null;
@@ -535,7 +540,8 @@ async function results(b, env, cors) {
   // Every class team from the roster, matched to the audit team that shares the most members.
   const { results: people } = await env.DB.prepare("SELECT email, first, last, preferred, team FROM roster WHERE role IS NULL OR role != 'instructor' ORDER BY last, first").all();
   const groups = new Map();
-  for (const p of people) { const k = p.team || ""; if (!groups.has(k)) groups.set(k, []); groups.get(k).push({ email: p.email, name: fullName(p) }); }
+  for (const p of people) {
+    if (isTest(p.email)) continue; const k = p.team || ""; if (!groups.has(k)) groups.set(k, []); groups.get(k).push({ email: p.email, name: fullName(p) }); }
   const classTeams = [...groups].filter(([k]) => k).map(([name, members]) => {
     const emails = new Set(members.map(m => m.email));
     let best = null, n = 0;

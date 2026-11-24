@@ -210,7 +210,7 @@ test("audit: team setup from the roster, private link, materials, two rounds, in
   // Instructor view.
   assert.equal((await post("/audit/results", { code: "class123" })).status, 401);
   const res = await (await post("/audit/results", { code: "prof456" })).json();
-  const pals = res.teams.find(t => t.name === "Parts Pals"); assert.equal(res.teams.length, 4); assert.equal(pals.latest.round, 2);
+  const pals = res.teams.find(t => t.name === "Parts Pals"); assert.ok(res.teams.every(t => t.members.some(m => m.email !== "ccc3z@darden.virginia.edu"))); assert.equal(pals.latest.round, 2);
   assert.ok(pals.pct > 0 && pals.pct <= 100);
   assert.ok(pals.reports.length >= 2 && pals.reports.every(r => r.result));
   // Class team list: only with the instructor code; every class team shows, matched to its audit team.
