@@ -39,11 +39,11 @@
 .ws .history button{padding:2px 8px;font-size:14px;margin:2px}
 [hidden]{display:none!important}
 </style></head><body>
-<main class="page">
+<main class="page" id="top">
   <header class="ws">
     <div class="eyebrow">Instructor</div>
     <h1>Vibe Code Audit results</h1>
-    <p class="muted">Every team's latest Auditor report, with their links. Click a team to read the full report and any earlier runs. Runs before the start of Class 11 are check-ins; later ones are finals.</p>
+    <p class="muted">Every team's latest Auditor report, with their links. Every team's full report is below the list; click a team to jump to it. Each report has buttons for its earlier runs. Runs before the start of Class 11 are check-ins; later ones are finals.</p>
   </header>
   <section class="ws panel">
     <div class="row">
@@ -56,7 +56,7 @@
   <section class="ws panel" id="out" hidden><div class="tablewrap"><table class="teams">
     <thead><tr><th>Team</th><th>Members</th><th>Links</th><th>Runs</th><th>Latest</th><th>Good / work / missing</th></tr></thead>
     <tbody id="rows"></tbody></table></div></section>
-  <section class="ws panel" id="detail" hidden><div class="report" id="report"></div><div class="history" id="history"></div></section>
+  <div id="all" style="display:grid;gap:24px"></div>
 </main>
 <script type="module">
 import { SECTIONS, QUESTIONS, STATUSES } from "./audit/rubric.js";
@@ -92,19 +92,18 @@ async function load() {
       <td class="n">${c ? `<span class="good">${c.good}</span> / <span class="work">${c.work}</span> / <span class="missing">${c.missing}</span>` : ""}</td></tr>`;
   }).join("");
   $("out").hidden = false;
-  $("rows").querySelectorAll("tr.pick").forEach(tr => tr.onclick = () => {
-    $("rows").querySelectorAll("tr").forEach(x => x.classList.remove("on")); tr.classList.add("on");
-    const t = teams[+tr.dataset.i]; show(t, t.latest);
-    $("detail").scrollIntoView({ behavior: "smooth", block: "start" });
-  });
+  $("all").innerHTML = teams.map((t, i) => t.latest ? `<section class="ws panel" id="team-${i}"><div class="report"></div><div class="history"></div><p style="margin:12px 0 0"><a href="#top">↑ Back to the list</a></p></section>` : "").join("");
+  teams.forEach((t, i) => { if (t.latest) show(t, t.latest, $("team-" + i)); });
+  $("rows").querySelectorAll("tr.pick").forEach(tr => tr.onclick = () => $("team-" + tr.dataset.i).scrollIntoView({ behavior: "smooth", block: "start" }));
 }
 
-function show(t, run) {
+function show(t, run, box) {
+  const rep = box.querySelector(".report"), hist = box.querySelector(".history");
   const r = run.result, c = r.counts;
   const tally = [["good", c.good], ["work", c.work], ["missing", c.missing]].filter(x => x[1])
     .map(([k, n]) => `<b class="${k}">${k === "good" ? `in good shape on ${n}` : k === "work" ? `need some work on ${n}` : `missing ${n}`}</b>`);
   const answered = (run.answers || []).filter(a => String(a.answer || "").trim());
-  $("report").innerHTML = `
+  rep.innerHTML = `
     <div><h2>${esc(t.name)}</h2><p class="muted">${run.stage === "final" ? "Final" : "Check-in"} audit · ${run.round === 1 && r.requests.length ? "preliminary (follow-ups asked)" : "final opinion"} · ${when(run.at)}</p></div>
     <p class="opinion">${esc(r.opinion)}</p>
     ${answered.length ? `<div class="ans"><h3 style="margin-top:0">Their answers to the follow-ups</h3>${answered.map(a => `<div><b>${esc(a.id)}</b> · ${esc(a.ask)}<br>${esc(a.answer)}</div>`).join("")}</div>` : ""}
@@ -118,9 +117,8 @@ function show(t, run) {
       return `<div class="qrow"><span class="st ${opt ? "work" : q.status}">${opt ? "Optional, not done" : STATUSES[q.status]}</span><span><b>${q.id}. ${esc(Q.label)}</b><br>${esc(q.note)}</span></div>`;
     }).join("")).join("")}</div>`;
   const all = t.reports || [];
-  $("history").innerHTML = all.length > 1 ? "<p class='muted' style='margin-top:14px'>All reports: " + all.map(x => `<button class="ghost" data-id="${x.id}" ${x.id === run.id ? "disabled" : ""}>${x.stage === "final" ? "Final" : "Check-in"}${x.round === 2 ? " (final opinion)" : ""} · ${when(x.at)}</button>`).join(" ") + "</p>" : "";
-  $("history").querySelectorAll("button[data-id]").forEach(b => b.onclick = () => show(t, all.find(x => x.id === b.dataset.id)));
-  $("detail").hidden = false;
+  hist.innerHTML = all.length > 1 ? "<p class='muted' style='margin-top:14px'>All reports: " + all.map(x => `<button class="ghost" data-id="${x.id}" ${x.id === run.id ? "disabled" : ""}>${x.stage === "final" ? "Final" : "Check-in"}${x.round === 2 ? " (final opinion)" : ""} · ${when(x.at)}</button>`).join(" ") + "</p>" : "";
+  hist.querySelectorAll("button[data-id]").forEach(b => b.onclick = () => show(t, all.find(x => x.id === b.dataset.id), box));
 }
 
 $("go").onclick = load;
