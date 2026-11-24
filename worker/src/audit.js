@@ -25,6 +25,7 @@ export async function audit(request, env, path, cors) {
     if (action === "roster") return await rosterSearch(b, env, cors);
     if (action === "team") return await createTeam(b, env, cors);
     if (action === "results") return await results(b, env, cors);
+    if (action === "classteams") return await setClassTeams(b, env, cors);
     const team = await teamFromToken(env, b.token);
     if (!team) return json({ error: "That team link isn't valid any more. Ask a teammate for the current link." }, 401, cors);
     if (action === "load") return json(await view(env, team), 200, cors);
@@ -531,7 +532,28 @@ async function results(b, env, cors) {
     const pct = latest && counted ? Math.round(100 * (latest.result.counts.good + 0.5 * latest.result.counts.work) / counted) : null;
     out.push({ ...v.team, material: v.material, runs: v.runs.length, errors: v.runs.filter(r => r.error).length, latest, pct, reports: ok });
   }
-  return json({ teams: out }, 200, cors);
+  // Every class team from the roster, matched to the audit team that shares the most members.
+  const { results: people } = await env.DB.prepare("SELECT email, first, last, preferred, team FROM roster WHERE role IS NULL OR role != 'instructor' ORDER BY last, first").all();
+  const groups = new Map();
+  for (const p of people) { const k = p.team || ""; if (!groups.has(k)) groups.set(k, []); groups.get(k).push({ email: p.email, name: fullName(p) }); }
+  const classTeams = [...groups].filter(([k]) => k).map(([name, members]) => {
+    const emails = new Set(members.map(m => m.email));
+    let best = null, n = 0;
+    for (const t of out) { const k = t.members.filter(m => emails.has(m.email)).length; if (k > n) { best = t.name; n = k; } }
+    return { name, members, audit_team: best };
+  }).sort((a, z) => a.name.localeCompare(z.name));
+  return json({ teams: out, class_teams: classTeams, unassigned: groups.get("") || [] }, 200, cors);
+}
+
+// The instructor sets each student's class team: { code, teams: { "email": "Team name", ... } }. Blank clears it.
+async function setClassTeams(b, env, cors) {
+  if (!env.INSTRUCTOR_CODE || String(b.code || "").trim() !== env.INSTRUCTOR_CODE) return json({ error: "Wrong instructor code." }, 401, cors);
+  const pairs = Object.entries(b.teams || {}).map(([e, t]) => [normEmail(e), String(t || "").trim().slice(0, 80) || null]).filter(([e]) => e);
+  if (!pairs.length) return json({ error: "No teams sent." }, 400, cors);
+  const res = await env.DB.batch(pairs.map(([e, t]) => env.DB.prepare("UPDATE roster SET team = ? WHERE email = ?").bind(t, e)));
+  const updated = res.reduce((n, r) => n + (r.meta && r.meta.changes || 0), 0);
+  const missing = pairs.filter((_, i) => !(res[i].meta && res[i].meta.changes)).map(([e]) => e);
+  return json({ updated, missing }, 200, cors);
 }
 
 // ---------- helpers ----------

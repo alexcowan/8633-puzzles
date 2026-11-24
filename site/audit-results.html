@@ -52,6 +52,11 @@
       <button id="go">Show</button>
     </div>
     <p id="msg" class="muted" role="status"></p>
+    <details style="margin-top:10px"><summary>Class team list</summary>
+      <p class="muted" style="font-size:15px;margin-top:6px">One student per line: <code>email, Team name</code>. Leave the team blank to take someone off a team. Saving updates only the students listed.</p>
+      <textarea id="ct" rows="8" style="width:100%;box-sizing:border-box;font-family:var(--mono);font-size:13px"></textarea>
+      <div class="row"><button id="ctsave">Save team list</button><span id="ctmsg" class="muted"></span></div>
+    </details>
   </section>
   <section class="ws panel" id="out" hidden><div class="tablewrap"><table class="teams">
     <thead><tr><th>Team</th><th>Members</th><th>Links</th><th>Runs</th><th>Latest</th><th>Good / work / missing</th></tr></thead>
@@ -79,18 +84,25 @@ async function load() {
   if (!r || !r.ok || d.error) { $("msg").textContent = d.error || "Something went wrong."; $("msg").className = "err"; return; }
   try { localStorage.setItem("instructor-code", $("code").value); } catch {}
   teams = d.teams;
+  const cls = d.class_teams || [], used = new Set(cls.map(c => c.audit_team).filter(Boolean));
+  const rows = cls.map(c => ({ label: c.name, members: c.members, t: teams.find(t => t.name === c.audit_team) || null }))
+    .concat(teams.filter(t => !used.has(t.name)).map(t => ({ label: t.name, members: t.members, t, extra: cls.length ? "not on the class list" : "" })));
   const withRun = teams.filter(t => t.latest).length;
-  $("msg").textContent = `${teams.length} teams, ${withRun} with a report.`;
-  $("rows").innerHTML = teams.map((t, i) => {
-    const c = t.latest && t.latest.result.counts;
-    const links = [t.doc_url && `<a href="${esc(t.doc_url)}" target="_blank" rel="noopener">charter</a>`, t.repo_url && `<a href="${esc(t.repo_url)}" target="_blank" rel="noopener">repo</a>`, t.deployed_url && `<a href="${esc(t.deployed_url)}" target="_blank" rel="noopener">app</a>`].filter(Boolean).join("");
-    return `<tr class="${t.latest ? "pick" : ""}" data-i="${i}"><td><b>${esc(t.name)}</b><br><span class="muted">${esc(t.project_type || "")}</span></td>
-      <td>${t.members.map(m => esc(m.name || m.email)).join("<br>")}</td>
-      <td class="links">${links || "<span class='muted'>none yet</span>"}</td>
-      <td class="n">${t.runs}${t.errors ? ` <span class="err">(${t.errors} failed)</span>` : ""}</td>
-      <td class="n">${t.latest ? `${t.latest.stage === "final" ? "Final" : "Check-in"}<br>${when(t.latest.at)}` : "<span class='muted'>no report</span>"}</td>
+  $("msg").textContent = cls.length
+    ? `${cls.length} class teams: ${cls.filter(c => c.audit_team).length} started the audit, ${cls.filter(c => { const t = teams.find(x => x.name === c.audit_team); return t && t.latest; }).length} have a report.${(d.unassigned || []).length ? ` ${d.unassigned.length} students aren't on a team.` : ""}`
+    : `${teams.length} audit teams, ${withRun} with a report. (Add the class team list below to see every team.)`;
+  const cell = (r, i) => {
+    const t = r.t, c = t && t.latest && t.latest.result.counts;
+    const links = t ? [t.doc_url && `<a href="${esc(t.doc_url)}" target="_blank" rel="noopener">charter</a>`, t.repo_url && `<a href="${esc(t.repo_url)}" target="_blank" rel="noopener">repo</a>`, t.deployed_url && `<a href="${esc(t.deployed_url)}" target="_blank" rel="noopener">app</a>`].filter(Boolean).join("") : "";
+    const ti = t ? teams.indexOf(t) : -1;
+    return `<tr class="${t && t.latest ? "pick" : ""}" data-i="${ti}"><td><b>${esc(r.label)}</b>${t && t.name !== r.label ? `<br><span class="muted">audit team: ${esc(t.name)}</span>` : ""}${r.extra ? `<br><span class="muted">${esc(r.extra)}</span>` : ""}</td>
+      <td>${r.members.map(m => esc(m.name || m.email)).join("<br>")}</td>
+      <td class="links">${t ? (links || "<span class='muted'>none yet</span>") : ""}</td>
+      <td class="n">${t ? t.runs + (t.errors ? ` <span class="err">(${t.errors} failed)</span>` : "") : ""}</td>
+      <td class="n">${t && t.latest ? `${t.latest.stage === "final" ? "Final" : "Check-in"}<br>${when(t.latest.at)}` : t ? "<span class='muted'>no report</span>" : "<span class='missing'>hasn't started</span>"}</td>
       <td class="n">${c ? `<span class="good">${c.good}</span> / <span class="work">${c.work}</span> / <span class="missing">${c.missing}</span>` : ""}</td></tr>`;
-  }).join("");
+  };
+  $("rows").innerHTML = rows.map(cell).join("") + ((d.unassigned || []).length ? `<tr><td><b>Not on a team</b></td><td>${d.unassigned.map(m => esc(m.name)).join("<br>")}</td><td></td><td></td><td></td><td></td></tr>` : "");
   $("out").hidden = false;
   $("all").innerHTML = teams.map((t, i) => t.latest ? `<section class="ws panel" id="team-${i}"><div class="report"></div><div class="history"></div><p style="margin:12px 0 0"><a href="#top">↑ Back to the list</a></p></section>` : "").join("");
   teams.forEach((t, i) => { if (t.latest) show(t, t.latest, $("team-" + i)); });
@@ -122,6 +134,15 @@ function show(t, run, box) {
 }
 
 $("go").onclick = load;
+$("ctsave").onclick = async () => {
+  const teams = {};
+  for (const line of $("ct").value.split("\n")) { const m = line.match(/^\s*([^,\s]+@[^,\s]+)\s*,?\s*(.*)$/); if (m) teams[m[1]] = m[2].trim(); }
+  if (!Object.keys(teams).length) { $("ctmsg").textContent = "Nothing to save."; return; }
+  $("ctmsg").textContent = "Saving…";
+  let d; try { d = await (await fetch(API.replace(/results$/, "classteams"), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ code: $("code").value, teams }) })).json(); } catch (e) { d = { error: e.message }; }
+  $("ctmsg").textContent = d.error ? d.error : `Saved ${d.updated}.${d.missing.length ? " Not on the roster: " + d.missing.join(", ") : ""}`;
+  if (!d.error) load();
+};
 $("code").addEventListener("keydown", e => { if (e.key === "Enter") load(); });
 if ($("code").value) load();
 </script>
