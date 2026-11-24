@@ -185,10 +185,28 @@ test("audit: team setup from the roster, private link, materials, two rounds, in
   assert.ok(sent.messages[0].content.some(c => c.type === "document"));
   assert.ok(!JSON.stringify(sent).includes("KEY=secret"));
   const c = r1.run.result.counts; assert.equal(c.good + c.work + c.missing, 14);
+  // The report says back the design intent, and every item says why it matters; no previous run, so no since_last.
+  assert.equal(r1.run.result.understanding.testable, true);
+  assert.ok(r1.run.result.top10.every(t => t.why));
+  assert.deepEqual(r1.run.result.since_last, []);
+  assert.equal(typeof r1.run.result.provisional, "boolean");
   // Round 2: answers go back, no more requests.
   const r2 = await (await post("/audit/run", { token, stage: "checkin", answers: [{ id: "B4", ask: "Show me where matching happens.", answer: "app.js line 3" }] })).json();
   assert.equal(r2.run.round, 2); assert.equal(r2.run.result.requests.length, 0);
   assert.match(JSON.stringify(fake.state.last.messages), /app\.js line 3/);
+  // Round 2 is credited against the run before round 1: none here.
+  assert.deepEqual(r2.run.result.since_last, []);
+  // A later fresh run sees the previous Top 10 and credits progress.
+  const r3 = await (await post("/audit/run", { token, stage: "checkin" })).json();
+  assert.match(JSON.stringify(fake.state.last.messages), /YOUR PREVIOUS TOP 10/);
+  assert.equal(r3.run.result.since_last.length, 10); assert.equal(r3.run.result.since_last[0].status, "done");
+  // Ask about this: answered, stored, counted.
+  assert.equal((await post("/audit/ask", { token, run_id: r3.run.id, item: 0, question: "" })).status, 400);
+  const asked = await (await post("/audit/ask", { token, run_id: r3.run.id, item: 2, question: "Why does this matter?" })).json();
+  assert.match(asked.ask.answer, /ground truth/); assert.equal(asked.left, 9);
+  assert.equal(fake.state.last.model, "claude-haiku-5-5");
+  const loaded = await (await post("/audit/load", { token })).json();
+  assert.equal(loaded.asks.length, 1); assert.equal(loaded.limits.asks, 10);
   // Reset is for instructor test teams only.
   assert.equal((await post("/audit/reset", { token })).status, 403);
   assert.equal((await post("/audit/pingai", { token })).status, 403);
@@ -210,7 +228,7 @@ test("audit: team setup from the roster, private link, materials, two rounds, in
   // Instructor view.
   assert.equal((await post("/audit/results", { code: "class123" })).status, 401);
   const res = await (await post("/audit/results", { code: "prof456" })).json();
-  const pals = res.teams.find(t => t.name === "Parts Pals"); assert.ok(res.teams.every(t => t.members.some(m => m.email !== "ccc3z@darden.virginia.edu"))); assert.equal(pals.latest.round, 2);
+  const pals = res.teams.find(t => t.name === "Parts Pals"); assert.ok(res.teams.every(t => t.members.some(m => m.email !== "ccc3z@darden.virginia.edu"))); assert.equal(pals.latest.round, 1); assert.equal(pals.asks.length, 1);
   assert.ok(pals.pct > 0 && pals.pct <= 100);
   assert.ok(pals.reports.length >= 2 && pals.reports.every(r => r.result));
   // Class team list: only with the instructor code; every class team shows, matched to its audit team.

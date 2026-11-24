@@ -35,6 +35,12 @@
 .report .st.good{color:var(--ok)} .report .st.work{color:var(--head)} .report .st.missing{color:var(--bad)}
 .report .qrow b{font-family:var(--serif);font-weight:400;color:var(--head)}
 .report .ans{background:var(--mark);border-radius:4px;padding:10px 14px}
+.report .intent{border-left:3px solid var(--accent);background:var(--bg);padding:10px 14px;border-radius:0 4px 4px 0}
+.report .intent p{margin:4px 0} .report .intent.untestable{border-left-color:var(--bad)}
+.report .why{font-size:15px;color:var(--muted)}
+.report .new{font-family:var(--mono);font-size:11px;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:0 4px;margin-left:6px}
+.report .since{list-style:none;padding-left:0} .report .since .sl-done{color:var(--ok)} .report .since .sl-partly{color:var(--head)} .report .since .sl-open{color:var(--muted)}
+.report .qa{background:var(--mark);border-radius:4px;padding:8px 12px;margin:6px 0;font-size:15px;grid-column:2}
 .report .ans div{margin:6px 0}
 .ws .history button{padding:2px 8px;font-size:14px;margin:2px}
 [hidden]{display:none!important}
@@ -117,10 +123,13 @@ function show(t, run, box) {
   const answered = (run.answers || []).filter(a => String(a.answer || "").trim());
   rep.innerHTML = `
     <div><h2>${esc(t.name)}</h2><p class="muted">${run.stage === "final" ? "Final" : "Check-in"} audit · ${run.round === 1 && r.requests.length ? "preliminary (follow-ups asked)" : "final opinion"} · ${when(run.at)}</p></div>
+    ${r.understanding ? `<div class="intent${r.understanding.testable ? "" : " untestable"}"><p><b>Building:</b> ${esc(r.understanding.building)}</p><p><b>How they'd know it worked:</b> ${esc(r.understanding.how_you_know)}</p>${r.understanding.testable ? "" : "<p><b>Not testable yet.</b></p>"}</div>` : ""}
+    ${(r.since_last || []).length ? `<div><h3>Since their last run</h3><ul class="since">${r.since_last.map(x => `<li><span class="sl-${x.status}">${x.status}</span> · <b>${esc(x.title)}</b>: ${esc(x.note)}</li>`).join("")}</ul></div>` : ""}
     <p class="opinion">${esc(r.opinion)}</p>
     ${answered.length ? `<div class="ans"><h3 style="margin-top:0">Their answers to the follow-ups</h3>${answered.map(a => `<div><b>${esc(a.id)}</b> · ${esc(a.ask)}<br>${esc(a.answer)}</div>`).join("")}</div>` : ""}
     <div><h3>Top 10 recommendations</h3>
-    <ol class="top">${r.top10.map(x => `<li><span class="t">${esc(x.title)}</span><span>${esc(x.observation)}</span><span class="tags"><span>${STEP[x.step] || esc(x.step)}</span><span>${esc(x.action)}</span>${x.where ? `<span>${esc(x.where)}</span>` : ""}</span></li>`).join("")}</ol></div>
+    <ol class="top">${r.top10.map((x, i) => `<li><span class="t">${esc(x.title)}${x.is_new ? `<span class="new">NEW</span>` : ""}</span><span>${esc(x.observation)}${x.why ? `<br><span class="why"><b>Why:</b> ${esc(x.why)}</span>` : ""}</span><span class="tags"><span>${STEP[x.step] || esc(x.step)}</span><span>${esc(x.action)}</span>${x.where ? `<span>${esc(x.where)}</span>` : ""}</span>${(t.asks || []).filter(a => a.run_id === run.id && a.item === i).map(a => `<div class="qa"><b>They asked:</b> ${esc(a.question)}<br>${esc(a.answer || a.error || "")}</div>`).join("")}</li>`).join("")}</ol></div>
+    ${r.provisional ? `<p class="muted">B–D provisional: design intent (A) isn't in good shape yet.</p>` : ""}
     <p class="tally">They're ${tally.length > 1 ? tally.slice(0, -1).join(", ") + ", and " + tally.slice(-1) : tally.join("")}.</p>
     ${r.requests && r.requests.length && run.round === 1 ? `<div><h3>Follow-ups the Auditor asked</h3>${r.requests.map(q => `<p><b>${esc(q.id)}</b> · ${esc(q.ask)}</p>`).join("")}</div>` : ""}
     <div class="qs">${SECTIONS.map(s => `<h3>${s.id}. ${esc(s.title)}</h3>` + r.questions.filter(q => q.id[0] === s.id).map(q => {
