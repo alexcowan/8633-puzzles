@@ -7,7 +7,7 @@ import puppeteer from "@cloudflare/puppeteer";
 import { ANTHROPIC_URL, aiBody, aiHeaders, toolInput, apiError, pingAI } from "./ai.js";
 import { buildSlice, sliceText, readable, priority, MAX_SLICE_CHARS, MAX_FILE_CHARS } from "../../site/audit/slice.js";
 
-const MAX_TOKENS = 8000;
+const MAX_TOKENS = 12000;
 const GITHUB_API = "https://api.github.com";
 const AUDITOR_ACCOUNT = "instructor-8633";
 const MAX_RUNS = 10;               // per team, both rounds counted
@@ -489,11 +489,17 @@ async function run(b, env, team, cors) {
   const input = toolInput(data, "report_audit");
   if (!input) return logRun(env, runId, team.id, at, stage, round, answers, null, "unreadable", cors);
   const result = tidy(input, round, prevTop);
+  // A report without its Top 10 is no report: log it as an error, so it doesn't use up one of the team's runs.
+  if (!result.top10.length) return logRun(env, runId, team.id, at, stage, round, answers, null, "no Top 10 in the reply (stop: " + (data.stop_reason || "?") + ")", cors);
   return logRun(env, runId, team.id, at, stage, round, answers, result, null, cors);
 }
 
 // One status per question, in order; Top 10 capped; no requests in round 2.
+// Some replies put a nested list or object in as a JSON string; read it either way.
+function unstring(v) { if (typeof v !== "string") return v; try { return JSON.parse(v); } catch { return v; } }
+
 function tidy(r, round, prevTop) {
+  for (const k of ["top10", "questions", "requests", "since_last", "understanding"]) r[k] = unstring(r[k]);
   const got = Array.isArray(r.questions) ? r.questions : [];
   const questions = QUESTIONS.map(q => {
     const x = got.find(g => g && String(g.id).toUpperCase() === q.id) || {};
