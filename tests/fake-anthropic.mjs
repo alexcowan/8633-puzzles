@@ -16,12 +16,19 @@ export function startFakeAnthropic(port) {
       res.writeHead(200, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({ content: [{ type: "tool_use", name: "report_check", input: { ok: true } }] }));
     }
+    if (b.tools && b.tools[0] && b.tools[0].name === "answer_question") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ content: [{ type: "tool_use", name: "answer_question", input: { answer: "Because without it you have no ground truth." } }] }));
+    }
     if (b.tools && b.tools[0] && b.tools[0].name === "report_audit") {
       // The Auditor: a status per question id listed in the system prompt; round 1 asks one follow-up.
       const ids = (/one entry per question id, in order \((.*?)\)/.exec(b.system) || [, ""])[1].split(", ").filter(Boolean);
       const round1 = /This is round 1 of 2/.test(b.system);
+      const hasPrev = JSON.stringify(b.messages).includes("YOUR PREVIOUS TOP 10");
       const input = {
-        top10: Array.from({ length: 10 }, (_, i) => ({ title: "Rec " + (i + 1), observation: "Saw something " + (i + 1), step: ["intent", "unpack", "effectuate", "iterate"][i % 4], action: i % 2 ? "test" : "change", where: i < 2 ? "app.js:1-5" : "" })),
+        understanding: { building: "A parts lookup for HVAC techs.", how_you_know: "Techs find the right part in under a minute.", testable: true },
+        since_last: hasPrev ? Array.from({ length: 10 }, (_, i) => ({ title: "Rec " + (i + 1), status: i < 3 ? "done" : "open", note: "Note " + (i + 1) })) : [],
+        top10: Array.from({ length: 10 }, (_, i) => ({ title: "Rec " + (i + 1), observation: "Saw something " + (i + 1), why: "Matters because " + (i + 1), is_new: i > 7, step: ["intent", "unpack", "effectuate", "iterate"][i % 4], action: i % 2 ? "test" : "change", where: i < 2 ? "app.js:1-5" : "" })),
         questions: ids.map((id, i) => ({ id, status: i % 5 === 4 ? "missing" : i % 3 === 2 ? "work" : "good", note: "Note on " + id })),
         requests: round1 ? [{ id: "B4", ask: "Show me where matching happens.", why: "The doc and code disagree." }] : [],
         opinion: round1 ? "Preliminary: solid start." : "Final: solid.",

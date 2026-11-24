@@ -48,6 +48,20 @@
 .report .st.good{color:var(--ok)} .report .st.work{color:var(--head)} .report .st.missing{color:var(--bad)}
 .report .qrow b{font-family:var(--serif);font-weight:400;color:var(--head)}
 .report .req{background:var(--mark);border-radius:4px;padding:12px 14px}
+.report .intent{border-left:3px solid var(--accent);background:var(--bg);padding:10px 14px;border-radius:0 4px 4px 0}
+.report .intent p{margin:4px 0}
+.report .intent .lbl{font-family:var(--serif);color:var(--head)}
+.report .intent.untestable{border-left-color:var(--bad)}
+.report .why{font-size:15px;color:var(--muted)}
+.report .new{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:0 4px;margin-left:6px;vertical-align:1px}
+.report .since{list-style:none;padding-left:0;margin:4px 0}
+.report .since li{margin:4px 0}
+.report .since .sl-done{color:var(--ok)} .report .since .sl-partly{color:var(--head)} .report .since .sl-open{color:var(--muted)}
+.report .prov{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--bad);margin-left:8px;text-transform:uppercase}
+.report .askbox{margin-top:6px;font-size:15px;grid-column:2}
+.report .askbox textarea{width:100%;box-sizing:border-box;font:inherit;margin:4px 0}
+.report .qa{background:var(--mark);border-radius:4px;padding:8px 12px;margin:6px 0}
+.report .linkish{background:none;border:none;padding:0;color:var(--accent);text-decoration:underline;cursor:pointer;font:inherit;font-size:14px}
 .report .req .one{margin:10px 0}
 .ws .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line-soft);border-top-color:var(--accent);border-radius:50%;animation:s 1s linear infinite;vertical-align:-2px;margin-right:6px}
 @keyframes s{to{transform:rotate(360deg)}}
@@ -371,22 +385,47 @@ function show(run) {
   $("rtitle").textContent = `${run.stage === "final" ? "Final" : "Check-in"} audit · ${run.round === 1 && r.requests.length ? "preliminary" : "final opinion"} · ${new Date(run.at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}`;
   const tally = [["good", c.good], ["work", c.work], ["missing", c.missing]].filter(x => x[1])
     .map(([k, n]) => `<b class="${k}">${k === "good" ? `in good shape on ${n}` : k === "work" ? `need some work on ${n}` : `are missing ${n}`}</b>`);
+  const u = r.understanding;
+  const asks = (state.asks || []).filter(a => a.run_id === run.id);
+  const asksLeft = (state.limits.asks || 0) - (state.asks || []).length;
+  const sl = r.since_last || [];
   $("report").innerHTML = `
+    ${u ? `<div class="intent${u.testable ? "" : " untestable"}">
+      <p><span class="lbl">Here's what I think you're building:</span> ${esc(u.building)}</p>
+      <p><span class="lbl">Here's how you'd know it worked:</span> ${esc(u.how_you_know)}</p>
+      ${u.testable ? "" : `<p><b>I couldn't find a result you'd observe to know this worked, so your design isn't testable yet.</b></p>`}
+      <p class="muted" style="font-size:15px">Everything below depends on this. If I've got it wrong, or I couldn't say how you'd know it worked, fix your charter and design notes first, then rerun.</p>
+    </div>` : ""}
+    ${sl.length ? `<div><h3 style="font-family:var(--serif);font-weight:400;color:var(--head);font-size:20px;margin:0 0 4px">Since your last run</h3>
+      <p class="muted" style="font-size:15px;margin:0 0 4px">${sl.filter(x => x.status === "done").length} done, ${sl.filter(x => x.status === "partly").length} partly, ${sl.filter(x => x.status === "open").length} still open from your last Top 10.</p>
+      <ul class="since">${sl.map(x => `<li><span class="sl-${x.status}">${x.status === "done" ? "✓ Done" : x.status === "partly" ? "→ Partly" : "○ Open"}</span> · <b>${esc(x.title)}</b>: ${esc(x.note)}</li>`).join("")}</ul></div>` : ""}
     <p class="opinion">${esc(r.opinion)}</p>
     ${pending ? `<div class="req"><b style="font-family:var(--serif);font-weight:400;color:var(--head)">Before my final opinion, I'd like to see a bit more.</b>
       <p style="margin:6px 0 2px"><b>These are optional.</b> Answer what you can and leave the rest blank. I'll give you my final opinion either way.</p>
       ${r.requests.map((q, i) => `<div class="one"><div><b>${esc(q.id)}</b> · ${esc(q.ask)}</div><div class="muted" style="font-size:15px">Why I'm asking: ${esc(q.why)}</div><textarea data-i="${i}" rows="3" aria-label="Your answer"></textarea></div>`).join("")}
       <div class="row"><button id="answer">Send my answers</button></div></div>` : ""}
     <div><h3 style="font-family:var(--serif);font-weight:400;color:var(--head);font-size:20px;margin:0 0 4px">Top 10 recommendations</h3>
-    <ol class="top">${r.top10.map(t => `<li><span class="t">${esc(t.title)}</span><span>${esc(t.observation)}</span><span class="tags"><span>${STEP[t.step]}</span><span>${esc(t.action)}</span>${t.where ? `<span>${esc(t.where)}</span>` : ""}</span></li>`).join("")}</ol></div>
+    <ol class="top">${r.top10.map((t, i) => `<li><span class="t">${esc(t.title)}${t.is_new ? `<span class="new">NEW</span>` : ""}</span><span>${esc(t.observation)}${t.why ? `<br><span class="why"><b>Why it matters:</b> ${esc(t.why)}</span>` : ""}</span><span class="tags"><span>${STEP[t.step]}</span><span>${esc(t.action)}</span>${t.where ? `<span>${esc(t.where)}</span>` : ""}</span>
+      <span class="askbox">${asks.filter(a => a.item === i).map(a => `<div class="qa"><b>You asked:</b> ${esc(a.question)}<br>${esc(a.answer || "")}</div>`).join("")}
+      ${asksLeft > 0 ? `<button class="linkish" data-ask="${i}">Ask about this</button><span data-askform="${i}" hidden><textarea rows="2" aria-label="Your question about this item" placeholder="What don't you understand, or what would you like to know?"></textarea><button data-send="${i}">Ask</button> <span class="muted" data-askst="${i}">${asksLeft} question${asksLeft === 1 ? "" : "s"} left for your team</span></span>` : ""}</span></li>`).join("")}</ol></div>
     <p class="tally">You're ${tally.length > 1 ? tally.slice(0, -1).join(", ") + ", and " + tally.slice(-1) : tally.join("")}.</p>
-    <div class="qs">${SECTIONS.map(s => `<h3>${s.id}. ${esc(s.title)}</h3>` + r.questions.filter(q => q.id[0] === s.id).map(q => {
+    <div class="qs">${r.provisional ? `<p class="muted" style="font-size:15px;margin:8px 0 0">B–D are provisional: they depend on design intent (A), which isn't in good shape yet.</p>` : ""}${SECTIONS.map(s => `<h3>${s.id}. ${esc(s.title)}${r.provisional && s.id !== "A" ? `<span class="prov">provisional</span>` : ""}</h3>` + r.questions.filter(q => q.id[0] === s.id).map(q => {
       const Q = QUESTIONS.find(x => x.id === q.id);
       const label = q.status === "missing" && Q.optional ? "Optional, not done" : STATUSES[q.status];
       const rd = q.status !== "good" && READINGS[READING_FOR[q.id]];
       const read = rd ? `<br><span class="muted" style="font-size:15px">New to ${esc(rd.for)}? Read <a href="${rd.url}" target="_blank" rel="noopener">${esc(rd.title)}</a> (Canvas).</span>` : "";
       return `<div class="qrow"><span class="st ${q.status === "missing" && Q.optional ? "work" : q.status}">${label}</span><span><b>${q.id}. ${esc(Q.label)}</b><br>${esc(q.note)}${read}</span></div>`;
     }).join("")).join("")}</div>`;
+  $("report").querySelectorAll("button[data-ask]").forEach(b => b.onclick = () => { b.hidden = true; const f = $("report").querySelector(`[data-askform="${b.dataset.ask}"]`); f.hidden = false; f.querySelector("textarea").focus(); });
+  $("report").querySelectorAll("button[data-send]").forEach(b => b.onclick = async () => {
+    const i = +b.dataset.send, f = $("report").querySelector(`[data-askform="${i}"]`), st = $("report").querySelector(`[data-askst="${i}"]`);
+    const q = f.querySelector("textarea").value.trim(); if (!q) return;
+    b.disabled = true; st.innerHTML = `<span class="spin"></span>Thinking…`;
+    try {
+      const d = await call("ask", { token, run_id: run.id, item: i, question: q });
+      state.asks = (state.asks || []).concat(d.ask); show(run);
+    } catch (e) { st.textContent = e.message; b.disabled = false; }
+  });
   if (pending) $("answer").onclick = () => runAudit(r.requests.map((q, i) => ({ id: q.id, ask: q.ask, answer: $("report").querySelector(`textarea[data-i="${i}"]`).value })));
   const ok = state.runs.filter(x => x.result);
   $("history").innerHTML = ok.length > 1 ? "<p class='muted' style='margin-top:14px'>Earlier reports: " + ok.map(x => `<button class="ghost" data-id="${x.id}" ${x.id === run.id ? "disabled" : ""}>${x.stage === "final" ? "Final" : "Check-in"} ${x.round === 2 ? "(final opinion)" : ""} ${new Date(x.at).toLocaleDateString([], { month: "short", day: "numeric" })}</button>`).join(" ") + "</p>" : "";

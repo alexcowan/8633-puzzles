@@ -11,6 +11,7 @@ const MAX_TOKENS = 8000;
 const GITHUB_API = "https://api.github.com";
 const AUDITOR_ACCOUNT = "instructor-8633";
 const MAX_RUNS = 10;               // per team, both rounds counted
+const MAX_ASKS = 10;               // "Ask about this" questions per team, apart from runs
 // Runs before Class 11 are the check-in; runs after are the final. The date decides, not the team.
 const CHECKIN_ENDS = "2026-11-24T19:45:00Z";
 const stageAt = (iso) => (iso < CHECKIN_ENDS ? "checkin" : "final");
@@ -37,6 +38,7 @@ export async function audit(request, env, path, cors) {
     if (action === "relink") return await relink(env, team, cors);
     if (action === "reset") return await reset(env, team, cors);
     if (action === "pingai") return await pingAll(env, team, cors);
+    if (action === "ask") return await ask(b, env, team, cors);
   } catch (e) {
     return json({ error: "Something went wrong on my side: " + String(e && e.message || e).slice(0, 200) }, 500, cors);
   }
@@ -142,7 +144,8 @@ async function view(env, team) {
       repo, git_log: !!(m && m.has_log),
     },
     runs: runs.map(r => ({ id: r.id, at: r.at, stage: r.stage, round: r.round, answers: r.answers ? JSON.parse(r.answers) : null, result: r.result ? JSON.parse(r.result) : null, error: r.error })),
-    limits: { runs: MAX_RUNS },
+    asks: await asksFor(env, team.id),
+    limits: { runs: MAX_RUNS, asks: MAX_ASKS },
   };
 }
 
@@ -381,13 +384,17 @@ function systemPrompt(round) {
     "THE AUDIT QUESTIONS AND WHAT TO LOOK FOR (question ids in brackets are what you report against):",
     rubric,
     "",
+    "EVERYTHING DEPENDS ON DESIGN INTENT. Your read of B–D only means something if you've understood what they're building and how they'd know it worked. A good design is a testable design: it names a result someone could observe (who does what, how often) that would tell the team the idea worked or didn't.",
+    "",
     "WHAT TO RETURN: call the report_audit tool exactly once, with the whole audit. Don't answer in text; the tool call is your entire answer.",
-    "1. top10: your ten most useful recommendations, ranked, most important first. Each is phrased mostly as an observation or a question (for example: a part of the UI that looks confusing, a comparable worth testing against, a part of the code likely to need changing, an A/B test worth running), says which of the four steps it goes back to, and what to do: change, test, or leave alone on purpose. At least two must come from reading their code against the engineering ideas, and must cite a file and line(s) from the slice. At least one must be framed as a test with users. Spread them across the four steps.",
+    "0. understanding: say back what you think they're building, in one or two plain sentences (the experiment, the user, the main story), and how they'd know it worked: the observable result, in their terms. If you can't find one in their material, set testable to false and say in how_you_know what's missing. When testable is false, your first Top 10 item must be about making the design testable (step: intent).",
+    "1. top10: your ten most useful recommendations, ranked, most important first. Each is phrased mostly as an observation or a question (for example: a part of the UI that looks confusing, a comparable worth testing against, a part of the code likely to need changing, an A/B test worth running), says which of the four steps it goes back to, and what to do: change, test, or leave alone on purpose. Every item has a why: one or two plain sentences on why it matters for this team, tied back to their design intent or the four steps (for example, for adding analytics: without them you have no ground truth, so you can't tell whether anyone completes the main story). Assume the reader doesn't already know why. At least two must come from reading their code against the engineering ideas, and must cite a file and line(s) from the slice. At least one must be framed as a test with users. Spread them across the four steps.",
     "2. questions: one entry per question id, in order (" + LABELS.join(", ") + "), with a status: 'good' (in good shape: the answer engages with what to look for), 'work' (needs some work: there, but thin or missing a look-for), or 'missing' (not answered, or answered with nothing they could act on). The note is one or two sentences on why, specific to their app. Judge the doc and the repo together: if the code shows something the doc leaves out, say so.",
     round === 1
       ? "3. requests: up to three follow-up requests, only where more would materially change your audit. Each names the question id it's about, asks for something specific (often: show me the file and lines where X happens, or tell me what happened when a user tried Y), and says why you're curious. If you have what you need, return none. This is round 1 of 2; the team answers and you give your final opinion."
       : "3. requests: return none. This is round 2: the team has answered your follow-ups (below); take the answers into account.",
     "4. opinion: two to four sentences, your overall read for the team, in the voice of an auditor's opinion. Round 1 says it's preliminary.",
+    "5. since_last: only if your previous Top 10 is given below. For each of its items, in order, say done, partly, or open, with one short line acknowledging what they did (or what's still missing). Be generous where the work is real: crediting progress matters. Then mark each item in your new Top 10 as new (true) if it wasn't on the previous list in substance.",
   ].join("\n");
 }
 
@@ -403,7 +410,9 @@ const AUDIT_TOOL = {
         step: { type: "string", enum: ["intent", "unpack", "effectuate", "iterate"] },
         action: { type: "string", enum: ["change", "test", "leave alone"] },
         where: { type: "string", description: "File and lines when it comes from the code, else empty" },
-      }, required: ["title", "observation", "step", "action"] } },
+        why: { type: "string", description: "Why it matters for this team, one or two plain sentences" },
+        is_new: { type: "boolean", description: "Not on your previous Top 10 (true when there's no previous list)" },
+      }, required: ["title", "observation", "step", "action", "why"] } },
       questions: { type: "array", items: { type: "object", properties: {
         id: { type: "string" }, status: { type: "string", enum: ["good", "work", "missing"] }, note: { type: "string" },
       }, required: ["id", "status", "note"] } },
@@ -411,8 +420,16 @@ const AUDIT_TOOL = {
         id: { type: "string", description: "Question id this is about" }, ask: { type: "string" }, why: { type: "string" },
       }, required: ["id", "ask", "why"] } },
       opinion: { type: "string" },
+      understanding: { type: "object", properties: {
+        building: { type: "string", description: "What you think they're building: experiment, user, main story" },
+        how_you_know: { type: "string", description: "The observable result that would tell them it worked, or what's missing" },
+        testable: { type: "boolean" },
+      }, required: ["building", "how_you_know", "testable"] },
+      since_last: { type: "array", items: { type: "object", properties: {
+        title: { type: "string" }, status: { type: "string", enum: ["done", "partly", "open"] }, note: { type: "string" },
+      }, required: ["title", "status", "note"] } },
     },
-    required: ["top10", "questions", "requests", "opinion"],
+    required: ["understanding", "top10", "questions", "requests", "opinion"],
   },
 };
 
@@ -450,6 +467,11 @@ async function run(b, env, team, cors) {
     content.push({ type: "text", text: "YOUR ROUND 1 OPINION: " + prev.opinion + "\n\nYOUR FOLLOW-UP REQUESTS AND THEIR ANSWERS:\n" + answers.map(a => `[${a.id}] You asked: ${a.ask}\nThey answered: ${a.answer || "(no answer)"}`).join("\n\n") });
   }
 
+  // The previous report's Top 10, so the Auditor can credit progress. For a round 2, the one before the round 1 it answers.
+  const prevRow = await env.DB.prepare("SELECT result FROM audit_runs WHERE team_id = ? AND error IS NULL AND result IS NOT NULL" + (prior ? " AND at < ?" : "") + " ORDER BY at DESC LIMIT 1").bind(...(prior ? [team.id, prior.at] : [team.id])).first();
+  const prevTop = prevRow ? JSON.parse(prevRow.result).top10 : null;
+  if (prevTop && prevTop.length) content.push({ type: "text", text: "YOUR PREVIOUS TOP 10 (for since_last):\n" + prevTop.map((t, i) => `${i + 1}. ${t.title}: ${t.observation}`).join("\n") });
+
   const runId = randomToken().slice(0, 12), at = new Date().toISOString();
   let res;
   try {
@@ -466,12 +488,12 @@ async function run(b, env, team, cors) {
   const data = await res.json();
   const input = toolInput(data, "report_audit");
   if (!input) return logRun(env, runId, team.id, at, stage, round, answers, null, "unreadable", cors);
-  const result = tidy(input, round);
+  const result = tidy(input, round, prevTop);
   return logRun(env, runId, team.id, at, stage, round, answers, result, null, cors);
 }
 
 // One status per question, in order; Top 10 capped; no requests in round 2.
-function tidy(r, round) {
+function tidy(r, round, prevTop) {
   const got = Array.isArray(r.questions) ? r.questions : [];
   const questions = QUESTIONS.map(q => {
     const x = got.find(g => g && String(g.id).toUpperCase() === q.id) || {};
@@ -482,13 +504,21 @@ function tidy(r, round) {
     title: String(t.title || ""), observation: String(t.observation || ""),
     step: ["intent", "unpack", "effectuate", "iterate"].includes(t.step) ? t.step : "iterate",
     action: ["change", "test", "leave alone"].includes(t.action) ? t.action : "test",
-    where: String(t.where || ""),
+    where: String(t.where || ""), why: String(t.why || ""),
+    is_new: prevTop && prevTop.length ? t.is_new !== false : false,
   }));
+  const u = r.understanding || {};
+  const understanding = { building: String(u.building || ""), how_you_know: String(u.how_you_know || ""), testable: u.testable !== false };
+  const since_last = prevTop && prevTop.length ? (Array.isArray(r.since_last) ? r.since_last : []).slice(0, prevTop.length).map((x, i) => ({
+    title: String(x.title || (prevTop[i] && prevTop[i].title) || ""), status: ["done", "partly", "open"].includes(x.status) ? x.status : "open", note: String(x.note || ""),
+  })) : [];
   const requests = round === 1 ? (Array.isArray(r.requests) ? r.requests : []).slice(0, 3).map(q => ({ id: String(q.id || ""), ask: String(q.ask || ""), why: String(q.why || "") })) : [];
   // An optional element that wasn't done isn't counted against the team.
   const counts = { good: 0, work: 0, missing: 0 };
   questions.forEach(q => { if (!(q.status === "missing" && QUESTIONS.find(x => x.id === q.id).optional)) counts[q.status]++; });
-  return { top10, questions, requests, opinion: String(r.opinion || ""), counts };
+  // If the Auditor couldn't pin down a testable intent, or section A needs work, B–D are provisional.
+  const provisional = !understanding.testable || questions.some(q => q.id[0] === "A" && q.status !== "good" && !QUESTIONS.find(x => x.id === q.id).optional);
+  return { understanding, provisional, since_last, top10, questions, requests, opinion: String(r.opinion || ""), counts };
 }
 
 async function logRun(env, id, teamId, at, stage, round, answers, result, error, cors) {
@@ -518,6 +548,55 @@ async function screenshot(env, url) {
   } finally { if (browser) try { await browser.close(); } catch {} }
 }
 
+// ---------- "Ask about this": a follow-up question on one Top 10 item ----------
+
+const ASK_TOOL = {
+  name: "answer_question", description: "Answer the team's question.",
+  input_schema: { type: "object", properties: { answer: { type: "string" } }, required: ["answer"] },
+};
+
+async function asksFor(env, teamId) {
+  const { results: rows } = await env.DB.prepare("SELECT id, run_id, item, at, question, answer, error FROM audit_asks WHERE team_id = ? ORDER BY at").bind(teamId).all();
+  return rows;
+}
+
+async function ask(b, env, team, cors) {
+  const question = String(b.question || "").trim().slice(0, 800);
+  if (!question) return json({ error: "Type your question first." }, 400, cors);
+  const run = await env.DB.prepare("SELECT * FROM audit_runs WHERE id = ? AND team_id = ? AND result IS NOT NULL").bind(String(b.run_id || ""), team.id).first();
+  if (!run) return json({ error: "That report isn't here any more. Reload the page." }, 404, cors);
+  const r = JSON.parse(run.result), i = Number(b.item);
+  const t = r.top10[i];
+  if (!t) return json({ error: "That item isn't in the report." }, 400, cors);
+  const { count } = await env.DB.prepare("SELECT count(*) AS count FROM audit_asks WHERE team_id = ? AND error IS NULL").bind(team.id).first();
+  if (count >= MAX_ASKS) return json({ error: `That's all ${MAX_ASKS} questions. Bring the rest to class.` }, 429, cors);
+  const m = await env.DB.prepare("SELECT doc_text FROM audit_material WHERE team_id = ?").bind(team.id).first();
+  const earlier = (await asksFor(env, team.id)).filter(a => a.run_id === run.id && a.item === i && a.answer);
+  const system = [
+    "You are the Auditor for an MBA course, Coding with GPT, at Darden, answering a student team's follow-up question about one recommendation in your audit of their vibe-coded app.",
+    "The course applies four steps adaptively: (1) design intent (personas, JTBD, user stories with OECs; a good design is a testable design), (2) unpacking (MVC; Given-When-Then), (3) effectuating between alternatives (stack, APIs, deploy targets), (4) iteratively coding, testing, debugging (tests, pipeline, observability).",
+    "The readers are MBA students, not trained engineers. Answer the question they asked, plainly and specifically for their app, in a short paragraph or two. Explain why it matters and what a first step would look like. Don't invent facts about their app; if you can't tell from what's here, say so. Call the answer_question tool with your answer.",
+  ].join("\n");
+  const user = [
+    `What you understood them to be building: ${r.understanding ? r.understanding.building + " How they'd know it worked: " + r.understanding.how_you_know : "(not recorded)"}`,
+    `Your overall opinion: ${r.opinion}`,
+    `The recommendation they're asking about (#${i + 1}): ${t.title}. ${t.observation}${t.why ? " Why it matters: " + t.why : ""}${t.where ? " Where: " + t.where : ""} (step: ${t.step}; action: ${t.action})`,
+    earlier.length ? "Earlier questions on this item:\n" + earlier.map(a => `Q: ${a.question}\nA: ${a.answer}`).join("\n") : "",
+    m && m.doc_text ? "Their product charter and design notes (excerpt):\n" + m.doc_text.slice(0, 12000) : "",
+    `Their question: ${question}`,
+  ].filter(Boolean).join("\n\n");
+  const id = randomToken().slice(0, 12), at = new Date().toISOString();
+  let answer = null, error = null;
+  try {
+    const res = await fetchWithRetry(env.ANTHROPIC_URL || ANTHROPIC_URL, { method: "POST", headers: aiHeaders(env), body: JSON.stringify(aiBody("grader", { maxTokens: 1200, system, tool: ASK_TOOL, user })) });
+    if (!res.ok) error = "api " + res.status + ": " + apiError(await res.text());
+    else { const input = toolInput(await res.json(), "answer_question"); if (input && input.answer) answer = String(input.answer); else error = "unreadable"; }
+  } catch { error = "network"; }
+  await env.DB.prepare("INSERT INTO audit_asks (id, team_id, run_id, item, at, question, answer, error) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(id, team.id, run.id, i, at, question, answer, error).run();
+  if (error) return json({ error: "The Auditor couldn't answer just now. Try again in a minute." }, 502, cors);
+  return json({ ask: { id, run_id: run.id, item: i, at, question, answer }, left: MAX_ASKS - count - 1 }, 200, cors);
+}
+
 // ---------- instructor ----------
 
 async function results(b, env, cors) {
@@ -535,7 +614,7 @@ async function results(b, env, cors) {
     const latest = ok[ok.length - 1] || null;
     const counted = latest ? latest.result.counts.good + latest.result.counts.work + latest.result.counts.missing : 0;
     const pct = latest && counted ? Math.round(100 * (latest.result.counts.good + 0.5 * latest.result.counts.work) / counted) : null;
-    out.push({ ...v.team, material: v.material, runs: v.runs.length, errors: v.runs.filter(r => r.error).length, latest, pct, reports: ok });
+    out.push({ ...v.team, asks: v.asks, material: v.material, runs: v.runs.length, errors: v.runs.filter(r => r.error).length, latest, pct, reports: ok });
   }
   // Every class team from the roster, matched to the audit team that shares the most members.
   const { results: people } = await env.DB.prepare("SELECT email, first, last, preferred, team FROM roster WHERE role IS NULL OR role != 'instructor' ORDER BY last, first").all();
