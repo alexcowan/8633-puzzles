@@ -213,4 +213,11 @@ test("audit: team setup from the roster, private link, materials, two rounds, in
   const pals = res.teams.find(t => t.name === "Parts Pals"); assert.equal(res.teams.length, 4); assert.equal(pals.latest.round, 2);
   assert.ok(pals.pct > 0 && pals.pct <= 100);
   assert.ok(pals.reports.length >= 2 && pals.reports.every(r => r.result));
+  // Class team list: only with the instructor code; every class team shows, matched to its audit team.
+  assert.equal((await post("/audit/classteams", { code: "class123", teams: { "aaa1x@darden.virginia.edu": "Pals" } })).status, 401);
+  const set = await (await post("/audit/classteams", { code: "prof456", teams: { "AAA1X@darden.virginia.edu": "Pals", "nobody@darden.virginia.edu": "Ghosts" } })).json();
+  assert.equal(set.updated, 1); assert.deepEqual(set.missing, ["nobody@darden.virginia.edu"]);
+  const res2 = await (await post("/audit/results", { code: "prof456" })).json();
+  assert.deepEqual(res2.class_teams.map(c => [c.name, c.audit_team]), [["Pals", "Parts Pals"]]);
+  assert.ok(res2.unassigned.some(m => m.email === "bbb2y@darden.virginia.edu"));
 });
