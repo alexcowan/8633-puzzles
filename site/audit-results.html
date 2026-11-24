@@ -1,0 +1,131 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Audit results · Coding with GPT</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="ws.css">
+<style>
+.page{max-width:980px;margin:0 auto;display:grid;gap:24px}
+.ws p{margin:0 0 10px;max-width:75ch}
+.ws .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}
+.ws .err{color:var(--bad)}
+.ws table.teams{border-collapse:collapse;width:100%;font-size:15px}
+.ws table.teams th,.ws table.teams td{text-align:left;padding:7px 8px;border-top:1px solid var(--line-soft);vertical-align:top}
+.ws table.teams th{font-family:var(--serif);font-weight:400;color:var(--head)}
+.ws table.teams td.n{font-family:var(--mono);font-size:13px;white-space:nowrap}
+.ws table.teams tr.pick{cursor:pointer} .ws table.teams tr.pick:hover td{background:var(--mark)}
+.ws table.teams tr.on td{background:var(--mark)}
+.ws .tablewrap{overflow-x:auto}
+.ws .good{color:var(--ok)} .ws .work{color:var(--head)} .ws .missing{color:var(--bad)}
+.ws .links a{margin-right:10px;white-space:nowrap}
+.ws .muted{color:var(--muted)}
+.report{display:grid;gap:18px}
+.report h2{margin:0}
+.report .opinion{font-family:var(--serif);color:var(--head);font-size:18px;line-height:1.45}
+.report .tally{font-size:19px}
+.report .tally b.good{color:var(--ok)} .report .tally b.work{color:var(--head)} .report .tally b.missing{color:var(--bad)}
+.report ol.top{padding-left:0;list-style:none;counter-reset:t;margin:0}
+.report ol.top li{counter-increment:t;display:grid;grid-template-columns:2.2em 1fr;gap:2px 8px;padding:10px 0;border-top:1px solid var(--line-soft);margin:0}
+.report ol.top li::before{content:counter(t);font-family:var(--serif);color:var(--accent);font-size:22px;line-height:1.1;grid-row:span 3}
+.report ol.top .t{font-family:var(--serif);color:var(--head)}
+.report .tags{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em}
+.report .tags span{border:1px solid var(--line-soft);border-radius:3px;padding:0 5px;margin-right:6px}
+.report .qs h3,.report h3{font-family:var(--serif);font-weight:400;color:var(--head);font-size:18px;margin:14px 0 2px}
+.report .qrow{display:grid;grid-template-columns:9.5em 1fr;gap:8px;padding:8px 0;border-top:1px solid var(--line-soft)}
+.report .st{font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase}
+.report .st.good{color:var(--ok)} .report .st.work{color:var(--head)} .report .st.missing{color:var(--bad)}
+.report .qrow b{font-family:var(--serif);font-weight:400;color:var(--head)}
+.report .ans{background:var(--mark);border-radius:4px;padding:10px 14px}
+.report .ans div{margin:6px 0}
+.ws .history button{padding:2px 8px;font-size:14px;margin:2px}
+[hidden]{display:none!important}
+</style></head><body>
+<main class="page">
+  <header class="ws">
+    <div class="eyebrow">Instructor</div>
+    <h1>Vibe Code Audit results</h1>
+    <p class="muted">Every team's latest Auditor report, with their links. Click a team to read the full report and any earlier runs. Runs before the start of Class 11 are check-ins; later ones are finals.</p>
+  </header>
+  <section class="ws panel">
+    <div class="row">
+      <label for="code">Instructor code</label>
+      <input type="text" id="code" autocomplete="off" spellcheck="false">
+      <button id="go">Show</button>
+    </div>
+    <p id="msg" class="muted" role="status"></p>
+  </section>
+  <section class="ws panel" id="out" hidden><div class="tablewrap"><table class="teams">
+    <thead><tr><th>Team</th><th>Members</th><th>Links</th><th>Runs</th><th>Latest</th><th>Good / work / missing</th></tr></thead>
+    <tbody id="rows"></tbody></table></div></section>
+  <section class="ws panel" id="detail" hidden><div class="report" id="report"></div><div class="history" id="history"></div></section>
+</main>
+<script type="module">
+import { SECTIONS, QUESTIONS, STATUSES } from "./audit/rubric.js";
+const API = "https://shrill-wood-3253.acowan.workers.dev/audit/results";
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const STEP = { intent: "Design intent", unpack: "Unpacking", effectuate: "Effectuating", iterate: "Iterating" };
+const when = t => new Date(t).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+let teams = [];
+
+try { $("code").value = localStorage.getItem("instructor-code") || ""; } catch {}
+
+async function load() {
+  $("msg").textContent = "Loading…"; $("msg").className = "muted";
+  let r, d;
+  try {
+    r = await fetch(API, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ code: $("code").value }) });
+    d = await r.json();
+  } catch (e) { d = { error: "Couldn't reach the server: " + e.message }; }
+  if (!r || !r.ok || d.error) { $("msg").textContent = d.error || "Something went wrong."; $("msg").className = "err"; return; }
+  try { localStorage.setItem("instructor-code", $("code").value); } catch {}
+  teams = d.teams;
+  const withRun = teams.filter(t => t.latest).length;
+  $("msg").textContent = `${teams.length} teams, ${withRun} with a report.`;
+  $("rows").innerHTML = teams.map((t, i) => {
+    const c = t.latest && t.latest.result.counts;
+    const links = [t.doc_url && `<a href="${esc(t.doc_url)}" target="_blank" rel="noopener">charter</a>`, t.repo_url && `<a href="${esc(t.repo_url)}" target="_blank" rel="noopener">repo</a>`, t.deployed_url && `<a href="${esc(t.deployed_url)}" target="_blank" rel="noopener">app</a>`].filter(Boolean).join("");
+    return `<tr class="${t.latest ? "pick" : ""}" data-i="${i}"><td><b>${esc(t.name)}</b><br><span class="muted">${esc(t.project_type || "")}</span></td>
+      <td>${t.members.map(m => esc(m.name || m.email)).join("<br>")}</td>
+      <td class="links">${links || "<span class='muted'>none yet</span>"}</td>
+      <td class="n">${t.runs}${t.errors ? ` <span class="err">(${t.errors} failed)</span>` : ""}</td>
+      <td class="n">${t.latest ? `${t.latest.stage === "final" ? "Final" : "Check-in"}<br>${when(t.latest.at)}` : "<span class='muted'>no report</span>"}</td>
+      <td class="n">${c ? `<span class="good">${c.good}</span> / <span class="work">${c.work}</span> / <span class="missing">${c.missing}</span>` : ""}</td></tr>`;
+  }).join("");
+  $("out").hidden = false;
+  $("rows").querySelectorAll("tr.pick").forEach(tr => tr.onclick = () => {
+    $("rows").querySelectorAll("tr").forEach(x => x.classList.remove("on")); tr.classList.add("on");
+    const t = teams[+tr.dataset.i]; show(t, t.latest);
+    $("detail").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
+function show(t, run) {
+  const r = run.result, c = r.counts;
+  const tally = [["good", c.good], ["work", c.work], ["missing", c.missing]].filter(x => x[1])
+    .map(([k, n]) => `<b class="${k}">${k === "good" ? `in good shape on ${n}` : k === "work" ? `need some work on ${n}` : `missing ${n}`}</b>`);
+  const answered = (run.answers || []).filter(a => String(a.answer || "").trim());
+  $("report").innerHTML = `
+    <div><h2>${esc(t.name)}</h2><p class="muted">${run.stage === "final" ? "Final" : "Check-in"} audit · ${run.round === 1 && r.requests.length ? "preliminary (follow-ups asked)" : "final opinion"} · ${when(run.at)}</p></div>
+    <p class="opinion">${esc(r.opinion)}</p>
+    ${answered.length ? `<div class="ans"><h3 style="margin-top:0">Their answers to the follow-ups</h3>${answered.map(a => `<div><b>${esc(a.id)}</b> · ${esc(a.ask)}<br>${esc(a.answer)}</div>`).join("")}</div>` : ""}
+    <div><h3>Top 10 recommendations</h3>
+    <ol class="top">${r.top10.map(x => `<li><span class="t">${esc(x.title)}</span><span>${esc(x.observation)}</span><span class="tags"><span>${STEP[x.step] || esc(x.step)}</span><span>${esc(x.action)}</span>${x.where ? `<span>${esc(x.where)}</span>` : ""}</span></li>`).join("")}</ol></div>
+    <p class="tally">They're ${tally.length > 1 ? tally.slice(0, -1).join(", ") + ", and " + tally.slice(-1) : tally.join("")}.</p>
+    ${r.requests && r.requests.length && run.round === 1 ? `<div><h3>Follow-ups the Auditor asked</h3>${r.requests.map(q => `<p><b>${esc(q.id)}</b> · ${esc(q.ask)}</p>`).join("")}</div>` : ""}
+    <div class="qs">${SECTIONS.map(s => `<h3>${s.id}. ${esc(s.title)}</h3>` + r.questions.filter(q => q.id[0] === s.id).map(q => {
+      const Q = QUESTIONS.find(x => x.id === q.id) || { label: "", optional: false };
+      const opt = q.status === "missing" && Q.optional;
+      return `<div class="qrow"><span class="st ${opt ? "work" : q.status}">${opt ? "Optional, not done" : STATUSES[q.status]}</span><span><b>${q.id}. ${esc(Q.label)}</b><br>${esc(q.note)}</span></div>`;
+    }).join("")).join("")}</div>`;
+  const all = t.reports || [];
+  $("history").innerHTML = all.length > 1 ? "<p class='muted' style='margin-top:14px'>All reports: " + all.map(x => `<button class="ghost" data-id="${x.id}" ${x.id === run.id ? "disabled" : ""}>${x.stage === "final" ? "Final" : "Check-in"}${x.round === 2 ? " (final opinion)" : ""} · ${when(x.at)}</button>`).join(" ") + "</p>" : "";
+  $("history").querySelectorAll("button[data-id]").forEach(b => b.onclick = () => show(t, all.find(x => x.id === b.dataset.id)));
+  $("detail").hidden = false;
+}
+
+$("go").onclick = load;
+$("code").addEventListener("keydown", e => { if (e.key === "Enter") load(); });
+if ($("code").value) load();
+</script>
+<div class="site-version" style="position:fixed;right:6px;bottom:4px;font:10px/1 system-ui,sans-serif;color:#999;opacity:.7;pointer-events:none">__SITE_VERSION__</div>
+</body></html>

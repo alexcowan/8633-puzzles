@@ -212,4 +212,5 @@ test("audit: team setup from the roster, private link, materials, two rounds, in
   const res = await (await post("/audit/results", { code: "prof456" })).json();
   const pals = res.teams.find(t => t.name === "Parts Pals"); assert.equal(res.teams.length, 4); assert.equal(pals.latest.round, 2);
   assert.ok(pals.pct > 0 && pals.pct <= 100);
+  assert.ok(pals.reports.length >= 2 && pals.reports.every(r => r.result));
 });

@@ -529,7 +529,7 @@ async function results(b, env, cors) {
     const latest = ok[ok.length - 1] || null;
     const counted = latest ? latest.result.counts.good + latest.result.counts.work + latest.result.counts.missing : 0;
     const pct = latest && counted ? Math.round(100 * (latest.result.counts.good + 0.5 * latest.result.counts.work) / counted) : null;
-    out.push({ ...v.team, material: v.material, runs: v.runs.length, errors: v.runs.filter(r => r.error).length, latest, pct });
+    out.push({ ...v.team, material: v.material, runs: v.runs.length, errors: v.runs.filter(r => r.error).length, latest, pct, reports: ok });
   }
   return json({ teams: out }, 200, cors);
 }
