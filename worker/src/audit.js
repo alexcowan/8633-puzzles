@@ -394,7 +394,7 @@ function systemPrompt(round) {
       ? "3. requests: up to three follow-up requests, only where more would materially change your audit. Each names the question id it's about, asks for something specific (often: show me the file and lines where X happens, or tell me what happened when a user tried Y), and says why you're curious. If you have what you need, return none. This is round 1 of 2; the team answers and you give your final opinion."
       : "3. requests: return none. This is round 2: the team has answered your follow-ups (below); take the answers into account.",
     "4. opinion: two to four sentences, your overall read for the team, in the voice of an auditor's opinion. Round 1 says it's preliminary.",
-    "5. since_last: only if your previous Top 10 is given below. For each of its items, in order, say done, partly, or open, with one short line acknowledging what they did (or what's still missing). Be generous where the work is real: crediting progress matters. Then mark each item in your new Top 10 as new (true) if it wasn't on the previous list in substance.",
+    "5. since_last: always include it. If no previous Top 10 is given below, return an empty list. If one is given (it's at the end of the material, headed YOUR PREVIOUS TOP 10), you must fill it in. For each of its items, in order, say done, partly, or open, with one short line acknowledging what they did (or what's still missing). Be generous where the work is real: crediting progress matters. Then mark each item in your new Top 10 as new (true) if it wasn't on the previous list in substance.",
   ].join("\n");
 }
 
@@ -412,7 +412,7 @@ const AUDIT_TOOL = {
         where: { type: "string", description: "File and lines when it comes from the code, else empty" },
         why: { type: "string", description: "Why it matters for this team, one or two plain sentences" },
         is_new: { type: "boolean", description: "Not on your previous Top 10 (true when there's no previous list)" },
-      }, required: ["title", "observation", "step", "action", "why"] } },
+      }, required: ["title", "observation", "step", "action", "why", "is_new"] } },
       questions: { type: "array", items: { type: "object", properties: {
         id: { type: "string" }, status: { type: "string", enum: ["good", "work", "missing"] }, note: { type: "string" },
       }, required: ["id", "status", "note"] } },
@@ -429,7 +429,7 @@ const AUDIT_TOOL = {
         title: { type: "string" }, status: { type: "string", enum: ["done", "partly", "open"] }, note: { type: "string" },
       }, required: ["title", "status", "note"] } },
     },
-    required: ["understanding", "top10", "questions", "requests", "opinion"],
+    required: ["understanding", "since_last", "top10", "questions", "requests", "opinion"],
   },
 };
 
@@ -470,7 +470,7 @@ async function run(b, env, team, cors) {
   // The previous report's Top 10, so the Auditor can credit progress. For a round 2, the one before the round 1 it answers.
   const prevRow = await env.DB.prepare("SELECT result FROM audit_runs WHERE team_id = ? AND error IS NULL AND result IS NOT NULL" + (prior ? " AND at < ?" : "") + " ORDER BY at DESC LIMIT 1").bind(...(prior ? [team.id, prior.at] : [team.id])).first();
   const prevTop = prevRow ? JSON.parse(prevRow.result).top10 : null;
-  if (prevTop && prevTop.length) content.push({ type: "text", text: "YOUR PREVIOUS TOP 10 (for since_last):\n" + prevTop.map((t, i) => `${i + 1}. ${t.title}: ${t.observation}`).join("\n") });
+  if (prevTop && prevTop.length) content.push({ type: "text", text: "YOUR PREVIOUS TOP 10 (fill in since_last for each of these, in order, and mark which new items are new):\n" + prevTop.map((t, i) => `${i + 1}. ${t.title}: ${t.observation}`).join("\n") });
 
   const runId = randomToken().slice(0, 12), at = new Date().toISOString();
   let res;
@@ -511,7 +511,7 @@ function tidy(r, round, prevTop) {
     step: ["intent", "unpack", "effectuate", "iterate"].includes(t.step) ? t.step : "iterate",
     action: ["change", "test", "leave alone"].includes(t.action) ? t.action : "test",
     where: String(t.where || ""), why: String(t.why || ""),
-    is_new: prevTop && prevTop.length ? t.is_new !== false : false,
+    is_new: prevTop && prevTop.length ? t.is_new === true : false,
   }));
   const u = r.understanding || {};
   const understanding = { building: String(u.building || ""), how_you_know: String(u.how_you_know || ""), testable: u.testable !== false };
