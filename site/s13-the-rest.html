@@ -1,0 +1,96 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Rest: A Worked Example</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abel&family=Bree+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="ws.css">
+<style>
+.page{max-width:860px;margin:0 auto;display:grid;gap:22px}
+.page>*{min-width:0}
+.ws p{margin:0 0 10px;max-width:68ch}
+.ws .area h2{margin-bottom:4px}
+.ws .area .what{color:var(--muted);margin:0 0 12px}
+.ws .row{display:grid;grid-template-columns:150px minmax(0,1fr);gap:4px 16px;border-top:1px solid var(--line-soft);padding:10px 0}
+@media (max-width:640px){.ws .row{grid-template-columns:1fr}}
+.ws .row>b{font-family:var(--serif);font-weight:400;color:var(--head)}
+.ws .row p:last-child{margin-bottom:0}
+.ws .chip{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:.06em;border:1px solid var(--line);border-radius:3px;padding:1px 7px;margin:0 6px 4px 0}
+.ws .chip.code{border-color:var(--ok);color:var(--ok)}
+.ws .chip.process{border-color:var(--second);color:var(--second)}
+.ws .chip.missing{border-color:var(--bad);color:var(--bad)}
+.ws .ask{font-style:italic}
+</style></head><body>
+
+<main class="page">
+  <nav aria-label="Puzzles" style="font-size:14px;letter-spacing:.02em"><a href="index.html" style="color:var(--head);text-underline-offset:3px">← All puzzles</a></nav>
+
+  <header class="ws">
+    <div class="eyebrow">Coding with GPT · Session 13 · Worked example</div>
+    <h1>The rest: what “we'll take care of it” means</h1>
+    <p>When a working app goes to an engineering team “to take care of the rest,” a lot of the rest is process, not code. This is one team's answer for HinH's parts lookup, area by area. For each area it says whether it's handled in code, in process, or not at all; what the evidence would be; and what to ask an engineering team to show you.</p>
+    <p class="muted">These six areas are a simplification of what a SOC 2 audit covers. SOC 2 also looks at things like written policies, risk assessment, hiring and training, and ongoing monitoring, but these six are the big hitters for a product team.</p>
+  </header>
+
+  <section class="ws panel area">
+    <h2>1. Access</h2>
+    <p class="what">Who can change production, and how that list stays right.</p>
+    <div class="row"><b>Status</b><div><span class="chip code">CODE</span><span class="chip missing">MISSING</span>
+      <p>Two developers and the IT lead have admin rights on the repo and the parts database; technicians sign in with their HinH accounts and get the technician role. The parts-ordering AI agent has its own credential: read-only on stock and jobs, and it can draft orders but not send them. Nobody reviews the admin list on a schedule.</p></div></div>
+    <div class="row"><b>Evidence</b><div><p>The admin lists from GitHub's settings and the database console, the agent's credential and its permissions, and a dated note from the last review (there isn't one yet).</p></div></div>
+    <div class="row"><b>Ask engineering</b><div><p class="ask">Show me everyone who can change production today, and when that list was last checked. When a technician leaves, how fast is their login turned off?</p></div></div>
+  </section>
+
+  <section class="ws panel area">
+    <h2>2. Change management</h2>
+    <p class="what">How a change gets from someone's laptop into production.</p>
+    <div class="row"><b>Status</b><div><span class="chip code">CODE</span><span class="chip process">PROCESS</span>
+      <p>Every change goes through a pull request. The workflow runs the tests on every push, nobody can push straight to main, and one other developer approves before merge.</p></div></div>
+    <div class="row"><b>Evidence</b><div><p>The branch protection settings, and the last merged pull request with its review and passing checks.</p></div></div>
+    <div class="row"><b>Ask engineering</b><div><p class="ask">Can anyone push straight to production? Show me the last change that went out and who approved it.</p></div></div>
+  </section>
+
+  <section class="ws panel area">
+    <h2>3. Incident response</h2>
+    <p class="what">What happens when something goes wrong, and who owns it.</p>
+    <div class="row"><b>Status</b><div><span class="chip process">PROCESS</span><span class="chip missing">MISSING</span>
+      <p>Bugs get a report and a fix (HINH-482 and HINH-497), but there's no plan for a security incident and no named owner. If the lookup goes down, technicians call the parts desk.</p></div></div>
+    <div class="row"><b>Evidence</b><div><p>A one-page plan with an owner and the first few steps, and a retro from the last incident.</p></div></div>
+    <div class="row"><b>Ask engineering</b><div><p class="ask">If the distributor API key leaked tonight, who would find out, and what's the first thing they'd do?</p></div></div>
+  </section>
+
+  <section class="ws panel area">
+    <h2>4. Data handling</h2>
+    <p class="what">What data you hold, where it lives, and when it goes away.</p>
+    <div class="row"><b>Status</b><div><span class="chip code">CODE</span><span class="chip missing">MISSING</span>
+      <p>The parts catalog is private (internal). What HinH pays the distributor is confidential, so the server leaves it out for anyone in the technician role. Customer names and addresses on jobs are restricted. Job records are kept forever: there's no retention rule.</p></div></div>
+    <div class="row"><b>Evidence</b><div><p>A short list of each entity in the data model and its classification, the role check that leaves out cost, and a retention rule (there isn't one yet).</p></div></div>
+    <div class="row"><b>Ask engineering</b><div><p class="ask">Where do customer addresses live, including logs and backups, and when do they get deleted?</p></div></div>
+  </section>
+
+  <section class="ws panel area">
+    <h2>5. Vendors</h2>
+    <p class="what">Which outside companies hold or see your users' data.</p>
+    <div class="row"><b>Status</b><div><span class="chip process">PROCESS</span>
+      <p>Four vendors: the parts distributor (part numbers and orders), the hosting provider (everything), the AI provider (stock and upcoming jobs, for drafting orders), and GitHub (the code). The team checked that the AI provider's API terms don't allow training on HinH's data.</p></div></div>
+    <div class="row"><b>Evidence</b><div><p>The vendor list with what data each one gets, and the terms that say what each may do with it.</p></div></div>
+    <div class="row"><b>Ask engineering</b><div><p class="ask">Which outside companies see our customers' data, and what does each contract say they can do with it?</p></div></div>
+  </section>
+
+  <section class="ws panel area">
+    <h2>6. Availability</h2>
+    <p class="what">Staying up, and getting back up.</p>
+    <div class="row"><b>Status</b><div><span class="chip code">CODE</span><span class="chip missing">MISSING</span>
+      <p>HinH keeps its own copy of the catalog, loaded from the distributor once a night, so lookup still works when the distributor's system is down. The database provider takes daily backups automatically. Nobody has ever tried a restore.</p></div></div>
+    <div class="row"><b>Evidence</b><div><p>The backup settings, and a dated test restore with how long it took (there isn't one yet).</p></div></div>
+    <div class="row"><b>Ask engineering</b><div><p class="ask">When did we last restore from a backup, and how long did it take?</p></div></div>
+  </section>
+
+  <section class="ws panel">
+    <h2>What makes this a good one</h2>
+    <ol>
+      <li>It says “missing” where things are missing. Four of the six areas have a gap, which is normal for a 1.0.</li>
+      <li>Every piece of evidence is something you could screenshot or link to.</li>
+      <li>The questions ask to be shown something, not just told.</li>
+    </ol>
+  </section>
+</main>
+<div class="site-version" style="position:fixed;right:6px;bottom:4px;font:10px/1 system-ui,sans-serif;color:#999;opacity:.7;pointer-events:none">__SITE_VERSION__</div>
+</body></html>
